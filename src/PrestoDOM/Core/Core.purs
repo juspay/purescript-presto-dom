@@ -1,4 +1,4 @@
-module PrestoDOM.Core where
+module PrestoDOM.Core.Core where
 
 import Prelude
 
