@@ -1,11 +1,9 @@
 module FormField where
 
 import Prelude
-import PrestoDOM.Core
-import PrestoDOM.Elements
-import PrestoDOM.Events
+import PrestoDOM.Elements.Elements
 import PrestoDOM.Properties
-import PrestoDOM.Types
+import PrestoDOM.Types.DomAttributes
 
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
@@ -13,8 +11,8 @@ import FRP (FRP)
 import FRP.Behavior (sample_, step, unfold)
 import FRP.Event (create, subscribe)
 import Halogen.VDom (buildVDom, extract)
-import PrestoDOM.Util (Component, getRootNode, insertDom, patchAndRun, spec, storeMachine)
-
+import PrestoDOM.Events (onChange)
+import PrestoDOM.Types.Core (Component, PrestoDOM)
 
 data Action = TextChanged String
 type Label = String
@@ -64,7 +62,7 @@ view push state =
         , name "name"
         , color "#00000"
         , text state.value
-        , onChangeT push TextChanged
+        , onChange push TextChanged
         ]
         ]
     ]

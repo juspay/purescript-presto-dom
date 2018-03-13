@@ -1,11 +1,8 @@
 module LoginForm where
 
 import Prelude
-import PrestoDOM.Core
-import PrestoDOM.Elements
-import PrestoDOM.Events
+import PrestoDOM.Elements.Elements
 import PrestoDOM.Properties
-import PrestoDOM.Types
 
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
@@ -14,8 +11,10 @@ import FRP.Behavior (sample_, step, unfold)
 import FRP.Event (create, subscribe)
 import FormField as FormField
 import Halogen.VDom (buildVDom, extract)
-import PrestoDOM.Util (Component, mapDom, getRootNode, insertDom, patchAndRun, spec, storeMachine)
-import Unsafe.Coerce (unsafeCoerce)
+import PrestoDOM.Core (mapDom, getRootNode, insertDom, patchAndRun, spec, storeMachine)
+import PrestoDOM.Events (onClick)
+import PrestoDOM.Types.Core (Component, PrestoDOM)
+import PrestoDOM.Types.DomAttributes
 
 data Action =
   Username FormField.Action
@@ -93,7 +92,7 @@ view push state =
           , gravity "center"
           , visibility "not"
           , name "name"
-          , onClickT push (const SubmitClicked)
+          , onClick push (const SubmitClicked)
           ]
           [
             textView
