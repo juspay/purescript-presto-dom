@@ -1,18 +1,15 @@
 module PrestoDOM.Elements.Keyed
 	( KeyedNode
-    , linearLayout
-    , relativeLayout
-    , horizontalScrollView
-    , scrollView
+        , linearLayout
+        , relativeLayout
+        , horizontalScrollView
+        , scrollView
 	) where
 
 import Data.Tuple (Tuple)
-
 import Halogen.VDom (ElemName(ElemName), VDom)
-
-import PrestoDOM.Core
-
-import PrestoDOM.Elements (keyed)
+import Halogen.VDom.DOM.Prop (Prop)
+import PrestoDOM.Elements.Elements (keyed)
 
 type KeyedNode i p
    = Array i

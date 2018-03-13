@@ -1,7 +1,6 @@
-module PrestoDOM.Util where
+module PrestoDOM.Core where
 
 import Prelude
-import PrestoDOM.Core
 
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
@@ -15,10 +14,11 @@ import FRP.Behavior as B
 import FRP.Event (Event, subscribe)
 import FRP.Event as E
 import Halogen.VDom (Step(..), VDom, VDomMachine, VDomSpec(..), buildVDom, extract)
+import Halogen.VDom.DOM.Prop (Prop)
 import Halogen.VDom.Machine (never, step, extract)
 import Prelude (Unit, Void, bind, const, discard, pure, unit, ($))
 import PrestoDOM.Properties (a_duration)
-import PrestoDOM.Types (Rec)
+import PrestoDOM.Types.Core (PrestoDOM, Component)
 import Unsafe.Coerce (unsafeCoerce)
 
 foreign import logNode :: forall eff a . a  -> Eff eff Unit
@@ -63,46 +63,11 @@ spec document =  VDomSpec {
     , document : document
     }
 
-render :: forall i state eff a.
-  (state -> VDom (Array (Prop i)) Void)
-  -> state
-  -> Eff ( dom :: DOM, frp :: FRP | eff )
-    {  updateState :: (Behavior state
-                      -> Event a
-                      -> Eff (frp :: FRP, dom :: DOM | eff) (Eff (frp :: FRP, dom :: DOM | eff) Unit))
-    , stateBeh :: Behavior state }
-render dom state = do
-  root <- getRootNode
-  machine <- buildVDom (spec root) (dom state)
-  storeMachine machine
-  insertDom root (extract machine)
-  { event, push } <- E.create
-  let stateBeh = B.step state event
-  _ <- sample_ stateBeh event `E.subscribe` (\x -> patchAndRun x dom)
-  pure { updateState : (updateState push), stateBeh }
-
-updateState :: forall eff state a. (state -> Eff ( frp :: FRP | eff ) Unit)
-  -> Behavior state
-  -> Event a
-  -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)
-updateState stateFn beh event = sample_ beh event `subscribe` (\newState -> do
-  _ <- logNode newState
-  stateFn newState)
-
-
 patchAndRun :: forall a b t state i. state -> (state -> VDom (Array (Prop i)) Void) -> Eff t Unit
 patchAndRun state myDom = do
   machine <- getLatestMachine
   newMachine <- step machine (myDom state)
   storeMachine newMachine
-
-type Component action st eff =
-  {
-    initialState :: st
-  , view :: (action -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop action)) Void
-  , eval :: action -> st -> st
-  }
-
 
 runElm :: forall action i st eff.
   Component action st eff

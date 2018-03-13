@@ -3,18 +3,13 @@ module PrestoDOM.Properties where
 import Prelude
 
 import Data.Tuple (Tuple(..))
-
-import PrestoDOM.Core (class IsProp, PropName(..), Prop(..), toPropValue)
-
-import PrestoDOM.Types (Length)
+import Halogen.VDom.DOM.Prop (Prop(..))
+import PrestoDOM.Types.Core (class IsProp, Length, PropName(..), toPropValue)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
 prop (PropName name) = Property name <<< toPropValue
 
-
--- prop :: String -> String -> Prop
--- prop key value = Tuple key (AttrValue value)
 name :: forall i. String -> Prop i
 name = prop (PropName "name")
 

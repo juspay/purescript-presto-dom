@@ -7,24 +7,18 @@ import DOM.Event.Types (EventType(..), Event) as DOM
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import FRP (FRP)
-import Halogen.VDom.DOM.Prop (PropValue, propFromBoolean)
-import PrestoDOM.Core (Dynamic(..), MEvent, Prop(..), PropName(..))
+import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean)
 import PrestoDOM.Properties (prop)
+import PrestoDOM.Types.Core (PropName(..))
 import Unsafe.Coerce (unsafeCoerce)
 
 -- TODO : Remove this
-foreign import generateProp :: forall a eff. (a -> Eff eff Unit) -> String
 foreign import unsafeProp :: forall a. a -> String
 
--- TODO :: Change this to handler
-onClick :: forall i. Dynamic Boolean -> Prop i
-onClick (Dynamic { push }) = prop (PropName "onClick") (generateProp push)
+onClick :: forall a i eff. (a ->  Eff (frp :: FRP | eff) Unit) -> (Unit -> a) -> Prop a
+onClick push f = prop (PropName "onClick") (unsafeProp (push <<< f))
 
-onChange :: forall i. Dynamic String -> Prop i
-onChange (Dynamic { push }) = prop (PropName "onChange") (generateProp push)
+onChange :: forall a i eff. (a ->  Eff (frp :: FRP | eff) Unit) -> (String -> a) -> Prop a
+onChange push f = prop (PropName "onChange") (unsafeProp (push <<< f))
 
-onClickT :: forall a i eff. (a ->  Eff (frp :: FRP | eff) Unit) -> (Unit -> a) -> Prop a
-onClickT push f = prop (PropName "onClick") (unsafeProp (push <<< f))
 
-onChangeT :: forall a i eff. (a ->  Eff (frp :: FRP | eff) Unit) -> (String -> a) -> Prop a
-onChangeT push f = prop (PropName "onChange") (unsafeProp (push <<< f))

@@ -114,36 +114,3 @@ exports.getRootNode = function() {
 
 exports.insertDom = window.insertDom;
 
-// exports.attachSignalEvents = function(name) {
-//   return function (eventType) {
-//     return function (sub) {
-//       window.SUBS[name][eventType] = function (value, props) {
-//         var result = {
-//           value: new $Types.ValueS(value),
-//           props: new $Types.Props(props)
-//         };
-//         sub(new $Maybe.Just(result))();
-//       }
-//       return null;
-//     }
-//   }
-// }
-
-// exports.initializeState = function() {
-//   window.APP_STATE = {};
-//   return null;
-// }
-
-// exports.updateState = function(key) {
-//   return function(value) {
-//     return function() {
-//       window.APP_STATE[key] = value;
-
-//       return window.APP_STATE;
-//     }
-//   }
-// }
-
-// exports.getState = function() {
-//   return window.APP_STATE;
-// }

@@ -1,8 +1,8 @@
-module PrestoDOM.Elements
+module PrestoDOM.Elements.Elements
     ( Node
-	, Leaf
+    , Leaf
     , element
-	, keyed
+    , keyed
     , linearLayout
     , relativeLayout
     , horizontalScrollView
@@ -25,14 +25,12 @@ module PrestoDOM.Elements
     ) where
 
 
-import Data.Maybe (Maybe(..))
 import Data.Array
 
+import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
-
-import PrestoDOM.Types (ElemName(..), ElemSpec(..), VDom(..))
-
-import PrestoDOM.Core
+import Halogen.VDom.DOM.Prop (Prop)
+import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(..))
 
 type Node i p
    = Array i
