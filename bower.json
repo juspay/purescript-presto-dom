@@ -1,0 +1,30 @@
+{
+  "name": "purescript-presto-dom",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-prelude": "^3.1.1",
+    "purescript-console": "^3.0.0",
+    "purescript-halogen-vdom": "https://github.com/juspay/purescript-halogen-vdom.git#custom-vdom-v1",
+    "purescript-foreign-generic": "^5.0.0",
+    "purescript-behaviors": "^6.3.0",
+    "purescript-profunctor-lenses": "^3.8.0"
+  },
+  "devDependencies": {
+    "purescript-psci-support": "^3.0.0"
+  },
+  "homepage": "https://bitbucket.org/juspay/purescript-presto-dom",
+  "description": "UI Framework for writing cross platform apps",
+  "authors": [
+    "Juspay Technologies"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/juspay/purescript-presto-dom.git"
+  },
+  "version": "v0.1.0"
+}
