@@ -3,7 +3,11 @@ module Main where
 import Prelude
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
+import LoginForm as LoginForm
+import PrestoDOM.Util
+import DOM (DOM)
+import FRP(FRP)
 
-main :: forall e. Eff (console :: CONSOLE | e) Unit
+main :: forall eff. Eff ( frp :: FRP, dom :: DOM | eff ) (Eff ( frp :: FRP, dom :: DOM | eff) Unit)
 main = do
-  log "Hello sailor!"
+  runElm LoginForm.component
