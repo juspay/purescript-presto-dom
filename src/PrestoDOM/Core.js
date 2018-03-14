@@ -118,7 +118,7 @@ exports.getRootNode = function() {
   return {type: "linearLayout", props: {root: "true"}, children: []};
 }
 
-exports.insertDom = window.insertDom;
+exports.insertDom = insertDom;
 
 window.__PRESTO_ID = 1;
 
