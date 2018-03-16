@@ -196,11 +196,15 @@ inputTypeI :: forall i. String -> Prop i
 inputTypeI = prop (PropName "inputTypeI")
 
 
-textSize :: forall i. String -> Prop i
+lineHeight :: forall i. String -> Prop i
+lineHeight = prop (PropName "lineHeight")
+
+
+textSize :: forall i. Int -> Prop i
 textSize = prop (PropName "textSize")
 
 
-fontSize :: forall i. String -> Prop i
+fontSize :: forall i. Int -> Prop i
 fontSize = prop (PropName "fontSize")
 
 

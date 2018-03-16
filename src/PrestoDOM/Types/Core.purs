@@ -1,6 +1,7 @@
 module PrestoDOM.Types.Core
     ( PropName(..)
     , PrestoDOM
+    , Props
     , toPropValue
     , Component
     , module VDom
@@ -28,6 +29,8 @@ import PrestoDOM.Types.DomAttributes as Types
 
 newtype PropName value = PropName String
 type PrestoDOM i w = VDom (Array (Prop i)) w
+
+type Props i = Array (Prop i)
 
 type Component action st eff =
   {
