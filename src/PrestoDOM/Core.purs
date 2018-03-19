@@ -7,9 +7,10 @@ import Control.Monad.Eff.Console (CONSOLE, log)
 import DOM (DOM)
 import DOM.HTML.HTMLImageElement (create)
 import DOM.Node.Types (Element, Document)
+import Data.Either (either)
 import FRP (FRP)
 import FRP as F
-import FRP.Behavior (Behavior, behavior, sample_, unfold)
+import FRP.Behavior (Behavior, behavior, sampleBy, sample_, unfold)
 import FRP.Behavior as B
 import FRP.Event (Event, subscribe)
 import FRP.Event as E
@@ -18,7 +19,7 @@ import Halogen.VDom.DOM.Prop (Prop)
 import Halogen.VDom.Machine (never, step, extract)
 import Prelude (Unit, Void, bind, const, discard, pure, unit, ($))
 import PrestoDOM.Properties (a_duration)
-import PrestoDOM.Types.Core (PrestoDOM, Component)
+import PrestoDOM.Types.Core (Component, PrestoDOM, Screen)
 import Unsafe.Coerce (unsafeCoerce)
 
 foreign import logNode :: forall eff a . a  -> Eff eff Unit
@@ -69,10 +70,10 @@ patchAndRun state myDom = do
   newMachine <- step machine (myDom state)
   storeMachine newMachine
 
-runElm :: forall action i st eff.
+runComponent :: forall action i st eff.
   Component action st eff
   -> Eff ( frp :: FRP, dom :: DOM | eff ) (Eff ( frp :: FRP, dom :: DOM | eff ) Unit)
-runElm { initialState, view, eval } = do
+runComponent { initialState, view, eval } = do
   { event, push } <- E.create
   let initState = initialState
   root <- getRootNode
@@ -82,6 +83,22 @@ runElm { initialState, view, eval } = do
   sample_ (unfold eval event initState) event `subscribe` (\newState -> do
     patchAndRun newState (view push))
 
+runScreen :: forall action i st eff retAction.
+    Screen action st eff retAction
+    -> (retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
+    -> Eff ( frp :: FRP, dom :: DOM | eff ) Unit
+runScreen { initialState, view, eval } cb = do
+  { event, push } <- E.create
+  let initState = initialState
+  root <- getRootNode
+  machine <- buildVDom (spec root) (view push initState)
+  storeMachine machine
+  insertDom root (extract machine)
+  let stateBeh = unfold (\_ beh -> beh) event initState
+  _ <- sampleBy (\state action -> eval action state) stateBeh event
+    `subscribe` (\eitherState ->
+       either cb (\state -> patchAndRun state (view push) *> pure unit) eitherState)
+  pure unit
 
 mapDom :: forall a b state eff w.
   ((a -> Eff (frp :: FRP | eff) Unit) -> state -> PrestoDOM a w)
