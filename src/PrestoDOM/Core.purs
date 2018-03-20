@@ -7,10 +7,10 @@ import Control.Monad.Eff.Console (CONSOLE, log)
 import DOM (DOM)
 import DOM.HTML.HTMLImageElement (create)
 import DOM.Node.Types (Element, Document)
-import Data.Either (either)
+import Data.Either (Either(..), either)
 import FRP (FRP)
 import FRP as F
-import FRP.Behavior (Behavior, behavior, sampleBy, sample_, unfold)
+import FRP.Behavior (Behavior, behavior, sample, sampleBy, sample_, unfold)
 import FRP.Behavior as B
 import FRP.Event (Event, subscribe)
 import FRP.Event as E
@@ -94,9 +94,8 @@ runScreen { initialState, view, eval } cb = do
   machine <- buildVDom (spec root) (view push initState)
   storeMachine machine
   insertDom root (extract machine)
-  let stateBeh = unfold (\_ beh -> beh) event initState
-  _ <- sampleBy (\state action -> eval action state) stateBeh event
-    `subscribe` (\eitherState ->
+  let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action)) event (Right initialState)
+  _ <- sample_ stateBeh event `subscribe` (\eitherState ->
        either cb (\state -> patchAndRun state (view push) *> pure unit) eitherState)
   pure unit
 
