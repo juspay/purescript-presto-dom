@@ -40,7 +40,7 @@ type Component action st eff =
   , eval :: action -> st -> st
   }
 
-type Screen action st eff retAction =
+type Screen retAction = forall action st eff.
   {
     initialState :: st
   , view :: (action -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop action)) Void
