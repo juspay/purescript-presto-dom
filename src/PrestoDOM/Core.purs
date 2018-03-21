@@ -83,8 +83,8 @@ runComponent { initialState, view, eval } = do
   sample_ (unfold eval event initState) event `subscribe` (\newState -> do
     patchAndRun newState (view push))
 
-runScreen :: forall eff retAction.
-    Screen retAction
+runScreen :: forall action st eff retAction.
+    Screen action st eff retAction
     -> (retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
     -> Eff ( frp :: FRP, dom :: DOM | eff ) Unit
 runScreen { initialState, view, eval } cb = do
