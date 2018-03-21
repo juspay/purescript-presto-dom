@@ -44,7 +44,7 @@ eval SubmitClicked state =
         else (Right $ state { errorMessage = "Your account is blocked" })
 
 
-screen :: forall i eff. Screen Action State eff Unit
+screen :: forall eff. Screen Action State eff Unit
 screen =
   {
     initialState
