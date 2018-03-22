@@ -382,3 +382,6 @@ maxSeek = prop (PropName "maxSeek")
 
 accessibilityHint :: forall i. String -> Prop i
 accessibilityHint = prop (PropName "accessibilityHint")
+
+lineHeight :: forall i. String -> Prop i
+lineHeight = prop (PropName "lineHeight")
