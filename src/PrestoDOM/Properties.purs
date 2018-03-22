@@ -10,11 +10,12 @@ import PrestoDOM.Types.Core (class IsProp, Length, PropName(..), toPropValue)
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
 prop (PropName name) = Property name <<< toPropValue
 
-name :: forall i. String -> Prop i
-name = prop (PropName "name")
-
 id_ :: forall i. String -> Prop i
 id_ = prop (PropName "id")
+
+
+root :: forall i. Boolean -> Prop i
+root = prop (PropName "root")
 
 textFromHtml :: forall i. String -> Prop i
 textFromHtml = prop (PropName "textFromHtml")
