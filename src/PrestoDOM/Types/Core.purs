@@ -2,7 +2,6 @@ module PrestoDOM.Types.Core
     ( PropName(..)
     , PrestoDOM
     , toPropValue
-    , Component
     , Screen
     , module VDom
     , module Types
@@ -27,13 +26,6 @@ import PrestoDOM.Types.DomAttributes as Types
 
 newtype PropName value = PropName String
 type PrestoDOM i w = VDom (Array (Prop i)) w
-
-type Component action st eff =
-  {
-    initialState :: st
-  , view :: (action -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop action)) Void
-  , eval :: action -> st -> st
-  }
 
 type Screen action st eff retAction =
   {

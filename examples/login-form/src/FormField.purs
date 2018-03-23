@@ -12,7 +12,7 @@ import FRP.Behavior (sample_, step, unfold)
 import FRP.Event (create, subscribe)
 import Halogen.VDom (buildVDom, extract)
 import PrestoDOM.Events (onChange)
-import PrestoDOM.Types.Core (Component, PrestoDOM)
+import PrestoDOM.Types.Core (PrestoDOM)
 
 data Action = TextChanged String
 type Label = String

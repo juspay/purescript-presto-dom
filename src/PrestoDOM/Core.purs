@@ -19,7 +19,7 @@ import Halogen.VDom.DOM.Prop (Prop)
 import Halogen.VDom.Machine (never, step, extract)
 import Prelude (Unit, Void, bind, const, discard, pure, unit, ($))
 import PrestoDOM.Properties (a_duration)
-import PrestoDOM.Types.Core (Component, PrestoDOM, Screen)
+import PrestoDOM.Types.Core (PrestoDOM, Screen)
 import Unsafe.Coerce (unsafeCoerce)
 
 foreign import logNode :: forall eff a . a  -> Eff eff Unit
@@ -69,19 +69,6 @@ patchAndRun state myDom = do
   machine <- getLatestMachine
   newMachine <- step machine (myDom state)
   storeMachine newMachine
-
-runComponent :: forall action i st eff.
-  Component action st eff
-  -> Eff ( frp :: FRP, dom :: DOM | eff ) (Eff ( frp :: FRP, dom :: DOM | eff ) Unit)
-runComponent { initialState, view, eval } = do
-  { event, push } <- E.create
-  let initState = initialState
-  root <- getRootNode
-  machine <- buildVDom (spec root) (view push initState)
-  storeMachine machine
-  insertDom root (extract machine)
-  sample_ (unfold eval event initState) event `subscribe` (\newState -> do
-    patchAndRun newState (view push))
 
 runScreen :: forall action st eff retAction.
     Screen action st eff retAction
