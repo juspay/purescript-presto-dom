@@ -203,7 +203,14 @@ function insertDom(root) {
       dom.parentNode = root;
       window.N = root;
 
-      Android.Render(domAll(root));
+      if(window.__OS == "ANDROID"){
+        Android.Render(JSON.stringify(domAll(root)), null);
+      }else if(window.__OS == "WEB"){
+        Android.Render(domAll(root), null);
+      }else{
+        Android.Render(JSON.stringify(domAll(root)), null);
+      }
+      // Android.Render(domAll(root));
     }
   }
 }
