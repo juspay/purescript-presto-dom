@@ -1,118 +1,118 @@
 module PrestoDOM.Properties.GetChildProps
-    ( override_
-    , root_
+    ( override_p
+    , root_p
 
-    , a_duration_
-    , a_scaleX_
-    , a_scaleY_
-    , accessibilityHint_
-    , adjustViewBounds_
-    , alpha_
+    , a_duration_p
+    , a_scaleX_p
+    , a_scaleY_p
+    , accessibilityHint_p
+    , adjustViewBounds_p
+    , alpha_p
 
-    , background_
-    , backgroundColor_
-    , backgroundDrawable_
-    , backgroundTint_
-    , btnBackground_
-    , btnColor_
-    , buttonTint_
+    , background_p
+    , backgroundColor_p
+    , backgroundDrawable_p
+    , backgroundTint_p
+    , btnBackground_p
+    , btnColor_p
+    , buttonTint_p
 
-    , checked_
-    , clickable_
-    , clipChildren_
-    , color_
-    , colorFilter_
-    , cornerRadius_
-    , curve_
+    , checked_p
+    , clickable_p
+    , clipChildren_p
+    , color_p
+    , colorFilter_p
+    , cornerRadius_p
+    , curve_p
 
-    , delay_
-    , dividerDrawable_
-    , duration_
+    , delay_p
+    , dividerDrawable_p
+    , duration_p
 
-    , elevation_
+    , elevation_p
 
-    , fillViewport_
-    , focus_
-    , focusable_
-    , focusOut_
-    , fontFamily_
-    , fontSize_
-    , fontStyle_
-    , foreground_
+    , fillViewport_p
+    , focus_p
+    , focusable_p
+    , focusOut_p
+    , fontFamily_p
+    , fontSize_p
+    , fontStyle_p
+    , foreground_p
 
-    , gravity_
+    , gravity_p
 
-    , hardware_
-    , height_
-    , hint_
-    , hintColor_
+    , hardware_p
+    , height_p
+    , hint_p
+    , hintColor_p
 
-    , imageUrl_
-    , inputType_
-    , inputTypeI_
+    , imageUrl_p
+    , inputType_p
+    , inputTypeI_p
 
-    , layout_gravity_
-    , layoutTransition_
-    , letterSpacing_
-    , lineHeight_
+    , layout_gravity_p
+    , layoutTransition_p
+    , letterSpacing_p
+    , lineHeight_p
 
-    , margin_
-    , marginEnd_
-    , marginStart_
-    , maxDate_
-    , maxLines_
-    , maxSeek_
-    , maxWidth_
-    , minDate_
-    , minHeight_
-    , minWidth_
+    , margin_p
+    , marginEnd_p
+    , marginStart_p
+    , maxDate_p
+    , maxLines_p
+    , maxSeek_p
+    , maxWidth_p
+    , minDate_p
+    , minHeight_p
+    , minWidth_p
 
-    , orientation_
+    , orientation_p
 
-    , padding_
-    , pivotX_
-    , pivotY_
-    , progressColor_
+    , padding_p
+    , pivotX_p
+    , pivotY_p
+    , progressColor_p
 
-    , rotation_
-    , rotationX_
-    , rotationY_
+    , rotation_p
+    , rotationX_p
+    , rotationY_p
 
-    , scaleType_
-    , scaleX_
-    , scaleY_
-    , scrollBarX_
-    , scrollBarY_
-    , selectable_
-    , selectableItem_
-    , selected_
-    , selectedTabIndicatorColor_
-    , selectedTabIndicatorHeight_
-    , setDate_
-    , shadowLayer_
-    , showDividers_
-    , singleLine_
-    , stroke_
+    , scaleType_p
+    , scaleX_p
+    , scaleY_p
+    , scrollBarX_p
+    , scrollBarY_p
+    , selectable_p
+    , selectableItem_p
+    , selected_p
+    , selectedTabIndicatorColor_p
+    , selectedTabIndicatorHeight_p
+    , setDate_p
+    , shadowLayer_p
+    , showDividers_p
+    , singleLine_p
+    , stroke_p
 
-    , tabTextColors_
-    , text_
-    , textAllCaps_
-    , textFromHtml_
-    , textIsSelectable_
-    , textSize_
-    , translationX_
-    , translationY_
-    , translationZ_
-    , toast_
-    , typeface_
+    , tabTextColors_p
+    , text_p
+    , textAllCaps_p
+    , textFromHtml_p
+    , textIsSelectable_p
+    , textSize_p
+    , translationX_p
+    , translationY_p
+    , translationZ_p
+    , toast_p
+    , typeface_p
 
-    , url_
+    , url_p
 
-    , values_
-    , visibility_
+    , values_p
+    , visibility_p
 
-    , weight_
-    , width_
+    , weight_p
+    , width_p
     ) where
 
 import Prelude
@@ -135,324 +135,324 @@ fromGenProp key default strMap = let value = lookup key strMap
                                   Nothing -> Property key $ toPropValue default
 
 
-override_ :: forall i. String -> String -> StrMap GenProp -> Prop i
-override_ = fromGenProp
+override_p :: forall i. String -> String -> StrMap GenProp -> Prop i
+override_p = fromGenProp
 
-root_ :: forall i. Boolean -> StrMap GenProp -> Prop i
-root_ = fromGenProp "root"
+root_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+root_p = fromGenProp "root"
 
 
-a_duration_ :: forall i. String -> StrMap GenProp -> Prop i
-a_duration_ = fromGenProp "a_duration"
+a_duration_p :: forall i. String -> StrMap GenProp -> Prop i
+a_duration_p = fromGenProp "a_duration"
 
-a_scaleX_ :: forall i. String -> StrMap GenProp -> Prop i
-a_scaleX_ = fromGenProp "a_scaleX"
+a_scaleX_p :: forall i. String -> StrMap GenProp -> Prop i
+a_scaleX_p = fromGenProp "a_scaleX"
 
-a_scaleY_ :: forall i. String -> StrMap GenProp -> Prop i
-a_scaleY_ = fromGenProp "a_scaleY"
+a_scaleY_p :: forall i. String -> StrMap GenProp -> Prop i
+a_scaleY_p = fromGenProp "a_scaleY"
 
-accessibilityHint_ :: forall i. String -> StrMap GenProp -> Prop i
-accessibilityHint_ = fromGenProp "accessibilityHint"
+accessibilityHint_p :: forall i. String -> StrMap GenProp -> Prop i
+accessibilityHint_p = fromGenProp "accessibilityHint"
 
-adjustViewBounds_ :: forall i. String -> StrMap GenProp -> Prop i
-adjustViewBounds_ = fromGenProp "adjustViewBounds"
+adjustViewBounds_p :: forall i. String -> StrMap GenProp -> Prop i
+adjustViewBounds_p = fromGenProp "adjustViewBounds"
 
-alpha_ :: forall i. String -> StrMap GenProp -> Prop i
-alpha_ = fromGenProp "alpha"
+alpha_p :: forall i. String -> StrMap GenProp -> Prop i
+alpha_p = fromGenProp "alpha"
 
 
 
-background_ :: forall i. String -> StrMap GenProp -> Prop i
-background_ = fromGenProp "background"
+background_p :: forall i. String -> StrMap GenProp -> Prop i
+background_p = fromGenProp "background"
 
-backgroundColor_ :: forall i. String -> StrMap GenProp -> Prop i
-backgroundColor_ = fromGenProp "backgroundColor"
+backgroundColor_p :: forall i. String -> StrMap GenProp -> Prop i
+backgroundColor_p = fromGenProp "backgroundColor"
 
-backgroundDrawable_ :: forall i. String -> StrMap GenProp -> Prop i
-backgroundDrawable_ = fromGenProp "backgroundDrawable"
+backgroundDrawable_p :: forall i. String -> StrMap GenProp -> Prop i
+backgroundDrawable_p = fromGenProp "backgroundDrawable"
 
-backgroundTint_ :: forall i. String -> StrMap GenProp -> Prop i
-backgroundTint_ = fromGenProp "backgroundTint"
+backgroundTint_p :: forall i. String -> StrMap GenProp -> Prop i
+backgroundTint_p = fromGenProp "backgroundTint"
 
-btnBackground_ :: forall i. String -> StrMap GenProp -> Prop i
-btnBackground_ = fromGenProp "btnBackground"
+btnBackground_p :: forall i. String -> StrMap GenProp -> Prop i
+btnBackground_p = fromGenProp "btnBackground"
 
-btnColor_ :: forall i. String -> StrMap GenProp -> Prop i
-btnColor_ = fromGenProp "btnColor"
+btnColor_p :: forall i. String -> StrMap GenProp -> Prop i
+btnColor_p = fromGenProp "btnColor"
 
-buttonTint_ :: forall i. String -> StrMap GenProp -> Prop i
-buttonTint_ = fromGenProp "buttonTint"
+buttonTint_p :: forall i. String -> StrMap GenProp -> Prop i
+buttonTint_p = fromGenProp "buttonTint"
 
 
 
-checked_ :: forall i. String -> StrMap GenProp -> Prop i
-checked_ = fromGenProp "checked"
+checked_p :: forall i. String -> StrMap GenProp -> Prop i
+checked_p = fromGenProp "checked"
 
-clickable_ :: forall i. String -> StrMap GenProp -> Prop i
-clickable_ = fromGenProp "clickable"
+clickable_p :: forall i. String -> StrMap GenProp -> Prop i
+clickable_p = fromGenProp "clickable"
 
-clipChildren_ :: forall i. String -> StrMap GenProp -> Prop i
-clipChildren_ = fromGenProp "clipChildren"
+clipChildren_p :: forall i. String -> StrMap GenProp -> Prop i
+clipChildren_p = fromGenProp "clipChildren"
 
-color_ :: forall i. String -> StrMap GenProp -> Prop i
-color_ = fromGenProp "color"
+color_p :: forall i. String -> StrMap GenProp -> Prop i
+color_p = fromGenProp "color"
 
-colorFilter_ :: forall i. String -> StrMap GenProp -> Prop i
-colorFilter_ = fromGenProp "colorFilter"
+colorFilter_p :: forall i. String -> StrMap GenProp -> Prop i
+colorFilter_p = fromGenProp "colorFilter"
 
-cornerRadius_ :: forall i. String -> StrMap GenProp -> Prop i
-cornerRadius_ = fromGenProp "cornerRadius"
+cornerRadius_p :: forall i. String -> StrMap GenProp -> Prop i
+cornerRadius_p = fromGenProp "cornerRadius"
 
-curve_ :: forall i. String -> StrMap GenProp -> Prop i
-curve_ = fromGenProp "curve"
+curve_p :: forall i. String -> StrMap GenProp -> Prop i
+curve_p = fromGenProp "curve"
 
 
 
-delay_ :: forall i. String -> StrMap GenProp -> Prop i
-delay_ = fromGenProp "delay"
+delay_p :: forall i. String -> StrMap GenProp -> Prop i
+delay_p = fromGenProp "delay"
 
-dividerDrawable_ :: forall i. String -> StrMap GenProp -> Prop i
-dividerDrawable_ = fromGenProp "dividerDrawable"
+dividerDrawable_p :: forall i. String -> StrMap GenProp -> Prop i
+dividerDrawable_p = fromGenProp "dividerDrawable"
 
-duration_ :: forall i. String -> StrMap GenProp -> Prop i
-duration_ = fromGenProp "duration"
+duration_p :: forall i. String -> StrMap GenProp -> Prop i
+duration_p = fromGenProp "duration"
 
 
 
-elevation_ :: forall i. String -> StrMap GenProp -> Prop i
-elevation_ = fromGenProp "elevation"
+elevation_p :: forall i. String -> StrMap GenProp -> Prop i
+elevation_p = fromGenProp "elevation"
 
 
 
-fillViewport_ :: forall i. String -> StrMap GenProp -> Prop i
-fillViewport_ = fromGenProp "fillViewport"
+fillViewport_p :: forall i. String -> StrMap GenProp -> Prop i
+fillViewport_p = fromGenProp "fillViewport"
 
-focus_ :: forall i. String -> StrMap GenProp -> Prop i
-focus_ = fromGenProp "focus"
+focus_p :: forall i. String -> StrMap GenProp -> Prop i
+focus_p = fromGenProp "focus"
 
-focusable_ :: forall i. String -> StrMap GenProp -> Prop i
-focusable_ = fromGenProp "focusable"
+focusable_p :: forall i. String -> StrMap GenProp -> Prop i
+focusable_p = fromGenProp "focusable"
 
-focusOut_ :: forall i. String -> StrMap GenProp -> Prop i
-focusOut_ = fromGenProp "focusOut"
+focusOut_p :: forall i. String -> StrMap GenProp -> Prop i
+focusOut_p = fromGenProp "focusOut"
 
-fontFamily_ :: forall i. String -> StrMap GenProp -> Prop i
-fontFamily_ = fromGenProp "fontFamily"
+fontFamily_p :: forall i. String -> StrMap GenProp -> Prop i
+fontFamily_p = fromGenProp "fontFamily"
 
-fontSize_ :: forall i. Int -> StrMap GenProp -> Prop i
-fontSize_ = fromGenProp "fontSize"
+fontSize_p :: forall i. Int -> StrMap GenProp -> Prop i
+fontSize_p = fromGenProp "fontSize"
 
-fontStyle_ :: forall i. String -> StrMap GenProp -> Prop i
-fontStyle_ = fromGenProp "fontStyle"
+fontStyle_p :: forall i. String -> StrMap GenProp -> Prop i
+fontStyle_p = fromGenProp "fontStyle"
 
-foreground_ :: forall i. String -> StrMap GenProp -> Prop i
-foreground_ = fromGenProp "foreground"
+foreground_p :: forall i. String -> StrMap GenProp -> Prop i
+foreground_p = fromGenProp "foreground"
 
 
 
-gravity_ :: forall i. String -> StrMap GenProp -> Prop i
-gravity_ = fromGenProp "gravity"
+gravity_p :: forall i. String -> StrMap GenProp -> Prop i
+gravity_p = fromGenProp "gravity"
 
 
 
-hardware_ :: forall i. String -> StrMap GenProp -> Prop i
-hardware_ = fromGenProp "hardware"
+hardware_p :: forall i. String -> StrMap GenProp -> Prop i
+hardware_p = fromGenProp "hardware"
 
-height_ :: forall i. Length -> StrMap GenProp -> Prop i
-height_ = fromGenProp "height"
+height_p :: forall i. Length -> StrMap GenProp -> Prop i
+height_p = fromGenProp "height"
 
-hint_ :: forall i. String -> StrMap GenProp -> Prop i
-hint_ = fromGenProp "hint"
+hint_p :: forall i. String -> StrMap GenProp -> Prop i
+hint_p = fromGenProp "hint"
 
-hintColor_ :: forall i. String -> StrMap GenProp -> Prop i
-hintColor_ = fromGenProp "hintColor"
+hintColor_p :: forall i. String -> StrMap GenProp -> Prop i
+hintColor_p = fromGenProp "hintColor"
 
 
 
-imageUrl_ :: forall i. String -> StrMap GenProp -> Prop i
-imageUrl_ = fromGenProp "imageUrl"
+imageUrl_p :: forall i. String -> StrMap GenProp -> Prop i
+imageUrl_p = fromGenProp "imageUrl"
 
-inputType_ :: forall i. String -> StrMap GenProp -> Prop i
-inputType_ = fromGenProp "inputType"
+inputType_p :: forall i. String -> StrMap GenProp -> Prop i
+inputType_p = fromGenProp "inputType"
 
-inputTypeI_ :: forall i. String -> StrMap GenProp -> Prop i
-inputTypeI_ = fromGenProp "inputTypeI"
+inputTypeI_p :: forall i. String -> StrMap GenProp -> Prop i
+inputTypeI_p = fromGenProp "inputTypeI"
 
 
 
-layout_gravity_ :: forall i. String -> StrMap GenProp -> Prop i
-layout_gravity_ = fromGenProp "layout_gravity"
+layout_gravity_p :: forall i. String -> StrMap GenProp -> Prop i
+layout_gravity_p = fromGenProp "layout_gravity"
 
-layoutTransition_ :: forall i. String -> StrMap GenProp -> Prop i
-layoutTransition_ = fromGenProp "layoutTransition"
+layoutTransition_p :: forall i. String -> StrMap GenProp -> Prop i
+layoutTransition_p = fromGenProp "layoutTransition"
 
-letterSpacing_ :: forall i. String -> StrMap GenProp -> Prop i
-letterSpacing_ = fromGenProp "letterSpacing"
+letterSpacing_p :: forall i. String -> StrMap GenProp -> Prop i
+letterSpacing_p = fromGenProp "letterSpacing"
 
-lineHeight_ :: forall i. String -> StrMap GenProp -> Prop i
-lineHeight_ = fromGenProp "lineHeight"
+lineHeight_p :: forall i. String -> StrMap GenProp -> Prop i
+lineHeight_p = fromGenProp "lineHeight"
 
 
 
-margin_ :: forall i. String -> StrMap GenProp -> Prop i
-margin_ = fromGenProp "margin"
+margin_p :: forall i. String -> StrMap GenProp -> Prop i
+margin_p = fromGenProp "margin"
 
-marginEnd_ :: forall i. String -> StrMap GenProp -> Prop i
-marginEnd_ = fromGenProp "marginEnd"
+marginEnd_p :: forall i. String -> StrMap GenProp -> Prop i
+marginEnd_p = fromGenProp "marginEnd"
 
-marginStart_ :: forall i. String -> StrMap GenProp -> Prop i
-marginStart_ = fromGenProp "marginStart"
+marginStart_p :: forall i. String -> StrMap GenProp -> Prop i
+marginStart_p = fromGenProp "marginStart"
 
-maxDate_ :: forall i. String -> StrMap GenProp -> Prop i
-maxDate_ = fromGenProp "maxDate"
+maxDate_p :: forall i. String -> StrMap GenProp -> Prop i
+maxDate_p = fromGenProp "maxDate"
 
-maxLines_ :: forall i. String -> StrMap GenProp -> Prop i
-maxLines_ = fromGenProp "maxLines"
+maxLines_p :: forall i. String -> StrMap GenProp -> Prop i
+maxLines_p = fromGenProp "maxLines"
 
-maxSeek_ :: forall i. String -> StrMap GenProp -> Prop i
-maxSeek_ = fromGenProp "maxSeek"
+maxSeek_p :: forall i. String -> StrMap GenProp -> Prop i
+maxSeek_p = fromGenProp "maxSeek"
 
-maxWidth_ :: forall i. String -> StrMap GenProp -> Prop i
-maxWidth_ = fromGenProp "maxWidth"
+maxWidth_p :: forall i. String -> StrMap GenProp -> Prop i
+maxWidth_p = fromGenProp "maxWidth"
 
-minDate_ :: forall i. String -> StrMap GenProp -> Prop i
-minDate_ = fromGenProp "minDate"
+minDate_p :: forall i. String -> StrMap GenProp -> Prop i
+minDate_p = fromGenProp "minDate"
 
-minHeight_ :: forall i. String -> StrMap GenProp -> Prop i
-minHeight_ = fromGenProp "minHeight"
+minHeight_p :: forall i. String -> StrMap GenProp -> Prop i
+minHeight_p = fromGenProp "minHeight"
 
-minWidth_ :: forall i. String -> StrMap GenProp -> Prop i
-minWidth_ = fromGenProp "minWidth"
+minWidth_p :: forall i. String -> StrMap GenProp -> Prop i
+minWidth_p = fromGenProp "minWidth"
 
 
 
-orientation_ :: forall i. String -> StrMap GenProp -> Prop i
-orientation_ = fromGenProp "orientation"
+orientation_p :: forall i. String -> StrMap GenProp -> Prop i
+orientation_p = fromGenProp "orientation"
 
 
 
-padding_ :: forall i. String -> StrMap GenProp -> Prop i
-padding_ = fromGenProp "padding"
+padding_p :: forall i. String -> StrMap GenProp -> Prop i
+padding_p = fromGenProp "padding"
 
-pivotX_ :: forall i. String -> StrMap GenProp -> Prop i
-pivotX_ = fromGenProp "pivotX"
+pivotX_p :: forall i. String -> StrMap GenProp -> Prop i
+pivotX_p = fromGenProp "pivotX"
 
-pivotY_ :: forall i. String -> StrMap GenProp -> Prop i
-pivotY_ = fromGenProp "pivotY"
+pivotY_p :: forall i. String -> StrMap GenProp -> Prop i
+pivotY_p = fromGenProp "pivotY"
 
-progressColor_ :: forall i. String -> StrMap GenProp -> Prop i
-progressColor_ = fromGenProp "progressColor"
+progressColor_p :: forall i. String -> StrMap GenProp -> Prop i
+progressColor_p = fromGenProp "progressColor"
 
 
 
-rotation_ :: forall i. String -> StrMap GenProp -> Prop i
-rotation_ = fromGenProp "rotation"
+rotation_p :: forall i. String -> StrMap GenProp -> Prop i
+rotation_p = fromGenProp "rotation"
 
-rotationX_ :: forall i. String -> StrMap GenProp -> Prop i
-rotationX_ = fromGenProp "rotationX"
+rotationX_p :: forall i. String -> StrMap GenProp -> Prop i
+rotationX_p = fromGenProp "rotationX"
 
-rotationY_ :: forall i. String -> StrMap GenProp -> Prop i
-rotationY_ = fromGenProp "rotationY"
+rotationY_p :: forall i. String -> StrMap GenProp -> Prop i
+rotationY_p = fromGenProp "rotationY"
 
 
 
-scaleType_ :: forall i. String -> StrMap GenProp -> Prop i
-scaleType_ = fromGenProp "scaleType"
+scaleType_p :: forall i. String -> StrMap GenProp -> Prop i
+scaleType_p = fromGenProp "scaleType"
 
-scaleX_ :: forall i. String -> StrMap GenProp -> Prop i
-scaleX_ = fromGenProp "scaleX"
+scaleX_p :: forall i. String -> StrMap GenProp -> Prop i
+scaleX_p = fromGenProp "scaleX"
 
-scaleY_ :: forall i. String -> StrMap GenProp -> Prop i
-scaleY_ = fromGenProp "scaleY"
+scaleY_p :: forall i. String -> StrMap GenProp -> Prop i
+scaleY_p = fromGenProp "scaleY"
 
-scrollBarX_ :: forall i. String -> StrMap GenProp -> Prop i
-scrollBarX_ = fromGenProp "scrollBarX"
+scrollBarX_p :: forall i. String -> StrMap GenProp -> Prop i
+scrollBarX_p = fromGenProp "scrollBarX"
 
-scrollBarY_ :: forall i. String -> StrMap GenProp -> Prop i
-scrollBarY_ = fromGenProp "scrollBarY"
+scrollBarY_p :: forall i. String -> StrMap GenProp -> Prop i
+scrollBarY_p = fromGenProp "scrollBarY"
 
-selectable_ :: forall i. String -> StrMap GenProp -> Prop i
-selectable_ = fromGenProp "selectable"
+selectable_p :: forall i. String -> StrMap GenProp -> Prop i
+selectable_p = fromGenProp "selectable"
 
-selectableItem_ :: forall i. String -> StrMap GenProp -> Prop i
-selectableItem_ = fromGenProp "selectableItem"
+selectableItem_p :: forall i. String -> StrMap GenProp -> Prop i
+selectableItem_p = fromGenProp "selectableItem"
 
-selected_ :: forall i. String -> StrMap GenProp -> Prop i
-selected_ = fromGenProp "selected"
+selected_p :: forall i. String -> StrMap GenProp -> Prop i
+selected_p = fromGenProp "selected"
 
-selectedTabIndicatorColor_ :: forall i. String -> StrMap GenProp -> Prop i
-selectedTabIndicatorColor_ = fromGenProp "selectedTabIndicatorColor"
+selectedTabIndicatorColor_p :: forall i. String -> StrMap GenProp -> Prop i
+selectedTabIndicatorColor_p = fromGenProp "selectedTabIndicatorColor"
 
-selectedTabIndicatorHeight_ :: forall i. String -> StrMap GenProp -> Prop i
-selectedTabIndicatorHeight_ = fromGenProp "selectedTabIndicatorHeight"
+selectedTabIndicatorHeight_p :: forall i. String -> StrMap GenProp -> Prop i
+selectedTabIndicatorHeight_p = fromGenProp "selectedTabIndicatorHeight"
 
-setDate_ :: forall i. String -> StrMap GenProp -> Prop i
-setDate_ = fromGenProp "setDate"
+setDate_p :: forall i. String -> StrMap GenProp -> Prop i
+setDate_p = fromGenProp "setDate"
 
-shadowLayer_ :: forall i. String -> StrMap GenProp -> Prop i
-shadowLayer_ = fromGenProp "shadowLayer"
+shadowLayer_p :: forall i. String -> StrMap GenProp -> Prop i
+shadowLayer_p = fromGenProp "shadowLayer"
 
-showDividers_ :: forall i. String -> StrMap GenProp -> Prop i
-showDividers_ = fromGenProp "showDividers"
+showDividers_p :: forall i. String -> StrMap GenProp -> Prop i
+showDividers_p = fromGenProp "showDividers"
 
-singleLine_ :: forall i. String -> StrMap GenProp -> Prop i
-singleLine_ = fromGenProp "singleLine"
+singleLine_p :: forall i. String -> StrMap GenProp -> Prop i
+singleLine_p = fromGenProp "singleLine"
 
-stroke_ :: forall i. String -> StrMap GenProp -> Prop i
-stroke_ = fromGenProp "stroke"
+stroke_p :: forall i. String -> StrMap GenProp -> Prop i
+stroke_p = fromGenProp "stroke"
 
 
 
-tabTextColors_ :: forall i. String -> StrMap GenProp -> Prop i
-tabTextColors_ = fromGenProp "tabTextColors"
+tabTextColors_p :: forall i. String -> StrMap GenProp -> Prop i
+tabTextColors_p = fromGenProp "tabTextColors"
 
-text_ :: forall i. String -> StrMap GenProp -> Prop i
-text_ = fromGenProp "text"
+text_p :: forall i. String -> StrMap GenProp -> Prop i
+text_p = fromGenProp "text"
 
-textAllCaps_ :: forall i. String -> StrMap GenProp -> Prop i
-textAllCaps_ = fromGenProp "textAllCaps"
+textAllCaps_p :: forall i. String -> StrMap GenProp -> Prop i
+textAllCaps_p = fromGenProp "textAllCaps"
 
-textFromHtml_ :: forall i. String -> StrMap GenProp -> Prop i
-textFromHtml_ = fromGenProp "textFromHtml"
+textFromHtml_p :: forall i. String -> StrMap GenProp -> Prop i
+textFromHtml_p = fromGenProp "textFromHtml"
 
-textIsSelectable_ :: forall i. String -> StrMap GenProp -> Prop i
-textIsSelectable_ = fromGenProp "textIsSelectable"
+textIsSelectable_p :: forall i. String -> StrMap GenProp -> Prop i
+textIsSelectable_p = fromGenProp "textIsSelectable"
 
-textSize_ :: forall i. Int -> StrMap GenProp -> Prop i
-textSize_ = fromGenProp "textSize"
+textSize_p :: forall i. Int -> StrMap GenProp -> Prop i
+textSize_p = fromGenProp "textSize"
 
-translationX_ :: forall i. String -> StrMap GenProp -> Prop i
-translationX_ = fromGenProp "translationX"
+translationX_p :: forall i. String -> StrMap GenProp -> Prop i
+translationX_p = fromGenProp "translationX"
 
-translationY_ :: forall i. String -> StrMap GenProp -> Prop i
-translationY_ = fromGenProp "translationY"
+translationY_p :: forall i. String -> StrMap GenProp -> Prop i
+translationY_p = fromGenProp "translationY"
 
-translationZ_ :: forall i. String -> StrMap GenProp -> Prop i
-translationZ_ = fromGenProp "translationZ"
+translationZ_p :: forall i. String -> StrMap GenProp -> Prop i
+translationZ_p = fromGenProp "translationZ"
 
-toast_ :: forall i. String -> StrMap GenProp -> Prop i
-toast_ = fromGenProp "toast"
+toast_p :: forall i. String -> StrMap GenProp -> Prop i
+toast_p = fromGenProp "toast"
 
-typeface_ :: forall i. String -> StrMap GenProp -> Prop i
-typeface_ = fromGenProp "typeface"
+typeface_p :: forall i. String -> StrMap GenProp -> Prop i
+typeface_p = fromGenProp "typeface"
 
 
 
-url_ :: forall i. String -> StrMap GenProp -> Prop i
-url_ = fromGenProp "url"
+url_p :: forall i. String -> StrMap GenProp -> Prop i
+url_p = fromGenProp "url"
 
 
 
-values_ :: forall i. String -> StrMap GenProp -> Prop i
-values_ = fromGenProp "values"
+values_p :: forall i. String -> StrMap GenProp -> Prop i
+values_p = fromGenProp "values"
 
-visibility_ :: forall i. String -> StrMap GenProp -> Prop i
-visibility_ = fromGenProp "visibility"
+visibility_p :: forall i. String -> StrMap GenProp -> Prop i
+visibility_p = fromGenProp "visibility"
 
 
 
-weight_ :: forall i. String -> StrMap GenProp -> Prop i
-weight_ = fromGenProp "weight"
+weight_p :: forall i. String -> StrMap GenProp -> Prop i
+weight_p = fromGenProp "weight"
 
-width_ :: forall i. Length -> StrMap GenProp -> Prop i
-width_ = fromGenProp "width"
+width_p :: forall i. Length -> StrMap GenProp -> Prop i
+width_p = fromGenProp "width"
