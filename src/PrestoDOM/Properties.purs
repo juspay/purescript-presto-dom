@@ -1,5 +1,6 @@
 module PrestoDOM.Properties
-    ( id_
+    ( prop
+    , id_
 
     , root
 
