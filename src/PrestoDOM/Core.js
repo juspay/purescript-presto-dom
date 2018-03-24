@@ -21,9 +21,9 @@ function attachAttributeList(element, attrList) {
 }
 
 function attachListener(element, eventType, value) {
-  if (!element.props.name) {
-    throw Error("Define name on a node with an event");
-  }
+  // if (!element.props.name) {
+  //   throw Error("Define name on a node with an event");
+  // }
   element.props[eventType] = function(e) {
     value(e)();
   }
@@ -184,11 +184,11 @@ function updateAttribute(element, attribute) {
   applyProp(element, attribute);
 }
 
-exports.click = function () { }
-exports.getId = function () {
-  console.log("hererer");
-  return window.__PRESTO_ID++;
-}
+// exports.click = function () { }
+// exports.getId = function () {
+//   console.log("hererer");
+//   return window.__PRESTO_ID++;
+// }
 
 function insertDom(root) {
   return function (dom) {

@@ -25,8 +25,6 @@ module PrestoDOM.Elements.Elements
     ) where
 
 
-import Data.Array
-
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
 import Halogen.VDom.DOM.Prop (Prop)

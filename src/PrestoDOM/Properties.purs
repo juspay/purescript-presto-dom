@@ -2,7 +2,7 @@ module PrestoDOM.Properties where
 
 import Prelude
 
-import Data.Tuple (Tuple(..))
+-- import Data.Tuple (Tuple(..))
 import Halogen.VDom.DOM.Prop (Prop(..))
 import PrestoDOM.Types.Core (class IsProp, Length, PropName(..), toPropValue)
 

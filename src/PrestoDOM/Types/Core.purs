@@ -4,6 +4,8 @@ module PrestoDOM.Types.Core
     , Props
     , toPropValue
     , Component
+    , GenProp(..)
+    , fromGenProp
     , module VDom
     , module Types
     , class IsProp
@@ -13,15 +15,18 @@ import Prelude
 
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
-import Data.Foreign (Foreign)
-import Data.Foreign.Class (class Decode, class Encode, encode)
-import Data.Foreign.Generic (defaultOptions, genericDecode, genericEncode)
-import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show (genericShow)
+import Data.Maybe (Maybe(..))
+import Data.StrMap (StrMap, lookup)
+-- import Data.Foreign (Foreign)
+-- import Data.Foreign.Class (class Decode, class Encode, encode)
+-- import Data.Foreign.Generic (defaultOptions, genericDecode, genericEncode)
+-- import Data.Generic.Rep (class Generic)
+-- import Data.Generic.Rep.Show (genericShow)
 import Data.Newtype (class Newtype)
 import FRP (FRP)
-import FRP.Event (Event, subscribe)
-import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean, propFromInt, propFromNumber, propFromString)
+-- import FRP.Event (Event, subscribe)
+import Halogen.VDom.DOM.Prop (Prop(..), PropValue, propFromBoolean, propFromInt, propFromNumber, propFromString)
+import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Types (VDom(..), ElemSpec(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
 import PrestoDOM.Types.DomAttributes (Length, renderLength)
@@ -32,9 +37,28 @@ type PrestoDOM i w = VDom (Array (Prop i)) w
 
 type Props i = Array (Prop i)
 
+data GenProp
+    = LengthP Length
+    | BooleanP Boolean
+    | IntP Int
+    | StringP String
+    | TextP String
+
+
+fromGenProp :: forall a i. IsProp a => String -> a -> StrMap GenProp -> Prop i
+fromGenProp key default strMap = let value = lookup key strMap
+                          in case value of
+                                  Just (LengthP v) -> Property key $ toPropValue v
+                                  Just (BooleanP v) -> Property key $ toPropValue v
+                                  Just (IntP v) -> Property key $ toPropValue v
+                                  Just (StringP v) -> Property key $ toPropValue v
+                                  Just (TextP v) -> Property "text" $ toPropValue v
+                                  Nothing -> Property key $ toPropValue default
+
+
+
 type Component action st eff =
-  {
-    initialState :: st
+  { initialState :: st
   , view :: (action -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop action)) Void
   , eval :: action -> st -> st
   }

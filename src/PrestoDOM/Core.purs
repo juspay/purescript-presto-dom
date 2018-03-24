@@ -1,23 +1,21 @@
 module PrestoDOM.Core where
 
 import Prelude
+-- import Prelude (Unit, Void, bind, const, discard, pure, unit, ($))
 
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
+-- import Control.Monad.Eff.Console (CONSOLE, log)
+import Data.Tuple (Tuple)
+import Data.StrMap (StrMap, fromFoldable)
 import DOM (DOM)
-import DOM.HTML.HTMLImageElement (create)
 import DOM.Node.Types (Element, Document)
 import FRP (FRP)
-import FRP as F
-import FRP.Behavior (Behavior, behavior, sample_, unfold)
-import FRP.Behavior as B
-import FRP.Event (Event, subscribe)
+import FRP.Behavior (sample_, unfold)
+import FRP.Event (subscribe)
 import FRP.Event as E
-import Halogen.VDom (Step(..), VDom, VDomMachine, VDomSpec(..), buildVDom, extract)
+import Halogen.VDom (Step(..), VDom, VDomMachine, VDomSpec(..), buildVDom)
 import Halogen.VDom.DOM.Prop (Prop)
 import Halogen.VDom.Machine (never, step, extract)
-import Prelude (Unit, Void, bind, const, discard, pure, unit, ($))
-import PrestoDOM.Properties (a_duration)
 import PrestoDOM.Types.Core (PrestoDOM, Component)
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -63,13 +61,13 @@ spec document =  VDomSpec {
     , document : document
     }
 
-patchAndRun :: forall a b t state i. state -> (state -> VDom (Array (Prop i)) Void) -> Eff t Unit
+patchAndRun :: forall t state i. state -> (state -> VDom (Array (Prop i)) Void) -> Eff t Unit
 patchAndRun state myDom = do
   machine <- getLatestMachine
   newMachine <- step machine (myDom state)
   storeMachine newMachine
 
-runElm :: forall action i st eff.
+runElm :: forall action st eff.
   Component action st eff
   -> Eff ( frp :: FRP, dom :: DOM | eff ) (Eff ( frp :: FRP, dom :: DOM | eff ) Unit)
 runElm { initialState, view, eval } = do
@@ -83,10 +81,12 @@ runElm { initialState, view, eval } = do
     patchAndRun newState (view push))
 
 
-mapDom :: forall a b state eff w.
-  ((a -> Eff (frp :: FRP | eff) Unit) -> state -> PrestoDOM a w)
+mapDom
+  :: forall i a b state eff w
+   . ((a -> Eff (frp :: FRP | eff) Unit) -> state -> StrMap i -> PrestoDOM a w)
   -> (b -> Eff (frp :: FRP | eff) Unit)
   -> state
   -> (a -> b)
+  -> Array (Tuple String i)
   -> PrestoDOM b w
-mapDom view push state actionMap = unsafeCoerce view (push <<< actionMap) state
+mapDom view push state actionMap = unsafeCoerce view (push <<< actionMap) state <<< fromFoldable
