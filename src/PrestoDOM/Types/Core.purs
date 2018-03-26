@@ -3,8 +3,12 @@ module PrestoDOM.Types.Core
     , PrestoDOM
     , Props
     , toPropValue
-    , Component
+{-- <<<<<<< HEAD --}
+{--     , Component --}
     , GenProp(..)
+{-- ======= --}
+    , Screen
+{-- >>>>>>> origin/presto-flow --}
     , module VDom
     , module Types
     , class IsProp
@@ -14,12 +18,10 @@ import Prelude
 
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
--- import Data.Foreign (Foreign)
--- import Data.Foreign.Class (class Decode, class Encode, encode)
--- import Data.Foreign.Generic (defaultOptions, genericDecode, genericEncode)
--- import Data.Generic.Rep (class Generic)
--- import Data.Generic.Rep.Show (genericShow)
+import Data.Either (Either)
+{-- import Data.Maybe (Maybe) --}
 import Data.Newtype (class Newtype)
+{-- import Data.Tuple (Tuple(..)) --}
 import FRP (FRP)
 -- import FRP.Event (Event, subscribe)
 import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean, propFromInt, propFromNumber, propFromString)
@@ -42,12 +44,11 @@ data GenProp
     | TextP String
 
 
-type Component action st eff =
+type Screen action st eff retAction =
   { initialState :: st
   , view :: (action -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop action)) Void
-  , eval :: action -> st -> st
+  , eval :: action -> st -> Either retAction st
   }
-
 
 derive instance newtypePropName :: Newtype (PropName value) _
 

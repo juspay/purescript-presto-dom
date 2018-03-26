@@ -9,14 +9,28 @@ import Data.Tuple (Tuple)
 import Data.StrMap (StrMap, fromFoldable)
 import DOM (DOM)
 import DOM.Node.Types (Element, Document)
+import Data.Either (Either(..), either)
 import FRP (FRP)
+-- <<<<<<< HEAD
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
+{-- ======= --}
+{-- import FRP as F --}
+{-- import FRP.Behavior (Behavior, behavior, sample, sampleBy, sample_, unfold) --}
+{-- import FRP.Behavior as B --}
+{-- import FRP.Event (Event, subscribe) --}
+{-- >>>>>>> origin/presto-flow --}
 import FRP.Event as E
 import Halogen.VDom (Step(..), VDom, VDomMachine, VDomSpec(..), buildVDom)
 import Halogen.VDom.DOM.Prop (Prop)
 import Halogen.VDom.Machine (never, step, extract)
-import PrestoDOM.Types.Core (PrestoDOM, Component)
+{-- <<<<<<< HEAD --}
+{-- import PrestoDOM.Types.Core (PrestoDOM, Component) --}
+{-- ======= --}
+{-- import Prelude (Unit, Void, bind, const, discard, pure, unit, ($)) --}
+{-- import PrestoDOM.Properties (a_duration) --}
+import PrestoDOM.Types.Core (PrestoDOM, Screen)
+{-- >>>>>>> origin/presto-flow --}
 import Unsafe.Coerce (unsafeCoerce)
 
 foreign import logNode :: forall eff a . a  -> Eff eff Unit
@@ -67,19 +81,28 @@ patchAndRun state myDom = do
   newMachine <- step machine (myDom state)
   storeMachine newMachine
 
-runElm :: forall action st eff.
-  Component action st eff
-  -> Eff ( frp :: FRP, dom :: DOM | eff ) (Eff ( frp :: FRP, dom :: DOM | eff ) Unit)
-runElm { initialState, view, eval } = do
+{-- <<<<<<< HEAD --}
+{-- runElm :: forall action st eff. --}
+{--   Component action st eff --}
+{--   -> Eff ( frp :: FRP, dom :: DOM | eff ) (Eff ( frp :: FRP, dom :: DOM | eff ) Unit) --}
+{-- runElm { initialState, view, eval } = do --}
+{-- ======= --}
+runScreen :: forall action st eff retAction.
+    Screen action st eff retAction
+    -> (retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
+    -> Eff ( frp :: FRP, dom :: DOM | eff ) Unit
+runScreen { initialState, view, eval } cb = do
+{-- >>>>>>> origin/presto-flow --}
   { event, push } <- E.create
   let initState = initialState
   root <- getRootNode
   machine <- buildVDom (spec root) (view push initState)
   storeMachine machine
   insertDom root (extract machine)
-  sample_ (unfold eval event initState) event `subscribe` (\newState -> do
-    patchAndRun newState (view push))
-
+  let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action)) event (Right initialState)
+  _ <- sample_ stateBeh event `subscribe` (\eitherState ->
+       either cb (\state -> patchAndRun state (view push) *> pure unit) eitherState)
+  pure unit
 
 mapDom
   :: forall i a b state eff w
