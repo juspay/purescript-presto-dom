@@ -60,7 +60,6 @@ view push state =
     , width Match_Parent
     , background "#323232"
     , gravity "center"
-    , name "rootNode"
     ]
     [ linearLayout
       [ height $ V 600
@@ -69,8 +68,8 @@ view push state =
       , orientation "vertical"
       , gravity "center"
       ]
-      [ (mapDom FormField.view push state.usernameState Username)
-      , (mapDom FormField.view push state.passwordState Password)
+      [ (mapDom FormField.view push state.usernameState Username [])
+      , (mapDom FormField.view push state.passwordState Password [])
       , linearLayout
         [ height $ V 150
         , width Match_Parent
@@ -92,7 +91,6 @@ view push state =
           , background "#969696"
           , gravity "center"
           , visibility "not"
-          , name "name"
           , onClick push (const SubmitClicked)
           ]
           [
@@ -100,8 +98,7 @@ view push state =
             [ width (V 80)
             , height (V 25)
             , text "Submit"
-            , textSize "28"
-            , name "name"
+            , textSize 28
             ]
           ]
         ]

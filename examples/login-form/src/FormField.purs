@@ -6,6 +6,7 @@ import PrestoDOM.Properties
 import PrestoDOM.Types.DomAttributes
 
 import Control.Monad.Eff (Eff)
+import Data.StrMap (StrMap)
 import DOM (DOM)
 import FRP (FRP)
 import FRP.Behavior (sample_, step, unfold)
@@ -28,16 +29,9 @@ initialState label = { text : label , value : "" }
 eval :: Action -> State -> State
 eval (TextChanged value) state = state { value = value }
 
-component :: forall i eff. Component Action State eff
-component =
-  {
-    initialState : initialState "Label"
-  , view
-  , eval
-  }
 
-view :: forall i w eff. (Action -> Eff (frp :: FRP | eff) Unit) -> State -> PrestoDOM Action w
-view push state =
+view :: forall i w eff. (Action -> Eff (frp :: FRP | eff) Unit) -> State -> StrMap String -> PrestoDOM Action w
+view push state _ =
   linearLayout
     [ height $ V 150
     , width Match_Parent
@@ -49,7 +43,7 @@ view push state =
         , width Match_Parent
         , margin "10,20,20,20"
         , text state.text
-        , textSize "28"
+        , textSize 28
         ]
         []
     , linearLayout
@@ -58,8 +52,7 @@ view push state =
         [ height (V 40)
         , width Match_Parent
         , margin "10,10,10,10"
-        , textSize "20"
-        , name "name"
+        , textSize 20
         , color "#00000"
         , text state.value
         , onChange push TextChanged
