@@ -3,12 +3,8 @@ module PrestoDOM.Types.Core
     , PrestoDOM
     , Props
     , toPropValue
-{-- <<<<<<< HEAD --}
-{--     , Component --}
     , GenProp(..)
-{-- ======= --}
     , Screen
-{-- >>>>>>> origin/presto-flow --}
     , module VDom
     , module Types
     , class IsProp
@@ -19,11 +15,8 @@ import Prelude
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
 import Data.Either (Either)
-{-- import Data.Maybe (Maybe) --}
 import Data.Newtype (class Newtype)
-{-- import Data.Tuple (Tuple(..)) --}
 import FRP (FRP)
--- import FRP.Event (Event, subscribe)
 import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean, propFromInt, propFromNumber, propFromString)
 import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Types (VDom(..), ElemSpec(..), ElemName(..), Namespace(..)) as VDom
