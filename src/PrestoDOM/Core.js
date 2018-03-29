@@ -147,7 +147,12 @@ function applyProp(element, attribute) {
     id: element.__ref.__id
   }
   prop[attribute.value0] = attribute.value1;
-  Android.runInUI(parseParams("linearLayout", prop, "set"));
+  if (window.__OS == "ANDROID") {
+    Android.runInUI(parseParams("linearLayout", prop, "set"), null);
+  } else {
+    Android.runInUI(parseParams("linearLayout", prop, "set"));
+  }
+  // Android.runInUI(parseParams("linearLayout", prop, "set"));
 }
 
 window.removeChild = removeChild;
@@ -195,7 +200,7 @@ function insertDom(root) {
     return function () {
       root.props.height = "match_parent";
       root.props.width = "match_parent";
-      root.props.id = "GodFather";
+      root.props.id = "1";
       root.type = "relativeLayout";
       root.__ref = window.createPrestoElement();
 
