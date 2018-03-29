@@ -25,8 +25,6 @@ module PrestoDOM.Elements.Elements
     ) where
 
 
-import Data.Array
-
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
 import Halogen.VDom.DOM.Prop (Prop)
@@ -54,6 +52,7 @@ leaf :: forall i p. String -> Leaf (Prop i) p
 leaf elem props = element (ElemName elem) props []
 
 
+
 linearLayout :: forall i p. Node (Prop i) p
 linearLayout = node "linearLayout"
 
@@ -75,6 +74,9 @@ shimmerFrameLayout = node "shimmerFrameLayout"
 tabLayout :: forall i p. Node (Prop i) p
 tabLayout = node "tabLayout"
 
+viewPager :: forall i p. Node (Prop i) p
+viewPager = node "viewPager"
+
 
 imageView :: forall i p. Leaf (Prop i) p
 imageView = leaf "imageView"
@@ -90,9 +92,6 @@ progressBar = leaf "progressBar"
 
 textView :: forall i p. Leaf (Prop i) p
 textView = leaf "textView"
-
-viewPager :: forall i p. Node (Prop i) p
-viewPager = node "viewPager"
 
 button :: forall i p. Leaf (Prop i) p
 button = leaf "button"

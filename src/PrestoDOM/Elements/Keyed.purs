@@ -1,9 +1,9 @@
 module PrestoDOM.Elements.Keyed
-	( KeyedNode
-        , linearLayout
-        , relativeLayout
-        , horizontalScrollView
-        , scrollView
+    ( KeyedNode
+    , linearLayout
+    , relativeLayout
+    , horizontalScrollView
+    , scrollView
 	) where
 
 import Data.Tuple (Tuple)
