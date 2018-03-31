@@ -18,4 +18,6 @@ onClick push f = prop (PropName "onClick") (unsafeProp (push <<< f))
 onChange :: forall a eff. (a ->  Eff (frp :: FRP | eff) Unit) -> (String -> a) -> Prop a
 onChange push f = prop (PropName "onChange") (unsafeProp (push <<< f))
 
+onBackPressed :: forall a eff. (a ->  Eff (frp :: FRP | eff) Unit) -> (Unit -> a) -> Prop a
+onBackPressed push f = prop (PropName "onBackPressed") (unsafeProp (push <<< f))
 
