@@ -3,7 +3,7 @@ module PrestoDOM.Properties
     , id_
 
     , root
-
+    , name
     , a_duration
     , a_scaleX
     , a_scaleY
@@ -134,6 +134,8 @@ id_ = prop (PropName "id")
 root :: forall i. Boolean -> Prop i
 root = prop (PropName "root")
 
+name :: forall i. String -> Prop i
+name = prop (PropName "name")
 
 a_duration :: forall i. String -> Prop i
 a_duration = prop (PropName "a_duration")
