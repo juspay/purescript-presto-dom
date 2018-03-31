@@ -24,8 +24,15 @@ function attachListener(element, eventType, value) {
   // if (!element.props.name) {
   //   throw Error("Define name on a node with an event");
   // }
-  element.props[eventType] = function(e) {
-    value(e)();
+  if (eventType == "onBackPressed") {
+    element.props["onClick"] = function(e) {
+      window.onBackPressed();
+    }
+  }
+  else {
+    element.props[eventType] = function(e) {
+      value(e)();
+    }
   }
 }
 
