@@ -26,6 +26,7 @@ module PrestoDOM.Properties
     , colorFilter
     , cornerRadius
     , curve
+    , caretColor
 
     , delay
     , dividerDrawable
@@ -115,6 +116,8 @@ module PrestoDOM.Properties
 
     , weight
     , width
+    , alignParentBottom
+    , alignParentLeft
     ) where
 
 import Prelude
@@ -396,7 +399,8 @@ singleLine = prop (PropName "singleLine")
 stroke :: forall i. String -> Prop i
 stroke = prop (PropName "stroke")
 
-
+caretColor :: forall i. String -> Prop i
+caretColor = prop (PropName "caretColor")
 
 tabTextColors :: forall i. String -> Prop i
 tabTextColors = prop (PropName "tabTextColors")
@@ -451,3 +455,9 @@ weight = prop (PropName "weight")
 
 width :: forall i. Length -> Prop i
 width = prop (PropName "width")
+
+alignParentBottom :: forall i. String -> Prop i
+alignParentBottom = prop (PropName "alignParentBottom")
+
+alignParentLeft :: forall i. String -> Prop i
+alignParentLeft = prop (PropName "alignParentLeft")
