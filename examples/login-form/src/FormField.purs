@@ -34,28 +34,30 @@ view :: forall i w eff. (Action -> Eff (frp :: FRP | eff) Unit) -> State -> StrM
 view push state _ =
   linearLayout
     [ height $ V 150
+    , background "#123eee"
     , width Match_Parent
     , orientation "vertical"
     , margin "20,20,20,20"
     ]
-    [ linearLayout
+   -- [ linearLayout [height Match_Parent, width Match_Parent] -- linear
+    [ textView
         [ height $ V 30
         , width Match_Parent
         , margin "10,20,20,20"
+        , background "#eee123"
+        , color "#000000"
         , text state.text
         , textSize 28
         ]
-        []
-    , linearLayout
-        []
-        [ editText
-        [ height (V 40)
-        , width Match_Parent
-        , margin "10,10,10,10"
-        , textSize 20
-        , color "#00000"
-        , text state.value
-        , onChange push TextChanged
-        ]
-        ]
+    ,  editText
+            [ height (V 40)
+            , width Match_Parent
+            , margin "10,10,10,10"
+            , background "#ffffff"
+            , textSize 20
+            , color "#00ff00"
+            , text state.value
+            , onChange push TextChanged
+            ]
+  --  ] -- linear
     ]

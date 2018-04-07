@@ -22,6 +22,9 @@ function attachAttributeList(element, attrList) {
 }
 
 function attachListener(element, eventType, value) {
+  // if (!element.props.name) {
+  //   throw Error("Define name on a node with an event");
+  // }
   if (eventType == "onBackPressed") {
     element.props["onClick"] = function(e) {
       window.onBackPressed();
@@ -56,15 +59,7 @@ exports.patchAttributes = function(element) {
               attrFound = 1;
 
               if (oldAttrList[i].value1 !== newAttrList[j].value1) {
-                // // potential fix Start
-                // if (typeof oldAttrList[i].value1 === "function") {
-                //   const fn = newAttrList[j].value1;
-                //   oldAttrList[i].value1 = function (e) {
-                //     fn(e)();
-                //   };
-                // }
-                // else // potential fix End
-                  oldAttrList[i].value1 = newAttrList[j].value1;
+                oldAttrList[i].value1 = newAttrList[j].value1;
                 updateAttribute(element, newAttrList[j]);
               }
             }
@@ -73,11 +68,8 @@ exports.patchAttributes = function(element) {
           if (!attrFound) {
             oldAttrList.splice(i, 0);
             removeAttribute(element, oldAttrList[i]);
-            // oldAttrList[i] = null;
           }
         }
-
-        // oldAttrList = oldAttrList.filter(function (a) {return a;})
 
         for (var i=0; i<newAttrList.length; i++) {
           attrFound = 0;
@@ -109,15 +101,14 @@ exports.cleanupAttributes = function(element) {
   }
 }
 
-// exports.done = function() {
-//   console.log("done");
-//   return;
-// }
+exports.done = function() {
+  console.log("done");
+  return;
+}
 
-exports.logAny = function(a) {
+exports.logNode = function(node) {
   return function() {
-    console.log(a);
-    return a;
+    console.log(node);
   }
 }
 
@@ -132,7 +123,7 @@ exports.getLatestMachine = function() {
 }
 
 exports.getRootNode = function() {
-  return {type: "relativeLayout", props: {root: "true"}, children: []};
+  return {type: "linearLayout", props: {root: "true"}, children: []};
 }
 
 exports.insertDom = insertDom;
@@ -156,33 +147,17 @@ function domAll(elem) {
     children.push(domAll(elem.children[i]));
   }
   props.id = elem.__ref.__id;
-  if(elem.parentType && window.__OS == "ANDROID")
-    return prestoDayum({elemType: type, parentType: elem.parentType}, props, children);
-
   return prestoDayum(type, props, children);
 }
 
-function cmdForAndroid(config) {
-  var cmd = "set_view=ctx->findViewById:i_" + config.id + ";";
-  var runInUI;
-  delete config.id;
-  config.root = "true";
-  runInUI = parseParams("linearLayout", config, "get").runInUI;
-  cmd += runInUI + ';';
-  return cmd;
-  }
-
 function applyProp(element, attribute) {
-  if (typeof attribute.value1 == "function")
-    return;
   var prop = {
     id: element.__ref.__id
   }
   prop[attribute.value0] = attribute.value1;
   if (window.__OS == "ANDROID") {
-    var cmd = cmdForAndroid(prop);
-    // console.log("CMD:", cmd);
-    Android.runInUI(cmd, null);
+    var replacedCmd = parseParams("linearLayout", prop, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this/g, "get_view")
+    Android.runInUI(replacedCmd, null);
   } else {
     Android.runInUI(webParseParams("linearLayout", prop, "set"));
   }
@@ -204,60 +179,37 @@ window.createPrestoElement = function () {
 window.__screenSubs = {};
 
 function removeChild(child, parent, index) {
-  console.log("remove child :", parent.__ref.__id, child);
+  console.log("remove child :", parent.__ref.__id, child.__ref.__id)
   if (window.__OS == "ANDROID") {
-    JBridge.removeView(child.__ref.__id);
+    JBridge.removeView(parent.__ref.__id, child.__ref.__id);
   }
   else
     Android.removeView(child.__ref.__id);
 }
 
 function addChild(child, parent, index) {
-  // console.log("add child ", child.type);
-  console.log("Add child :", parent.__ref.__id, child);
-  if(child.type == null) {
-    console.log("YO!!!!");
-  }
-  const viewGroups = ["linearLayout", "relativeLayout", "scrollView", "frameLayout", "horizontalScrollView"];
+  console.log("add child :", parent.__ref.__id, domAll(child), index);
+  window.domAll = domAll;
   if (window.__OS == "ANDROID") {
-    if (viewGroups.indexOf(child.type) != -1){
-      child.props.root = true;
-    } else {
-      child.parentType = parent.type;
-    }
     Android.addViewToParent(parent.__ref.__id, JSON.stringify(domAll(child)), index, null, null);
   }
   else
-    Android.addViewToParent(parent.__ref.__id, domAll(child), index, null, null);
+    Android.addViewToParent(parent.__ref.__id, domAll(child), index);
 }
 
 function addAttribute(element, attribute) {
   console.log("add prop :", attribute, element );
-  // if (typeof attribute.value1 === "function") {
-  //   const fn = attribute.value1;
-  //   attribute.value1 = function (e) {
-  //     fn(e)();
-  //   };
-  // }
-  element.props[attribute.value0] = attribute.value1;
   applyProp(element, attribute);
+
 }
 
 function removeAttribute(element, attribute) {
   console.log("remove prop :", attribute, element );
-  // delete element.props[attribute.value0];
-  if (window.__OS == "ANDROID") {
 
-    return;
-  }
-    attribute.value1 = "";
-
-  applyProp(element, attribute);
 }
 
 function updateAttribute(element, attribute) {
   console.log("update prop :", attribute, element );
-
   applyProp(element, attribute);
 }
 
@@ -284,7 +236,7 @@ function insertDom(root) {
           root: root.id
         }
       };
-      // console.log("raw:", root);
+
       if(window.__OS == "ANDROID"){
         Android.Render(JSON.stringify(domAll(root)), null);
       }else if(window.__OS == "WEB"){

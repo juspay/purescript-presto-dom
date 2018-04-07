@@ -3,6 +3,7 @@ module PrestoDOM.Core where
 import Prelude
 
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Timer as T
 import Data.Tuple (Tuple)
 import Data.StrMap (StrMap, fromFoldable)
 import DOM (DOM)
@@ -18,9 +19,9 @@ import Halogen.VDom.Machine (never, step, extract)
 import PrestoDOM.Types.Core (PrestoDOM, Screen)
 import Unsafe.Coerce (unsafeCoerce)
 
-foreign import logNode :: forall eff a . a  -> Eff eff Unit
+foreign import logAny :: forall a. a  -> a
 foreign import applyAttributes ∷ forall i eff. Element → (Array (Prop i)) → Eff eff (Array (Prop i))
-foreign import done :: forall eff. Eff eff Unit
+-- foreign import done :: forall eff. Eff eff Unit
 foreign import patchAttributes ∷ forall i eff. Element → (Array (Prop i)) → (Array (Prop i)) → Eff eff (Array (Prop i))
 foreign import cleanupAttributes ∷ forall i eff. Element → (Array (Prop i)) → Eff eff Unit
 foreign import getLatestMachine :: forall m a b eff. Eff eff (Step m a b)
@@ -51,7 +52,7 @@ buildAttributes elem = apply
         (done x))
 
   done ∷ forall e. (Array (Prop a)) → Eff e Unit
-  done attrs = cleanupAttributes elem attrs
+  done attrs = pure unit
 
 spec :: forall i e. Document -> VDomSpec e (Array (Prop i)) Void
 spec document =  VDomSpec {
@@ -66,6 +67,24 @@ patchAndRun state myDom = do
   newMachine <- step machine (myDom state)
   storeMachine newMachine
 
+initScreen
+  :: forall action eff
+   . VDom (Array (Prop action)) Void
+  -> (Unit -> Eff (frp :: FRP, dom :: DOM, timer :: T.TIMER | eff) Unit)
+  -> Int
+  -> Eff ( frp :: FRP, dom :: DOM, timer :: T.TIMER | eff ) Unit
+initScreen view cb time = do
+  -- let initState = initialState
+  root <- getRootNode
+  machine <- buildVDom (spec root) view
+  storeMachine machine
+  insertDom root (extract machine)
+  void $ T.setTimeout time do
+    -- logNode "splash timeout"
+    cb unit
+
+
+
 runScreen :: forall action st eff retAction.
     Screen action st eff retAction
     -> (retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
@@ -73,10 +92,14 @@ runScreen :: forall action st eff retAction.
 runScreen { initialState, view, eval } cb = do
   { event, push } <- E.create
   let initState = initialState
-  root <- getRootNode
-  machine <- buildVDom (spec root) (view push initState)
-  storeMachine machine
-  insertDom root (extract machine)
+  if false
+      then do
+        root <- getRootNode
+        machine <- buildVDom (spec root) (view push initState)
+        storeMachine machine
+        insertDom root (extract machine)
+    else
+        patchAndRun initState (view push)
   let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action)) event (Right initialState)
   _ <- sample_ stateBeh event `subscribe` (\eitherState ->
        either cb (\state -> patchAndRun state (view push) *> pure unit) eitherState)
