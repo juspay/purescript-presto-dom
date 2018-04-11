@@ -3,6 +3,8 @@ module PrestoDOM.Types.Core
     , PrestoDOM
     , toPropValue
     , Screen
+    , Eval
+    , Cmd
     , module VDom
     , module Types
     , class IsProp
@@ -10,7 +12,6 @@ module PrestoDOM.Types.Core
 
 import Prelude
 
-import Control.Monad.Aff (Aff)
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
 import Data.Either (Either)
@@ -27,14 +28,14 @@ import PrestoDOM.Types.DomAttributes as Types
 
 newtype PropName value = PropName String
 type PrestoDOM i w = VDom (Array (Prop i)) w
-type Cmd eff action = Array (Aff (frp :: FRP, dom :: DOM | eff) action)
+type Cmd eff action = Array (Eff (frp :: FRP, dom :: DOM | eff) action)
 type Eval eff action retAction st = Either retAction (Tuple st (Cmd eff action))
 
 type Screen action st eff retAction =
   {
     initialState :: st
   , view :: (action -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop action)) Void
-  , eval :: Eval eff action retAction st
+  , eval :: action -> st -> Eval eff action retAction st
   }
 
 derive instance newtypePropName :: Newtype (PropName value) _

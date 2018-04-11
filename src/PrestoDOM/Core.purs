@@ -2,7 +2,6 @@ module PrestoDOM.Core where
 
 import Prelude
 
-import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import DOM (DOM)
@@ -90,7 +89,7 @@ runScreen { initialState, view, eval } cb = do
     pure unit
   where onStateChange push (Tuple state cmds) =
           patchAndRun state (view push)
-          *> for_ cmds (runAff (const $ pure unit) push)
+          *> for_ cmds (\effAction -> effAction >>= push)
 
 mapDom :: forall a b state eff w.
   ((a -> Eff (frp :: FRP | eff) Unit) -> state -> PrestoDOM a w)

@@ -5,15 +5,14 @@ import Prelude
 import Control.Monad.Aff (Aff)
 import Data.Either (Either(..))
 import Data.Tuple (Tuple(..))
+import PrestoDOM.Types.Core (Eval, Cmd)
 
 
-continue :: forall state a b eff. state -> Either a (Tuple state (Array (Aff eff b)))
+continue :: forall state action retAction eff. state -> Eval eff action retAction state
 continue state = Right (Tuple state [])
 
-exit :: forall retAction state a b eff. retAction -> Either retAction (Tuple state (Array (Aff eff b)))
+exit :: forall retAction state action retAction eff. retAction -> Eval eff action retAction state
 exit = Left
 
-continueWithCmd :: forall state a b eff. state -> Array (Aff eff b) -> Either a (Tuple state (Array (Aff eff b)))
+continueWithCmd :: forall state action retAction eff. state -> Cmd eff action -> Eval eff action retAction state
 continueWithCmd state cmds = Right (Tuple state cmds)
-
-
