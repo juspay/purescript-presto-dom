@@ -10,6 +10,7 @@ module PrestoDOM.Types.Core
 
 import Prelude
 
+import Control.Monad.Aff (Aff)
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
 import Data.Either (Either)
@@ -31,7 +32,7 @@ type Screen action st eff retAction =
   {
     initialState :: st
   , view :: (action -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop action)) Void
-  , eval :: action -> st -> Either retAction st
+  , eval :: action -> st -> Either retAction (Tuple st (Array (Aff  (frp :: FRP, dom :: DOM | eff) action)))
   }
 
 derive instance newtypePropName :: Newtype (PropName value) _

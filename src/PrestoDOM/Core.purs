@@ -2,12 +2,15 @@ module PrestoDOM.Core where
 
 import Prelude
 
+import Control.Monad.Aff (runAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import DOM (DOM)
 import DOM.HTML.HTMLImageElement (create)
 import DOM.Node.Types (Element, Document)
 import Data.Either (Either(..), either)
+import Data.Foldable (for_)
+import Data.Tuple (Tuple(..), fst)
 import FRP (FRP)
 import FRP as F
 import FRP.Behavior (Behavior, behavior, sample, sampleBy, sample_, unfold)
@@ -21,6 +24,7 @@ import Prelude (Unit, Void, bind, const, discard, pure, unit, ($))
 import PrestoDOM.Properties (a_duration)
 import PrestoDOM.Types.Core (PrestoDOM, Screen)
 import Unsafe.Coerce (unsafeCoerce)
+import Utils (continue)
 
 foreign import logNode :: forall eff a . a  -> Eff eff Unit
 foreign import applyAttributes ∷ forall i eff. Element → (Array (Prop i)) → Eff eff (Array (Prop i))
@@ -75,16 +79,18 @@ runScreen :: forall action st eff retAction.
     -> (retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
     -> Eff ( frp :: FRP, dom :: DOM | eff ) Unit
 runScreen { initialState, view, eval } cb = do
-  { event, push } <- E.create
-  let initState = initialState
-  root <- getRootNode
-  machine <- buildVDom (spec root) (view push initState)
-  storeMachine machine
-  insertDom root (extract machine)
-  let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action)) event (Right initialState)
-  _ <- sample_ stateBeh event `subscribe` (\eitherState ->
-       either cb (\state -> patchAndRun state (view push) *> pure unit) eitherState)
-  pure unit
+    { event, push } <- E.create
+    let initState = initialState
+    root <- getRootNode
+    machine <- buildVDom (spec root) (view push initState)
+    storeMachine machine
+    insertDom root (extract machine)
+    let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
+    _ <- sample_ stateBeh event `subscribe` (either cb $ onStateChange push)
+    pure unit
+  where onStateChange push (Tuple state cmds) =
+          patchAndRun state (view push)
+          *> for_ cmds (runAff (const $ pure unit) push)
 
 mapDom :: forall a b state eff w.
   ((a -> Eff (frp :: FRP | eff) Unit) -> state -> PrestoDOM a w)
