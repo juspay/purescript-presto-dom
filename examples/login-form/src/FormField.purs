@@ -28,14 +28,6 @@ initialState label = { text : label , value : "" }
 eval :: Action -> State -> State
 eval (TextChanged value) state = state { value = value }
 
-component :: forall i eff. Component Action State eff
-component =
-  {
-    initialState : initialState "Label"
-  , view
-  , eval
-  }
-
 view :: forall i w eff. (Action -> Eff (frp :: FRP | eff) Unit) -> State -> PrestoDOM Action w
 view push state =
   linearLayout
