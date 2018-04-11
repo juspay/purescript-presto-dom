@@ -44,7 +44,7 @@ eval (Password action) state = continue state { passwordState = FormField.eval a
 eval SubmitClicked state =
     if state.passwordState.value == "blueberry" && state.usernameState.value /= ""
         then exit unit
-        else (continueWithCmd (state { errorMessage = "Your account is blocked" }) [ (pure $ Username $ FormField.TextChanged "dilipjain")])
+        else (continueWithCmd (state { errorMessage = "Your account is blocked" }) [ (pure $ Username $ FormField.TextChanged "evalaction")])
 
 
 screen :: forall eff. Screen Action State eff Unit
