@@ -56,15 +56,7 @@ exports.patchAttributes = function(element) {
               attrFound = 1;
 
               if (oldAttrList[i].value1 !== newAttrList[j].value1) {
-                // // potential fix Start
-                // if (typeof oldAttrList[i].value1 === "function") {
-                //   const fn = newAttrList[j].value1;
-                //   oldAttrList[i].value1 = function (e) {
-                //     fn(e)();
-                //   };
-                // }
-                // else // potential fix End
-                  oldAttrList[i].value1 = newAttrList[j].value1;
+                oldAttrList[i].value1 = newAttrList[j].value1;
                 updateAttribute(element, newAttrList[j]);
               }
             }
@@ -114,12 +106,6 @@ exports.cleanupAttributes = function(element) {
 //   return;
 // }
 
-exports.logAny = function(a) {
-  return function() {
-    console.log(a);
-    return a;
-  }
-}
 
 exports.storeMachine = function(machine) {
   return function() {
@@ -162,7 +148,14 @@ function domAll(elem) {
   return prestoDayum(type, props, children);
 }
 
-function cmdForAndroid(config) {
+function cmdForAndroid(config, set) {
+  if (set) {
+    var cmd = parseParams("linearLayout", config, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
+    cmd = cmd.replace(/PARAM_CTR_HOLDER.*;/g, "get_view->getLayoutParams;");
+
+    return cmd;
+  }
+
   var cmd = "set_view=ctx->findViewById:i_" + config.id + ";";
   var runInUI;
   delete config.id;
@@ -170,9 +163,9 @@ function cmdForAndroid(config) {
   runInUI = parseParams("linearLayout", config, "get").runInUI;
   cmd += runInUI + ';';
   return cmd;
-  }
+}
 
-function applyProp(element, attribute) {
+function applyProp(element, attribute, set) {
   if (typeof attribute.value1 == "function")
     return;
   var prop = {
@@ -180,9 +173,8 @@ function applyProp(element, attribute) {
   }
   prop[attribute.value0] = attribute.value1;
   if (window.__OS == "ANDROID") {
-    var cmd = cmdForAndroid(prop);
-    // console.log("CMD:", cmd);
-    Android.runInUI(cmd, null);
+      var cmd = cmdForAndroid(prop, set);
+      Android.runInUI(cmd, null);
   } else {
     Android.runInUI(webParseParams("linearLayout", prop, "set"));
   }
@@ -204,7 +196,6 @@ window.createPrestoElement = function () {
 window.__screenSubs = {};
 
 function removeChild(child, parent, index) {
-  console.log("remove child :", parent.__ref.__id, child);
   if (window.__OS == "ANDROID") {
     JBridge.removeView(child.__ref.__id);
   }
@@ -213,10 +204,8 @@ function removeChild(child, parent, index) {
 }
 
 function addChild(child, parent, index) {
-  // console.log("add child ", child.type);
-  console.log("Add child :", parent.__ref.__id, child);
   if(child.type == null) {
-    console.log("YO!!!!");
+    console.log("child null");
   }
   const viewGroups = ["linearLayout", "relativeLayout", "scrollView", "frameLayout", "horizontalScrollView"];
   if (window.__OS == "ANDROID") {
@@ -232,20 +221,17 @@ function addChild(child, parent, index) {
 }
 
 function addAttribute(element, attribute) {
-  console.log("add prop :", attribute, element );
   // if (typeof attribute.value1 === "function") {
   //   const fn = attribute.value1;
   //   attribute.value1 = function (e) {
   //     fn(e)();
   //   };
   // }
-  element.props[attribute.value0] = attribute.value1;
-  applyProp(element, attribute);
+  // element.props[attribute.value0] = attribute.value1;
+  applyProp(element, attribute, true);
 }
 
 function removeAttribute(element, attribute) {
-  console.log("remove prop :", attribute, element );
-  // delete element.props[attribute.value0];
   if (window.__OS == "ANDROID") {
 
     return;
@@ -256,16 +242,10 @@ function removeAttribute(element, attribute) {
 }
 
 function updateAttribute(element, attribute) {
-  console.log("update prop :", attribute, element );
 
   applyProp(element, attribute);
 }
 
-// exports.click = function () { }
-// exports.getId = function () {
-//   console.log("hererer");
-//   return window.__PRESTO_ID++;
-// }
 
 function insertDom(root) {
   return function (dom) {
@@ -284,7 +264,6 @@ function insertDom(root) {
           root: root.id
         }
       };
-      // console.log("raw:", root);
       if(window.__OS == "ANDROID"){
         Android.Render(JSON.stringify(domAll(root)), null);
       }else if(window.__OS == "WEB"){
