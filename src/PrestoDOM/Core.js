@@ -168,8 +168,10 @@ function cmdForAndroid(config, set) {
 }
 
 function applyProp(element, attribute, set) {
-  if (typeof attribute.value1 == "function")
+  if (typeof attribute.value1 == "function") {
+    // replaceView(element, attribute, false);
     return;
+  }
   var prop = {
     id: element.__ref.__id
   }
@@ -183,6 +185,27 @@ function applyProp(element, attribute, set) {
     Android.runInUI(webParseParams("linearLayout", prop, "set"));
   }
   // Android.runInUI(parseParams("linearLayout", prop, "set"));
+}
+
+function replaceView(element, attribute, removeProp) {
+  const props = R.clone(element.props);
+  // console.log("ReplaceView ", props);
+  var rep;
+  const viewGroups = ["linearLayout", "relativeLayout", "scrollView", "frameLayout", "horizontalScrollView"];
+
+  if (removeProp) {
+    delete props[attribute.value0];
+  } else {
+     props[attribute.value0] = attribute.value1;
+  }
+  if (viewGroups.indexOf(element.type) != -1){
+      props.root = true;
+      rep = prestoDayum(element.type, props, []);
+    } else {
+      rep = prestoDayum({elemType: element.type, parentType: element.parentNode.type}, props, []);
+    }
+
+  //  Android.replaceView(JSON.stringify(rep), element.__ref.__id);
 }
 
 window.removeChild = removeChild;
@@ -200,6 +223,7 @@ window.createPrestoElement = function () {
 window.__screenSubs = {};
 
 function removeChild(child, parent, index) {
+  // console.log("Remove child :", child.type);
   Android.removeView(child.__ref.__id);
 }
 
@@ -207,6 +231,7 @@ function addChild(child, parent, index) {
   if(child.type == null) {
     console.log("child null");
   }
+  // console.log("Add child :", child.type);
   const viewGroups = ["linearLayout", "relativeLayout", "scrollView", "frameLayout", "horizontalScrollView"];
   if (window.__OS == "ANDROID") {
     if (viewGroups.indexOf(child.type) != -1){
@@ -221,7 +246,9 @@ function addChild(child, parent, index) {
 }
 
 function addAttribute(element, attribute) {
+  // console.log("add attr :", attribute);
   // if (typeof attribute.value1 === "function") {
+  //   return;
   //   const fn = attribute.value1;
   //   attribute.value1 = function (e) {
   //     fn(e)();
@@ -232,7 +259,9 @@ function addAttribute(element, attribute) {
 }
 
 function removeAttribute(element, attribute) {
+  // console.log("remove attr :", attribute);
   if (window.__OS == "ANDROID") {
+    // replaceView(element, attribute, true);
 
     return;
   }
@@ -242,8 +271,9 @@ function removeAttribute(element, attribute) {
 }
 
 function updateAttribute(element, attribute) {
+  // console.log("update attr :", attribute);
 
-  applyProp(element, attribute);
+  applyProp(element, attribute, false);
 }
 
 
