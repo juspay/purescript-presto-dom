@@ -19,9 +19,7 @@ import Halogen.VDom.Machine (never, step, extract)
 import PrestoDOM.Types.Core (PrestoDOM, Screen)
 import Unsafe.Coerce (unsafeCoerce)
 
-foreign import logAny :: forall a. a  -> a
 foreign import applyAttributes ∷ forall i eff. Element → (Array (Prop i)) → Eff eff (Array (Prop i))
--- foreign import done :: forall eff. Eff eff Unit
 foreign import patchAttributes ∷ forall i eff. Element → (Array (Prop i)) → (Array (Prop i)) → Eff eff (Array (Prop i))
 foreign import cleanupAttributes ∷ forall i eff. Element → (Array (Prop i)) → Eff eff Unit
 foreign import getLatestMachine :: forall m a b eff. Eff eff (Step m a b)
@@ -92,7 +90,7 @@ runScreen :: forall action st eff retAction.
 runScreen { initialState, view, eval } cb = do
   { event, push } <- E.create
   let initState = initialState
-  if false
+  if true
       then do
         root <- getRootNode
         machine <- buildVDom (spec root) (view push initState)

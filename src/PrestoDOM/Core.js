@@ -1,9 +1,11 @@
 "use strict";
 const prestoDayum = require("presto-ui").doms;
 const webParseParams = require("presto-ui").helpers.web.parseParams;
+const iOSParseParams = require("presto-ui").helpers.ios.parseParams;
 const parseParams = require("presto-ui").helpers.android.parseParams;
 const R = require("ramda");
 
+window.__pDom = prestoDayum;
 
 function attachAttributeList(element, attrList) {
   var key, value;
@@ -175,6 +177,8 @@ function applyProp(element, attribute, set) {
   if (window.__OS == "ANDROID") {
       var cmd = cmdForAndroid(prop, set);
       Android.runInUI(cmd, null);
+  } else if (window.__OS == "IOS"){
+    Android.runInUI(iOSParseParams("linearLayout", prop, "get").config);
   } else {
     Android.runInUI(webParseParams("linearLayout", prop, "set"));
   }
@@ -196,11 +200,7 @@ window.createPrestoElement = function () {
 window.__screenSubs = {};
 
 function removeChild(child, parent, index) {
-  if (window.__OS == "ANDROID") {
-    JBridge.removeView(child.__ref.__id);
-  }
-  else
-    Android.removeView(child.__ref.__id);
+  Android.removeView(child.__ref.__id);
 }
 
 function addChild(child, parent, index) {
@@ -269,7 +269,7 @@ function insertDom(root) {
       }else if(window.__OS == "WEB"){
         Android.Render(domAll(root), null);
       }else{
-        Android.Render(JSON.stringify(domAll(root)), null);
+        Android.Render(domAll(root), null);
       }
       // Android.Render(domAll(root));
     }
