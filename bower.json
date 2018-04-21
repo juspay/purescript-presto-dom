@@ -11,6 +11,7 @@
     "purescript-console": "^3.0.0",
     "purescript-halogen-vdom": "https://github.com/juspay/purescript-halogen-vdom.git#custom-vdom-v1",
     "purescript-behaviors": "^6.3.0",
+    "purescript-aff": "^4.1.1",
     "purescript-profunctor-lenses": "^3.8.0"
   },
   "devDependencies": {

@@ -13,7 +13,7 @@ import FRP.Behavior (sample_, step, unfold)
 import FRP.Event (create, subscribe)
 import FormField as FormField
 import Halogen.VDom (buildVDom, extract)
-import PrestoDOM.Core (mapDom, getRootNode, insertDom, patchAndRun, spec, storeMachine, logAny)
+import PrestoDOM.Core (mapDom, getRootNode, insertDom, patchAndRun, spec, storeMachine)
 import PrestoDOM.Events (onClick)
 import PrestoDOM.Types.Core (PrestoDOM, Screen)
 
