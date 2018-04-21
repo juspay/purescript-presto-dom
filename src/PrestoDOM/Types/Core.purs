@@ -21,7 +21,7 @@ import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean, propFromInt, pro
 import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Types (VDom(..), ElemSpec(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
-import PrestoDOM.Types.DomAttributes (Gravity, InputType, Length, Orientation, Typeface, Visibility, renderGravity, renderInputType, renderLength, renderOrientation, renderTypeface, renderVisibility)
+import PrestoDOM.Types.DomAttributes (Gravity, InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility)
 import PrestoDOM.Types.DomAttributes as Types
 
 newtype PropName value = PropName String
@@ -77,3 +77,9 @@ instance visibilityIsProp :: IsProp Visibility where
 
 instance gravityIsProp :: IsProp Gravity where
   toPropValue = propFromString <<< renderGravity
+
+instance marginIsProp :: IsProp Margin where
+  toPropValue = propFromString <<< renderMargin
+
+instance paddingIsProp :: IsProp Padding where
+  toPropValue = propFromString <<< renderPadding

@@ -37,13 +37,13 @@ view push state _ =
     , background "#123eee"
     , width MATCH_PARENT
     , orientation VERTICAL
-    , margin "20,20,20,20"
+    , margin $ Margin 20 20 20 20
     ]
    -- [ linearLayout [height MATCH_PARENT, width MATCH_PARENT] -- linear
     [ textView
         [ height $ V 30
         , width MATCH_PARENT
-        , margin "10,20,20,20"
+        , margin $ Margin 10 20 20 20
         , background "#eee123"
         , color "#000000"
         , text state.text
@@ -52,7 +52,7 @@ view push state _ =
     ,  editText
             [ height (V 40)
             , width MATCH_PARENT
-            , margin "10,10,10,10"
+            , margin $ Margin 10 10 10 10
             , background "#ffffff"
             , textSize 20
             , color "#00ff00"

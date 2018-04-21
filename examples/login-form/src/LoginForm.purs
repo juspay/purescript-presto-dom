@@ -87,7 +87,7 @@ view push state =
         , linearLayout
           [ height $ V 50
           , width MATCH_PARENT
-          , margin "20,20,20,20"
+          , margin $ Margin 20 20 20 20
           , background "#969696"
           , gravity CENTER
           , onClick push (const SubmitClicked)

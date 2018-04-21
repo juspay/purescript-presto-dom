@@ -5,6 +5,10 @@ module PrestoDOM.Types.DomAttributes
     , Orientation(..)
     , Typeface(..)
     , Visibility(..)
+    , Padding(..)
+    , Margin(..)
+    , renderMargin
+    , renderPadding
     , renderGravity
     , renderInputType
     , renderLength
@@ -13,7 +17,7 @@ module PrestoDOM.Types.DomAttributes
     , renderVisibility
     ) where
 
-import Prelude (show)
+import Prelude (show, (<>))
 
 data Length
     = MATCH_PARENT
@@ -27,6 +31,59 @@ renderLength = case _ of
     WRAP_CONTENT -> "wrap_content"
     V n -> show n
 
+
+data Margin
+    = Margin Int Int Int Int
+    | MarginBottom Int
+    | MarginHorizontal Int Int
+    | MarginLeft Int
+    | MarginRight Int
+    | MarginTop Int
+    | MarginVertical Int Int
+
+-- | Margin : left, top, right and bottom
+-- | MarginBottom : bottom
+-- | MarginHorizontal : left and right
+-- | MarginLeft : left
+-- | MarginRight : right
+-- | MarginTop : top
+-- | MarginVertical : top and bottom
+renderMargin :: Margin -> String
+renderMargin = case _ of
+    Margin l t r b       -> show l <> "," <> show t <> "," <> show r <> "," <> show b
+    MarginBottom b       -> "0"    <> "," <> "0"    <> "," <> "0"    <> "," <> show b
+    MarginHorizontal l r -> show l <> "," <> "0"    <> "," <> show r <> "," <> "0"
+    MarginLeft l         -> show l <> "," <> "0"    <> "," <> "0"    <> "," <> "0"
+    MarginRight r        -> "0"    <> "," <> "0"    <> "," <> show r <> "," <> "0"
+    MarginTop t          -> "0"    <> "," <> show t <> "," <> "0"    <> "," <> "0"
+    MarginVertical t b   -> "0"    <> "," <> show t <> "," <> "0"    <> "," <> show b
+
+
+data Padding
+    = Padding Int Int Int Int
+    | PaddingBottom Int
+    | PaddingHorizontal Int Int
+    | PaddingLeft Int
+    | PaddingRight Int
+    | PaddingTop Int
+    | PaddingVertical Int Int
+
+-- | Padding : left, top, right and bottom
+-- | PaddingBottom : bottom
+-- | PaddingHorizontal : left and right
+-- | PaddingLeft : left
+-- | PaddingRight : right
+-- | PaddingTop : top
+-- | PaddingVertical : top and bottom
+renderPadding :: Padding -> String
+renderPadding = case _ of
+    Padding l t r b       -> show l <> "," <> show t <> "," <> show r <> "," <> show b
+    PaddingBottom b       -> "0"    <> "," <> "0"    <> "," <> "0"    <> "," <> show b
+    PaddingHorizontal l r -> show l <> "," <> "0"    <> "," <> show r <> "," <> "0"
+    PaddingLeft l         -> show l <> "," <> "0"    <> "," <> "0"    <> "," <> "0"
+    PaddingRight r        -> "0"    <> "," <> "0"    <> "," <> show r <> "," <> "0"
+    PaddingTop t          -> "0"    <> "," <> show t <> "," <> "0"    <> "," <> "0"
+    PaddingVertical t b   -> "0"    <> "," <> show t <> "," <> "0"    <> "," <> show b
 
 
 

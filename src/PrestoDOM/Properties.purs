@@ -123,7 +123,7 @@ import Prelude
 
 -- import Data.Tuple (Tuple(..))
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.Core (class IsProp, PropName(..), Gravity, InputType, Length, Orientation, Typeface, Visibility, toPropValue)
+import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Padding, Gravity, InputType, Length, Orientation, Typeface, Visibility, toPropValue)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
@@ -338,8 +338,14 @@ lineHeight = prop (PropName "lineHeight")
 
 
 
--- | Unknown
-margin :: forall i. String -> Prop i
+-- | Margin : left, top, right and bottom
+-- | MarginBottom : bottom
+-- | MarginHorizontal : left and right
+-- | MarginLeft : left
+-- | MarginRight : right
+-- | MarginTop : top
+-- | MarginVertical : top and bottom
+margin :: forall i. Margin -> Prop i
 margin = prop (PropName "margin")
 
 -- | Int
@@ -386,8 +392,14 @@ orientation = prop (PropName "orientation")
 
 
 
--- | Unknown
-padding :: forall i. String -> Prop i
+-- | Padding : left, top, right and bottom
+-- | PaddingBottom : bottom
+-- | PaddingHorizontal : left and right
+-- | PaddingLeft : left
+-- | PaddingRight : right
+-- | PaddingTop : top
+-- | PaddingVertical : top and bottom
+padding :: forall i. Padding -> Prop i
 padding = prop (PropName "padding")
 
 -- | Number
