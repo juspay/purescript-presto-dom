@@ -25,6 +25,8 @@ module PrestoDOM.Elements.Elements
     ) where
 
 
+import Prelude
+
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
 import Halogen.VDom.DOM.Prop (Prop)
@@ -40,10 +42,10 @@ type Leaf i p
   -> VDom (Array i) p
 
 element :: forall i p. ElemName -> Array (Prop i) -> Array (VDom (Array (Prop i)) p) -> VDom (Array (Prop i)) p
-element elemName props = Elem (ElemSpec Nothing elemName props)
+element elemName = Elem <<< ElemSpec Nothing elemName
 
 keyed :: forall i p. ElemName -> Array (Prop i) -> Array (Tuple String (VDom (Array (Prop i)) p)) -> VDom (Array (Prop i)) p
-keyed elemName props = Keyed (ElemSpec Nothing elemName props)
+keyed elemName = Keyed <<< ElemSpec Nothing elemName
 
 node :: forall i p. String -> Node (Prop i) p
 node elem = element (ElemName elem)
