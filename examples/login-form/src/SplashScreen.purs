@@ -21,17 +21,17 @@ import PrestoDOM.Types.Core (PrestoDOM, Screen)
 view :: forall a w. PrestoDOM a w
 view =
   linearLayout
-    [ height Match_Parent
-    , width Match_Parent
+    [ height MATCH_PARENT
+    , width MATCH_PARENT
     , background "#111111"
-    , gravity "center"
+    , gravity CENTER
     ]
     [ linearLayout
       [ height $ V 600
       , width $ V 400
       , background "#000066"
-      , orientation "vertical"
-      , gravity "center"
+      , orientation VERTICAL
+      , gravity CENTER
       ]
       [ linearLayout
           [ height $ V 10
@@ -41,23 +41,23 @@ view =
           []
       , linearLayout
         [ height $ V 150
-        , width Match_Parent
-        , orientation "vertical"
+        , width MATCH_PARENT
+        , orientation VERTICAL
         , margin "20,20,20,20"
-        , gravity "center"
+        , gravity CENTER
         ]
         [ linearLayout
           [ height $ V 50
-          , width Match_Parent
+          , width MATCH_PARENT
           , margin "20,0,20,0"
           ]
           []
         , linearLayout
           [ height $ V 50
-          , width Match_Parent
+          , width MATCH_PARENT
           , margin "20,50,20,20"
           , background "#969696"
-          , gravity "center"
+          , gravity CENTER
           ]
           [
             textView

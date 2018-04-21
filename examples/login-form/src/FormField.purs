@@ -35,14 +35,14 @@ view push state _ =
   linearLayout
     [ height $ V 150
     , background "#123eee"
-    , width Match_Parent
-    , orientation "vertical"
+    , width MATCH_PARENT
+    , orientation VERTICAL
     , margin "20,20,20,20"
     ]
-   -- [ linearLayout [height Match_Parent, width Match_Parent] -- linear
+   -- [ linearLayout [height MATCH_PARENT, width MATCH_PARENT] -- linear
     [ textView
         [ height $ V 30
-        , width Match_Parent
+        , width MATCH_PARENT
         , margin "10,20,20,20"
         , background "#eee123"
         , color "#000000"
@@ -51,7 +51,7 @@ view push state _ =
         ]
     ,  editText
             [ height (V 40)
-            , width Match_Parent
+            , width MATCH_PARENT
             , margin "10,10,10,10"
             , background "#ffffff"
             , textSize 20
