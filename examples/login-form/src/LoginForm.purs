@@ -5,9 +5,11 @@ import PrestoDOM.Elements.Elements
 import PrestoDOM.Properties
 import PrestoDOM.Types.DomAttributes
 
+import Control.Monad.Aff (Aff)
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
 import Data.Either (Either(..))
+import Data.Tuple (Tuple(..))
 import FRP (FRP)
 import FRP.Behavior (sample_, step, unfold)
 import FRP.Event (create, subscribe)
@@ -15,7 +17,8 @@ import FormField as FormField
 import Halogen.VDom (buildVDom, extract)
 import PrestoDOM.Core (mapDom, getRootNode, insertDom, patchAndRun, spec, storeMachine)
 import PrestoDOM.Events (onClick)
-import PrestoDOM.Types.Core (PrestoDOM, Screen)
+import PrestoDOM.Types.Core (PrestoDOM, Screen, Eval)
+import Utils (continue, continueWithCmd, updateAndExit, exit)
 
 data Action =
   Username FormField.Action
@@ -35,13 +38,13 @@ initialState =
   , passwordState : (FormField.initialState "password")
   }
 
-eval :: Action -> State -> Either Unit State
-eval (Username action) state = Right $ state { usernameState = FormField.eval action state.usernameState }
-eval (Password action) state = Right $ state { passwordState = FormField.eval action state.passwordState }
+eval :: forall eff. Action -> State -> Eval eff Action Unit State
+eval (Username action) state = continue state { usernameState = FormField.eval action state.usernameState }
+eval (Password action) state = continue state { passwordState = FormField.eval action state.passwordState }
 eval SubmitClicked state =
     if state.passwordState.value == "blueberry" && state.usernameState.value /= ""
-        then (Left unit)
-        else (Right $ state { errorMessage = "Your account is blocked" })
+        then exit unit
+        else (continueWithCmd (state { errorMessage = "Your account is blocked" }) [ (pure $ Username $ FormField.TextChanged "evalaction")])
 
 
 screen :: forall eff. Screen Action State eff Unit

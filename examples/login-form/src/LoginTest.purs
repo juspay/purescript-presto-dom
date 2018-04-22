@@ -15,23 +15,26 @@ import FormField as FormField
 import Halogen.VDom (buildVDom, extract)
 import PrestoDOM.Core (mapDom, getRootNode, insertDom, patchAndRun, spec, storeMachine)
 import PrestoDOM.Events (onClick)
-import PrestoDOM.Types.Core (PrestoDOM, Screen)
+import PrestoDOM.Types.Core (PrestoDOM, Screen, Eval)
+import Utils (continue, continueWithCmd, updateAndExit, exit)
 
 data Action =
   SubmitClicked
 
 type State =
   { errorMessage :: String
+  , visibility :: Visibility
   }
 
 initialState :: State
 initialState =
   { errorMessage : "Yo Ho, Hoist the color High"
+  , visibility : VISIBLE
   }
 
-eval :: Action -> State -> Either Unit State
-eval SubmitClicked state = Left unit
-eval _ state = Right state
+eval :: forall eff. Action -> State -> Eval eff Action Unit State
+eval SubmitClicked state = updateAndExit (state {visibility = GONE}) unit
+eval _ state = continue state
 
 
 screen :: forall eff. Screen Action State eff Unit
@@ -50,6 +53,7 @@ view push state =
     , width MATCH_PARENT
     , background "#323232"
     , gravity CENTER
+    , visibility state.visibility
     ]
     [ linearLayout
       [ height $ V 600

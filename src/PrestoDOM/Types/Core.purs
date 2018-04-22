@@ -5,6 +5,8 @@ module PrestoDOM.Types.Core
     , toPropValue
     , GenProp(..)
     , Screen
+    , Eval
+    , Cmd
     , module VDom
     , module Types
     , class IsProp
@@ -14,7 +16,9 @@ import Prelude
 
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
+import Data.Tuple (Tuple)
 import Data.Either (Either)
+import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import FRP (FRP)
 import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean, propFromInt, propFromNumber, propFromString)
@@ -26,6 +30,8 @@ import PrestoDOM.Types.DomAttributes as Types
 
 newtype PropName value = PropName String
 type PrestoDOM i w = VDom (Array (Prop i)) w
+type Cmd eff action = Array (Eff (frp :: FRP, dom :: DOM | eff) action)
+type Eval eff action retAction st = Either (Tuple (Maybe st) retAction) (Tuple st (Cmd eff action))
 
 type Props i = Array (Prop i)
 
@@ -40,7 +46,7 @@ data GenProp
 type Screen action st eff retAction =
   { initialState :: st
   , view :: (action -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop action)) Void
-  , eval :: action -> st -> Either retAction st
+  , eval :: action -> st -> Eval eff action retAction st
   }
 
 derive instance newtypePropName :: Newtype (PropName value) _

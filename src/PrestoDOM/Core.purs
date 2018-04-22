@@ -4,12 +4,13 @@ import Prelude
 
 import Control.Monad.Eff (Eff)
 import Control.Monad.Aff (Canceler, Error, nonCanceler)
-import Control.Monad.Eff.Timer as T
-import Data.Tuple (Tuple)
 import Data.StrMap (StrMap, fromFoldable)
 import DOM (DOM)
 import DOM.Node.Types (Element, Document)
 import Data.Either (Either(..), either)
+import Data.Foldable (for_)
+import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..), fst)
 import FRP (FRP)
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
@@ -19,6 +20,7 @@ import Halogen.VDom.DOM.Prop (Prop)
 import Halogen.VDom.Machine (never, step, extract)
 import PrestoDOM.Types.Core (PrestoDOM, Screen)
 import Unsafe.Coerce (unsafeCoerce)
+import Utils (continue)
 
 foreign import applyAttributes ∷ forall i eff. Element → (Array (Prop i)) → Eff eff (Array (Prop i))
 foreign import patchAttributes ∷ forall i eff. Element → (Array (Prop i)) → (Array (Prop i)) → Eff eff (Array (Prop i))
@@ -69,8 +71,8 @@ patchAndRun state myDom = do
 initScreen
   :: forall action eff
    . VDom (Array (Prop action)) Void
-  -> (Either Error Unit -> Eff (frp :: FRP, dom :: DOM, timer :: T.TIMER | eff) Unit)
-  -> Eff ( frp :: FRP, dom :: DOM, timer :: T.TIMER | eff ) (Canceler ( frp :: FRP, dom :: DOM, timer :: T.TIMER | eff ))
+  -> (Either Error Unit -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
+  -> Eff ( frp :: FRP, dom :: DOM | eff) (Canceler ( frp :: FRP, dom :: DOM | eff ))
 initScreen view cb = do
   root <- getRootNode
   machine <- buildVDom (spec root) view
@@ -97,16 +99,31 @@ runScreen' rerender { initialState, view, eval } cb = do
         insertDom root (extract machine)
     false ->
         patchAndRun initState (view push)
-  let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action)) event (Right initialState)
-  _ <- sample_ stateBeh event `subscribe` (\eitherState ->
-       either (\a -> cb $ Right a) (\state -> patchAndRun state (view push) *> pure unit) eitherState)
+  -- let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action)) event (Right initialState)
+  let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
+  _ <- sample_ stateBeh event `subscribe` (either (onExit push) $ onStateChange push)
   pure nonCanceler
+    where
+          onStateChange push (Tuple state cmds) =
+              patchAndRun state (view push)
+              *> for_ cmds (\effAction -> effAction >>= push)
 
-runScreen :: forall action st eff retAction.
-    Screen action st eff retAction
+          onExit push (Tuple st ret) =
+              case st of
+                   Just s -> patchAndRun s (view push) *> (cb $ Right ret)
+                   Nothing -> cb $ Right ret
+
+
+  -- (\eitherState ->
+  --     either (\a -> cb $ Right a) (\state -> patchAndRun state (view push) *> pure unit) eitherState)
+
+runScreen
+    :: forall action st eff retAction
+     . Screen action st eff retAction
     -> (Either Error retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
     -> Eff ( frp :: FRP, dom :: DOM | eff ) (Canceler ( frp :: FRP, dom :: DOM | eff ))
 runScreen = runScreen' true
+
 
 mapDom
   :: forall i a b state eff w
