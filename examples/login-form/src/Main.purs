@@ -2,7 +2,7 @@ module Main where
 
 import Prelude
 
-import Control.Monad.Aff (Aff, launchAff, makeAff)
+import Control.Monad.Aff (Aff, launchAff_, makeAff)
 import Control.Monad.Aff.Console (log)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log) as C
@@ -18,10 +18,9 @@ import PrestoDOM.Types.Core (Screen)
 
 main :: forall eff. Eff ( frp :: FRP, dom :: DOM, timer :: T.TIMER, console :: C.CONSOLE, exception :: EXCEPTION | eff ) Unit
 main = do
-  -- _ <- launchAff $ makeAff (\err sc -> initScreen SplashScreen.view sc)
-  _ <- launchAff do
+  _ <- launchAff_ do
      log "sojkhkk"
-     _ <- makeAff (\err sc -> initScreen SplashScreen.view sc 1000)
+     _ <- makeAff (\cb -> initScreen SplashScreen.view cb 1000)
      -- void $ T.setTimeout 1000 (C.log "splash timeout")
      log "yo oo oo"
      _ <- runUI LoginForm.screen "2"
@@ -34,14 +33,11 @@ main = do
 
   pure unit
 
-  {-- void $ T.setTimeout 10000 do --}
-  {--    C.log "splash timeout" --}
- -- runUI :: forall action eff retAction st. Screen action st eff retAction
---          -> Aff (frp :: FRP, dom :: DOM, console :: CONSOLE | eff) Unit
-
-
-
-
+{-- runUI --}
+{--     :: forall action eff retAction st --}
+{--      . Screen action st eff retAction --}
+{--     -> String --}
+{--     -> Aff (frp :: FRP, dom :: DOM, console :: C.CONSOLE | eff) Unit --}
 runUI screen  txt = do
-  _ <- makeAff (\err sc -> runScreen screen sc)
+  _ <- makeAff (\cb -> runScreen screen cb)
   log $ "Completed " <> txt

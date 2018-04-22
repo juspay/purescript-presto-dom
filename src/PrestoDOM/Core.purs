@@ -3,6 +3,7 @@ module PrestoDOM.Core where
 import Prelude
 
 import Control.Monad.Eff (Eff)
+import Control.Monad.Aff (Canceler, Error, nonCanceler)
 import Control.Monad.Eff.Timer as T
 import Data.Tuple (Tuple)
 import Data.StrMap (StrMap, fromFoldable)
@@ -68,9 +69,9 @@ patchAndRun state myDom = do
 initScreen
   :: forall action eff
    . VDom (Array (Prop action)) Void
-  -> (Unit -> Eff (frp :: FRP, dom :: DOM, timer :: T.TIMER | eff) Unit)
+  -> (Either Error Unit -> Eff (frp :: FRP, dom :: DOM, timer :: T.TIMER | eff) Unit)
   -> Int
-  -> Eff ( frp :: FRP, dom :: DOM, timer :: T.TIMER | eff ) Unit
+  -> Eff ( frp :: FRP, dom :: DOM, timer :: T.TIMER | eff ) (Canceler ( frp :: FRP, dom :: DOM, timer :: T.TIMER | eff ))
 initScreen view cb time = do
   -- let initState = initialState
   root <- getRootNode
@@ -79,14 +80,15 @@ initScreen view cb time = do
   insertDom root (extract machine)
   void $ T.setTimeout time do
     -- logNode "splash timeout"
-    cb unit
+    cb $ Right unit
+  pure nonCanceler
 
 
 
 runScreen :: forall action st eff retAction.
     Screen action st eff retAction
-    -> (retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
-    -> Eff ( frp :: FRP, dom :: DOM | eff ) Unit
+    -> (Either Error retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
+    -> Eff ( frp :: FRP, dom :: DOM | eff ) (Canceler ( frp :: FRP, dom :: DOM | eff ))
 runScreen { initialState, view, eval } cb = do
   { event, push } <- E.create
   let initState = initialState
@@ -100,8 +102,8 @@ runScreen { initialState, view, eval } cb = do
         patchAndRun initState (view push)
   let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action)) event (Right initialState)
   _ <- sample_ stateBeh event `subscribe` (\eitherState ->
-       either cb (\state -> patchAndRun state (view push) *> pure unit) eitherState)
-  pure unit
+       either (\a -> cb $ Right a) (\state -> patchAndRun state (view push) *> pure unit) eitherState)
+  pure nonCanceler
 
 mapDom
   :: forall i a b state eff w
