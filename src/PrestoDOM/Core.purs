@@ -70,40 +70,43 @@ initScreen
   :: forall action eff
    . VDom (Array (Prop action)) Void
   -> (Either Error Unit -> Eff (frp :: FRP, dom :: DOM, timer :: T.TIMER | eff) Unit)
-  -> Int
   -> Eff ( frp :: FRP, dom :: DOM, timer :: T.TIMER | eff ) (Canceler ( frp :: FRP, dom :: DOM, timer :: T.TIMER | eff ))
-initScreen view cb time = do
-  -- let initState = initialState
+initScreen view cb = do
   root <- getRootNode
   machine <- buildVDom (spec root) view
   storeMachine machine
   insertDom root (extract machine)
-  void $ T.setTimeout time do
-    -- logNode "splash timeout"
-    cb $ Right unit
+  cb $ Right unit
   pure nonCanceler
 
 
-
-runScreen :: forall action st eff retAction.
-    Screen action st eff retAction
+runScreen'
+    :: forall action st eff retAction
+     . Boolean
+    -> Screen action st eff retAction
     -> (Either Error retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
     -> Eff ( frp :: FRP, dom :: DOM | eff ) (Canceler ( frp :: FRP, dom :: DOM | eff ))
-runScreen { initialState, view, eval } cb = do
+runScreen' rerender { initialState, view, eval } cb = do
   { event, push } <- E.create
   let initState = initialState
-  if true
-      then do
+  case rerender of
+    true -> do
         root <- getRootNode
         machine <- buildVDom (spec root) (view push initState)
         storeMachine machine
         insertDom root (extract machine)
-    else
+    false ->
         patchAndRun initState (view push)
   let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action)) event (Right initialState)
   _ <- sample_ stateBeh event `subscribe` (\eitherState ->
        either (\a -> cb $ Right a) (\state -> patchAndRun state (view push) *> pure unit) eitherState)
   pure nonCanceler
+
+runScreen :: forall action st eff retAction.
+    Screen action st eff retAction
+    -> (Either Error retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
+    -> Eff ( frp :: FRP, dom :: DOM | eff ) (Canceler ( frp :: FRP, dom :: DOM | eff ))
+runScreen = runScreen' true
 
 mapDom
   :: forall i a b state eff w

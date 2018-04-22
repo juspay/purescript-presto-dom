@@ -2,7 +2,7 @@ module Main where
 
 import Prelude
 
-import Control.Monad.Aff (Aff, launchAff_, makeAff)
+import Control.Monad.Aff (Aff, launchAff_, makeAff, delay, Milliseconds(..))
 import Control.Monad.Aff.Console (log)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log) as C
@@ -20,16 +20,14 @@ main :: forall eff. Eff ( frp :: FRP, dom :: DOM, timer :: T.TIMER, console :: C
 main = do
   _ <- launchAff_ do
      log "sojkhkk"
-     _ <- makeAff (\cb -> initScreen SplashScreen.view cb 1000)
-     -- void $ T.setTimeout 1000 (C.log "splash timeout")
+     _ <- makeAff (\cb -> initScreen SplashScreen.view cb)
+     _ <- delay $ Milliseconds 1000.0
      log "yo oo oo"
      _ <- runUI LoginForm.screen "2"
      log "fooo"
      _ <- runUI LoginTest.screen "1"
 
      pure unit
-  {-- void $ T.setTimeout 10000 do --}
-  {--    C.log "splash timeout" --}
 
   pure unit
 
