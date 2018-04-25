@@ -56,7 +56,6 @@ view push state _ =
             , background "#ffffff"
             , textSize 20
             , color "#00ff00"
-            , text state.value
             , onChange push TextChanged
             ]
   --  ] -- linear

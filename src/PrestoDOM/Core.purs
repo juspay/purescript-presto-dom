@@ -28,6 +28,7 @@ foreign import cleanupAttributes ∷ forall i eff. Element → (Array (Prop i)) 
 foreign import getLatestMachine :: forall m a b eff. Eff eff (Step m a b)
 foreign import storeMachine :: forall eff m a b. Step m a b -> Eff eff Unit
 foreign import getRootNode :: forall eff. Eff eff Document
+foreign import setRootNode :: forall eff. Eff eff Document
 foreign import insertDom :: forall a b eff. a -> b -> Eff eff Unit
 
 buildAttributes
@@ -75,7 +76,7 @@ initUIWithScreen
   -> Eff ( frp :: FRP, dom :: DOM | eff) (Canceler ( frp :: FRP, dom :: DOM | eff ))
 initUIWithScreen { initialState, view, eval } cb = do
   { event, push } <- E.create
-  root <- getRootNode
+  root <- setRootNode
   machine <- buildVDom (spec root) (view push initialState)
   storeMachine machine
   insertDom root (extract machine)
@@ -87,7 +88,7 @@ initUI
    . (Either Error Unit -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
   -> Eff ( frp :: FRP, dom :: DOM | eff) (Canceler ( frp :: FRP, dom :: DOM | eff ))
 initUI cb = do
-  root <- getRootNode
+  root <- setRootNode
   machine <- buildVDom (spec root) view
   storeMachine machine
   insertDom root (extract machine)

@@ -52,22 +52,27 @@ exports.patchAttributes = function(element) {
         var attrFound = 0;
 
         for (var i=0; i<oldAttrList.length; i++) {
-          attrFound = 0;
-          for (var j=0; j<newAttrList.length; j++) {
-            if (oldAttrList[i].value0 == newAttrList[j].value0) {
-              attrFound = 1;
 
-              if (oldAttrList[i].value1 !== newAttrList[j].value1) {
-                oldAttrList[i].value1 = newAttrList[j].value1;
-                updateAttribute(element, newAttrList[j]);
+          if (oldAttrList[i] != null) {
+            attrFound = 0;
+            for (var j=0; j<newAttrList.length; j++) {
+              if (oldAttrList[i].value0 == newAttrList[j].value0) {
+                attrFound = 1;
+
+                if (oldAttrList[i].value1 !== newAttrList[j].value1) {
+                  element.props[oldAttrList[i].value0] = newAttrList[j].value1;
+                  oldAttrList[i].value1 = newAttrList[j].value1;
+                  updateAttribute(element, newAttrList[j]);
+                }
               }
             }
-          }
 
-          if (!attrFound) {
-            oldAttrList.splice(i, 0);
-            removeAttribute(element, oldAttrList[i]);
-            // oldAttrList[i] = null;
+            if (!attrFound) {
+              attrFound = true;
+              delete element.props[oldAttrList[i].value0];
+              removeAttribute(element, oldAttrList[i]);
+              oldAttrList[i] = null;
+            }
           }
         }
 
@@ -77,12 +82,13 @@ exports.patchAttributes = function(element) {
           attrFound = 0;
           for (var j=0; j<oldAttrList.length; j++) {
 
-            if (oldAttrList[j].value0 == newAttrList[i].value0) {
+            if (oldAttrList[j] != null && (oldAttrList[j].value0 == newAttrList[i].value0)) {
               attrFound = 1;
             }
           }
 
           if (!attrFound) {
+            element.props[newAttrList[i].value0] = newAttrList[i].value1;
             oldAttrList.push(newAttrList[i]);
             addAttribute(element, newAttrList[i]);
           }
@@ -117,10 +123,6 @@ exports.storeMachine = function(machine) {
 
 exports.getLatestMachine = function() {
   return window.MACHINE;
-}
-
-exports.getRootNode = function() {
-  return {type: "relativeLayout", props: {root: "true"}, children: []};
 }
 
 exports.insertDom = insertDom;
@@ -189,15 +191,15 @@ function applyProp(element, attribute, set) {
 
 function replaceView(element, attribute, removeProp) {
   const props = R.clone(element.props);
-  // console.log("ReplaceView ", props);
+  props.id = element.__ref.__id;
   var rep;
   const viewGroups = ["linearLayout", "relativeLayout", "scrollView", "frameLayout", "horizontalScrollView"];
 
-  if (removeProp) {
-    delete props[attribute.value0];
-  } else {
-     props[attribute.value0] = attribute.value1;
-  }
+  // if (removeProp) {
+  //   delete props[attribute.value0];
+  // } else {
+  //    props[attribute.value0] = attribute.value1;
+  // }
   if (viewGroups.indexOf(element.type) != -1){
       props.root = true;
       rep = prestoDayum(element.type, props, []);
@@ -205,13 +207,13 @@ function replaceView(element, attribute, removeProp) {
       rep = prestoDayum({elemType: element.type, parentType: element.parentNode.type}, props, []);
     }
 
-  //  Android.replaceView(JSON.stringify(rep), element.__ref.__id);
+  Android.replaceView(JSON.stringify(rep), element.__ref.__id);
 }
 
 window.removeChild = removeChild;
 window.addChild = addChild;
 window.addAttribute = addAttribute;
-window.removeAttribute = removeAttribute;
+// window.removeAttribute = removeAttribute;
 window.updateAttribute = updateAttribute;
 window.addAttribute = addAttribute;
 window.insertDom = insertDom;
@@ -259,9 +261,8 @@ function addAttribute(element, attribute) {
 }
 
 function removeAttribute(element, attribute) {
-  // console.log("remove attr :", attribute);
   if (window.__OS == "ANDROID") {
-    // replaceView(element, attribute, true);
+    replaceView(element, attribute, true);
 
     return;
   }
@@ -277,35 +278,82 @@ function updateAttribute(element, attribute) {
 }
 
 
+exports.setRootNode = function() {
+  var root = {type: "relativeLayout", props: {root: "true"}, children: []};
+
+  root.props.height = "match_parent";
+  root.props.width = "match_parent";
+  root.props.id = typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++;
+  root.type = "relativeLayout";
+  root.__ref = window.createPrestoElement();
+
+  window.N = root;
+  window.__ROOTSCREEN = {
+    idSet: {
+      root: root.props.id,
+			child: []
+    }
+  };
+
+  if(window.__OS == "ANDROID"){
+    if(typeof Android.getNewID == "function") {
+      Android.Render(JSON.stringify(domAll(root)), null, "false");
+    } else {
+      Android.Render(JSON.stringify(domAll(root)), null);
+    }
+  } else if (window.__OS == "WEB"){
+    Android.Render(domAll(root), null);
+  } else {
+    Android.Render(domAll(root), null);
+  }
+
+	return root;
+
+}
+
+exports.getRootNode = function() {
+  // return {type: "relativeLayout", props: {root: "true"}, children: []};
+  return window.N;
+}
+
 function insertDom(root) {
   return function (dom) {
     return function () {
-      root.props.height = "match_parent";
-      root.props.width = "match_parent";
-      root.props.id = typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++;
-      root.type = "relativeLayout";
-      root.__ref = window.createPrestoElement();
 
       root.children.push(dom);
       dom.parentNode = root;
+      dom.__ref = window.createPrestoElement();
       window.N = root;
-      window.__ROOTSCREEN = {
-        idSet: {
-          root: root.id
-        }
-      };
-      if(window.__OS == "ANDROID"){
-        if(typeof Android.getNewID == "function") {
-          Android.Render(JSON.stringify(domAll(root)), null, "false");
-        } else {
-          Android.Render(JSON.stringify(domAll(root)), null);
-        }
-      }else if(window.__OS == "WEB"){
-        Android.Render(domAll(root), null);
-      }else{
-        Android.Render(domAll(root), null);
+
+      var rootId = window.__ROOTSCREEN.idSet.root;
+
+
+      dom.props.root = true;
+
+      var index = window.__ROOTSCREEN.idSet.child.push(dom.__ref.__id);
+
+
+      var prop = {
+        id: window.__ROOTSCREEN.idSet.child[index - 2],
+        visibility: "gone"
       }
-      // Android.Render(domAll(root));
+
+      if (window.__OS == "ANDROID") {
+        var cmd = cmdForAndroid(prop, true);
+        Android.runInUI(cmd, null);
+      } else if (window.__OS == "IOS"){
+        Android.runInUI(prop);
+      } else {
+        Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+      }
+
+      if (window.__OS == "ANDROID") {
+        Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), index - 1, null, null);
+      }
+      else {
+        Android.addViewToParent(rootId, domAll(dom), index - 1, null, null);
+      }
+
     }
   }
 }
