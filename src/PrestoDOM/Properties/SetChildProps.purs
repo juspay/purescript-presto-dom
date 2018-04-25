@@ -113,6 +113,9 @@ module PrestoDOM.Properties.SetChildProps
 
     , weight_c
     , width_c
+
+    , alignParentBottom_c
+    , alignParentLeft_c
     ) where
 
 
@@ -139,308 +142,427 @@ a_scaleX_c = Tuple "a_scaleX" <<< StringP
 a_scaleY_c :: String -> Tuple String GenProp
 a_scaleY_c = Tuple "a_scaleY" <<< StringP
 
+-- | String
 accessibilityHint_c :: String -> Tuple String GenProp
 accessibilityHint_c = Tuple "accessibilityHint" <<< StringP
 
-adjustViewBounds_c :: String -> Tuple String GenProp
-adjustViewBounds_c = Tuple "adjustViewBounds" <<< StringP
+-- | Boolean
+adjustViewBounds_c :: Boolean -> Tuple String GenProp
+adjustViewBounds_c = Tuple "adjustViewBounds" <<< BooleanP
 
-alpha_c :: String -> Tuple String GenProp
-alpha_c = Tuple "alpha" <<< StringP
+-- | Number
+alpha_c :: Number -> Tuple String GenProp
+alpha_c = Tuple "alpha" <<< NumberP
 
 
 
+-- | String
 background_c :: String -> Tuple String GenProp
 background_c = Tuple "background" <<< StringP
 
+-- | String
 backgroundColor_c :: String -> Tuple String GenProp
 backgroundColor_c = Tuple "backgroundColor" <<< StringP
 
+-- | String
 backgroundDrawable_c :: String -> Tuple String GenProp
 backgroundDrawable_c = Tuple "backgroundDrawable" <<< StringP
 
+-- | String
 backgroundTint_c :: String -> Tuple String GenProp
 backgroundTint_c = Tuple "backgroundTint" <<< StringP
 
+-- | String
 btnBackground_c :: String -> Tuple String GenProp
 btnBackground_c = Tuple "btnBackground" <<< StringP
 
+-- | String
 btnColor_c :: String -> Tuple String GenProp
 btnColor_c = Tuple "btnColor" <<< StringP
 
+-- | String
 buttonTint_c :: String -> Tuple String GenProp
 buttonTint_c = Tuple "buttonTint" <<< StringP
 
 
 
-checked_c :: String -> Tuple String GenProp
-checked_c = Tuple "checked" <<< StringP
+-- | Boolean
+checked_c :: Boolean -> Tuple String GenProp
+checked_c = Tuple "checked" <<< BooleanP
 
-clickable_c :: String -> Tuple String GenProp
-clickable_c = Tuple "clickable" <<< StringP
+-- | Boolean
+clickable_c :: Boolean -> Tuple String GenProp
+clickable_c = Tuple "clickable" <<< BooleanP
 
-clipChildren_c :: String -> Tuple String GenProp
-clipChildren_c = Tuple "clipChildren" <<< StringP
+-- | Boolean
+clipChildren_c :: Boolean -> Tuple String GenProp
+clipChildren_c = Tuple "clipChildren" <<< BooleanP
 
+-- | String
 color_c :: String -> Tuple String GenProp
 color_c = Tuple "color" <<< StringP
 
+-- | Unknown
 colorFilter_c :: String -> Tuple String GenProp
 colorFilter_c = Tuple "colorFilter" <<< StringP
 
-cornerRadius_c :: String -> Tuple String GenProp
-cornerRadius_c = Tuple "cornerRadius" <<< StringP
+-- | Number
+cornerRadius_c :: Number -> Tuple String GenProp
+cornerRadius_c = Tuple "cornerRadius" <<< NumberP
 
+-- curve
+-- | String
 curve_c :: String -> Tuple String GenProp
 curve_c = Tuple "curve" <<< StringP
 
 
 
+-- | L, // long
 delay_c :: String -> Tuple String GenProp
 delay_c = Tuple "delay" <<< StringP
 
+-- | String
 dividerDrawable_c :: String -> Tuple String GenProp
 dividerDrawable_c = Tuple "dividerDrawable" <<< StringP
 
+-- | L, // long
 duration_c :: String -> Tuple String GenProp
 duration_c = Tuple "duration" <<< StringP
 
 
 
-elevation_c :: String -> Tuple String GenProp
-elevation_c = Tuple "elevation" <<< StringP
+-- | Int
+elevation_c :: Int -> Tuple String GenProp
+elevation_c = Tuple "elevation" <<< IntP
 
 
 
-fillViewport_c :: String -> Tuple String GenProp
-fillViewport_c = Tuple "fillViewport" <<< StringP
+-- | Boolean
+fillViewport_c :: Boolean -> Tuple String GenProp
+fillViewport_c = Tuple "fillViewport" <<< BooleanP
 
 focus_c :: String -> Tuple String GenProp
 focus_c = Tuple "focus" <<< StringP
 
-focusable_c :: String -> Tuple String GenProp
-focusable_c = Tuple "focusable" <<< StringP
+-- | Boolean
+focusable_c :: Boolean -> Tuple String GenProp
+focusable_c = Tuple "focusable" <<< BooleanP
 
 focusOut_c :: String -> Tuple String GenProp
 focusOut_c = Tuple "focusOut" <<< StringP
 
+-- | Unknown
 fontFamily_c :: String -> Tuple String GenProp
 fontFamily_c = Tuple "fontFamily" <<< StringP
 
+-- | Int
 fontSize_c :: Int -> Tuple String GenProp
 fontSize_c = Tuple "fontSize" <<< IntP
 
+-- | String
 fontStyle_c :: String -> Tuple String GenProp
 fontStyle_c = Tuple "fontStyle" <<< StringP
 
-foreground_c :: String -> Tuple String GenProp
-foreground_c = Tuple "foreground" <<< StringP
+-- | Boolean
+foreground_c :: Boolean -> Tuple String GenProp
+foreground_c = Tuple "foreground" <<< BooleanP
 
 
 
-gravity_c :: String -> Tuple String GenProp
-gravity_c = Tuple "gravity" <<< StringP
+-- | Gravity
+gravity_c :: Gravity -> Tuple String GenProp
+gravity_c = Tuple "gravity" <<< GravityP
 
 
 
+-- | Unknown
 hardware_c :: String -> Tuple String GenProp
 hardware_c = Tuple "hardware" <<< StringP
 
 height_c :: Length -> Tuple String GenProp
 height_c = Tuple "height" <<< LengthP
 
+-- | String
 hint_c :: String -> Tuple String GenProp
 hint_c = Tuple "hint" <<< StringP
 
+-- | String
 hintColor_c :: String -> Tuple String GenProp
 hintColor_c = Tuple "hintColor" <<< StringP
 
 
 
+-- | String
 imageUrl_c :: String -> Tuple String GenProp
 imageUrl_c = Tuple "imageUrl" <<< StringP
 
-inputType_c :: String -> Tuple String GenProp
-inputType_c = Tuple "inputType" <<< StringP
+-- | InputType
+inputType_c :: InputType -> Tuple String GenProp
+inputType_c = Tuple "inputType" <<< InputTypeP
 
-inputTypeI_c :: String -> Tuple String GenProp
-inputTypeI_c = Tuple "inputTypeI" <<< StringP
-
-
-
-layout_gravity_c :: String -> Tuple String GenProp
-layout_gravity_c = Tuple "layout_gravity" <<< StringP
-
-layoutTransition_c :: String -> Tuple String GenProp
-layoutTransition_c = Tuple "layoutTransition" <<< StringP
-
-letterSpacing_c :: String -> Tuple String GenProp
-letterSpacing_c = Tuple "letterSpacing" <<< StringP
-
-lineHeight_c :: String -> Tuple String GenProp
-lineHeight_c = Tuple "lineHeight" <<< StringP
+-- | Int
+inputTypeI_c :: Int -> Tuple String GenProp
+inputTypeI_c = Tuple "inputTypeI" <<< IntP
 
 
 
-margin_c :: String -> Tuple String GenProp
-margin_c = Tuple "margin" <<< StringP
+{-- values: [{ --}
+{--           type: 'i', --}
+{--  bottom_right: 21, --}
+{-- top: 30, --}
+{-- bottom: 50, --}
+{-- left: 3, --}
+{-- right: 5, --}
+{-- center: 17, --}
+{-- center_horizontal: 1, --}
+{-- center_vertical: 16, --}
+{-- start: 8388611, --}
+{-- end: 8388613,}] --}
+layoutGravity_c :: String -> Tuple String GenProp
+layoutGravity_c = Tuple "layout_gravity" <<< StringP
 
-marginEnd_c :: String -> Tuple String GenProp
-marginEnd_c = Tuple "marginEnd" <<< StringP
+-- | Boolean
+layoutTransition_c :: Boolean -> Tuple String GenProp
+layoutTransition_c = Tuple "layoutTransition" <<< BooleanP
 
-marginStart_c :: String -> Tuple String GenProp
-marginStart_c = Tuple "marginStart" <<< StringP
+-- | Number
+letterSpacing_c :: Number -> Tuple String GenProp
+letterSpacing_c = Tuple "letterSpacing" <<< NumberP
 
+lineHeight_c :: Int -> Tuple String GenProp
+lineHeight_c = Tuple "lineHeight" <<< IntP
+
+
+
+-- | Margin : left, top, right and bottom
+-- | MarginBottom : bottom
+-- | MarginHorizontal : left and right
+-- | MarginLeft : left
+-- | MarginRight : right
+-- | MarginTop : top
+-- | MarginVertical : top and bottom
+margin_c :: Margin -> Tuple String GenProp
+margin_c = Tuple "margin" <<< MarginP
+
+-- | Int
+marginEnd_c :: Int -> Tuple String GenProp
+marginEnd_c = Tuple "marginEnd" <<< IntP
+
+-- | Int
+marginStart_c :: Int -> Tuple String GenProp
+marginStart_c = Tuple "marginStart" <<< IntP
+
+-- | L, // long
 maxDate_c :: String -> Tuple String GenProp
 maxDate_c = Tuple "maxDate" <<< StringP
 
-maxLines_c :: String -> Tuple String GenProp
-maxLines_c = Tuple "maxLines" <<< StringP
+-- | Int
+maxLines_c :: Int -> Tuple String GenProp
+maxLines_c = Tuple "maxLines" <<< IntP
 
-maxSeek_c :: String -> Tuple String GenProp
-maxSeek_c = Tuple "maxSeek" <<< StringP
+-- | int
+maxSeek_c :: Int -> Tuple String GenProp
+maxSeek_c = Tuple "maxSeek" <<< IntP
 
-maxWidth_c :: String -> Tuple String GenProp
-maxWidth_c = Tuple "maxWidth" <<< StringP
+-- | Int
+maxWidth_c :: Int -> Tuple String GenProp
+maxWidth_c = Tuple "maxWidth" <<< IntP
 
+-- | L, // long
 minDate_c :: String -> Tuple String GenProp
 minDate_c = Tuple "minDate" <<< StringP
 
-minHeight_c :: String -> Tuple String GenProp
-minHeight_c = Tuple "minHeight" <<< StringP
+-- | Int
+minHeight_c :: Int -> Tuple String GenProp
+minHeight_c = Tuple "minHeight" <<< IntP
 
-minWidth_c :: String -> Tuple String GenProp
-minWidth_c = Tuple "minWidth" <<< StringP
-
-
-
-orientation_c :: String -> Tuple String GenProp
-orientation_c = Tuple "orientation" <<< StringP
+-- | Int
+minWidth_c :: Int -> Tuple String GenProp
+minWidth_c = Tuple "minWidth" <<< IntP
 
 
 
-padding_c :: String -> Tuple String GenProp
-padding_c = Tuple "padding" <<< StringP
+-- | Orientation
+orientation_c :: Orientation -> Tuple String GenProp
+orientation_c = Tuple "orientation" <<< OrientationP
 
-pivotX_c :: String -> Tuple String GenProp
-pivotX_c = Tuple "pivotX" <<< StringP
 
-pivotY_c :: String -> Tuple String GenProp
-pivotY_c = Tuple "pivotY" <<< StringP
 
+-- | Padding : left, top, right and bottom
+-- | PaddingBottom : bottom
+-- | PaddingHorizontal : left and right
+-- | PaddingLeft : left
+-- | PaddingRight : right
+-- | PaddingTop : top
+-- | PaddingVertical : top and bottom
+padding_c :: Padding -> Tuple String GenProp
+padding_c = Tuple "padding" <<< PaddingP
+
+-- | Number
+pivotX_c :: Number -> Tuple String GenProp
+pivotX_c = Tuple "pivotX" <<< NumberP
+
+-- | Number
+pivotY_c :: Number -> Tuple String GenProp
+pivotY_c = Tuple "pivotY" <<< NumberP
+
+-- | String
 progressColor_c :: String -> Tuple String GenProp
 progressColor_c = Tuple "progressColor" <<< StringP
 
 
 
-rotation_c :: String -> Tuple String GenProp
-rotation_c = Tuple "rotation" <<< StringP
+-- | Number
+rotation_c :: Number -> Tuple String GenProp
+rotation_c = Tuple "rotation" <<< NumberP
 
-rotationX_c :: String -> Tuple String GenProp
-rotationX_c = Tuple "rotationX" <<< StringP
+-- | Number
+rotationX_c :: Number -> Tuple String GenProp
+rotationX_c = Tuple "rotationX" <<< NumberP
 
-rotationY_c :: String -> Tuple String GenProp
-rotationY_c = Tuple "rotationY" <<< StringP
+-- | Number
+rotationY_c :: Number -> Tuple String GenProp
+rotationY_c = Tuple "rotationY" <<< NumberP
 
 
 
+-- | String
 scaleType_c :: String -> Tuple String GenProp
 scaleType_c = Tuple "scaleType" <<< StringP
 
-scaleX_c :: String -> Tuple String GenProp
-scaleX_c = Tuple "scaleX" <<< StringP
+-- | Number
+scaleX_c :: Number -> Tuple String GenProp
+scaleX_c = Tuple "scaleX" <<< NumberP
 
-scaleY_c :: String -> Tuple String GenProp
-scaleY_c = Tuple "scaleY" <<< StringP
+-- | Number
+scaleY_c :: Number -> Tuple String GenProp
+scaleY_c = Tuple "scaleY" <<< NumberP
 
-scrollBarX_c :: String -> Tuple String GenProp
-scrollBarX_c = Tuple "scrollBarX" <<< StringP
+-- | Boolean
+scrollBarX_c :: Boolean -> Tuple String GenProp
+scrollBarX_c = Tuple "scrollBarX" <<< BooleanP
 
-scrollBarY_c :: String -> Tuple String GenProp
-scrollBarY_c = Tuple "scrollBarY" <<< StringP
+-- | Boolean
+scrollBarY_c :: Boolean -> Tuple String GenProp
+scrollBarY_c = Tuple "scrollBarY" <<< BooleanP
 
-selectable_c :: String -> Tuple String GenProp
-selectable_c = Tuple "selectable" <<< StringP
+-- | Boolean
+selectable_c :: Boolean -> Tuple String GenProp
+selectable_c = Tuple "selectable" <<< BooleanP
 
-selectableItem_c :: String -> Tuple String GenProp
-selectableItem_c = Tuple "selectableItem" <<< StringP
+-- | Boolean
+selectableItem_c :: Boolean -> Tuple String GenProp
+selectableItem_c = Tuple "selectableItem" <<< BooleanP
 
-selected_c :: String -> Tuple String GenProp
-selected_c = Tuple "selected" <<< StringP
+-- | Boolean
+selected_c :: Boolean -> Tuple String GenProp
+selected_c = Tuple "selected" <<< BooleanP
 
+-- | String
 selectedTabIndicatorColor_c :: String -> Tuple String GenProp
 selectedTabIndicatorColor_c = Tuple "selectedTabIndicatorColor" <<< StringP
 
-selectedTabIndicatorHeight_c :: String -> Tuple String GenProp
-selectedTabIndicatorHeight_c = Tuple "selectedTabIndicatorHeight" <<< StringP
+-- | Int
+selectedTabIndicatorHeight_c :: Int -> Tuple String GenProp
+selectedTabIndicatorHeight_c = Tuple "selectedTabIndicatorHeight" <<< IntP
 
+-- | L, // long
 setDate_c :: String -> Tuple String GenProp
 setDate_c = Tuple "setDate" <<< StringP
 
+-- | Unknown
 shadowLayer_c :: String -> Tuple String GenProp
 shadowLayer_c = Tuple "shadowLayer" <<< StringP
 
-showDividers_c :: String -> Tuple String GenProp
-showDividers_c = Tuple "showDividers" <<< StringP
+-- | Int
+showDividers_c :: Int -> Tuple String GenProp
+showDividers_c = Tuple "showDividers" <<< IntP
 
-singleLine_c :: String -> Tuple String GenProp
-singleLine_c = Tuple "singleLine" <<< StringP
+-- | Boolean
+singleLine_c :: Boolean -> Tuple String GenProp
+singleLine_c = Tuple "singleLine" <<< BooleanP
 
+-- | Unknown
 stroke_c :: String -> Tuple String GenProp
 stroke_c = Tuple "stroke" <<< StringP
 
+caretColor_c :: String -> Tuple String GenProp
+caretColor_c = Tuple "caretColor" <<< StringP
 
-
+-- | Unknown
 tabTextColors_c :: String -> Tuple String GenProp
 tabTextColors_c = Tuple "tabTextColors" <<< StringP
 
+-- | String
 text_c :: String -> Tuple String GenProp
 text_c = Tuple "text" <<< StringP
 
-textAllCaps_c :: String -> Tuple String GenProp
-textAllCaps_c = Tuple "textAllCaps" <<< StringP
+-- | Boolean
+textAllCaps_c :: Boolean -> Tuple String GenProp
+textAllCaps_c = Tuple "textAllCaps" <<< BooleanP
 
+-- | String
 textFromHtml_c :: String -> Tuple String GenProp
 textFromHtml_c = Tuple "textFromHtml" <<< StringP
 
-textIsSelectable_c :: String -> Tuple String GenProp
-textIsSelectable_c = Tuple "textIsSelectable" <<< StringP
+-- | Boolean
+textIsSelectable_c :: Boolean -> Tuple String GenProp
+textIsSelectable_c = Tuple "textIsSelectable" <<< BooleanP
 
 textSize_c :: Int -> Tuple String GenProp
 textSize_c = Tuple "textSize" <<< IntP
 
-translationX_c :: String -> Tuple String GenProp
-translationX_c = Tuple "translationX" <<< StringP
+-- | Number
+translationX_c :: Number -> Tuple String GenProp
+translationX_c = Tuple "translationX" <<< NumberP
 
-translationY_c :: String -> Tuple String GenProp
-translationY_c = Tuple "translationY" <<< StringP
+-- | Number
+translationY_c :: Number -> Tuple String GenProp
+translationY_c = Tuple "translationY" <<< NumberP
 
-translationZ_c :: String -> Tuple String GenProp
-translationZ_c = Tuple "translationZ" <<< StringP
+-- | Number
+translationZ_c :: Number -> Tuple String GenProp
+translationZ_c = Tuple "translationZ" <<< NumberP
 
+-- | String
 toast_c :: String -> Tuple String GenProp
 toast_c = Tuple "toast" <<< StringP
 
-typeface_c :: String -> Tuple String GenProp
-typeface_c = Tuple "typeface" <<< StringP
+-- | Typeface
+typeface_c :: Typeface -> Tuple String GenProp
+typeface_c = Tuple "typeface" <<< TypefaceP
 
 
 
+-- | String
 url_c :: String -> Tuple String GenProp
 url_c = Tuple "url" <<< StringP
 
 
 
+-- | String
 values_c :: String -> Tuple String GenProp
 values_c = Tuple "values" <<< StringP
 
-visibility_c :: String -> Tuple String GenProp
-visibility_c = Tuple "visibility" <<< StringP
+-- | Visibility
+visibility_c :: Visibility -> Tuple String GenProp
+visibility_c = Tuple "visibility" <<< VisibilityP
 
 
 
+{-- type: 'f', --}
+{--           match_parent: -1, --}
+{--                 wrap_content: -2, --}
 weight_c :: String -> Tuple String GenProp
 weight_c = Tuple "weight" <<< StringP
 
 width_c :: Length -> Tuple String GenProp
 width_c = Tuple "width" <<< LengthP
+
+-- | Unknown
+alignParentBottom_c :: String -> Tuple String GenProp
+alignParentBottom_c = Tuple "alignParentBottom" <<< StringP
+
+-- | Unknown
+alignParentLeft_c :: String -> Tuple String GenProp
+alignParentLeft_c = Tuple "alignParentLeft" <<< StringP

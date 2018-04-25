@@ -259,7 +259,7 @@ focusOut = prop (PropName "focusOut")
 fontFamily :: forall i. String -> Prop i
 fontFamily = prop (PropName "fontFamily")
 
--- | Unknown
+-- | Int
 fontSize :: forall i. Int -> Prop i
 fontSize = prop (PropName "fontSize")
 
@@ -333,7 +333,7 @@ layoutTransition = prop (PropName "layoutTransition")
 letterSpacing :: forall i. Number -> Prop i
 letterSpacing = prop (PropName "letterSpacing")
 
-lineHeight :: forall i. String -> Prop i
+lineHeight :: forall i. Int -> Prop i
 lineHeight = prop (PropName "lineHeight")
 
 

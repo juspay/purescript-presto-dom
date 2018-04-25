@@ -37,6 +37,14 @@ type Props i = Array (Prop i)
 
 data GenProp
     = LengthP Length
+    | MarginP Margin
+    | PaddingP Padding
+    | InputTypeP InputType
+    | OrientationP Orientation
+    | TypefaceP Typeface
+    | VisibilityP Visibility
+    | GravityP
+    | NumberP Number
     | BooleanP Boolean
     | IntP Int
     | StringP String
