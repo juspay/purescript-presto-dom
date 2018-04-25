@@ -1,4 +1,4 @@
-module Utils where
+module PrestoDOM.Utils where
 
 import Prelude
 
