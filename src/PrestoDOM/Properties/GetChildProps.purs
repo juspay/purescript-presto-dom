@@ -125,10 +125,10 @@ import Data.Maybe (Maybe(..))
 import Data.StrMap (StrMap, lookup)
 
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.Core (class IsProp, Length, toPropValue, GenProp(..))
+import PrestoDOM.Types.Core (class IsProp, Gravity, InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, toPropValue, GenProp(..))
 
-fromGenProp :: forall a i. IsProp a => String -> a -> StrMap GenProp -> StrMap GenProp -> Prop i
-fromGenProp key default strMap_p = let value_p = lookup key strMap
+fromGenProp :: forall a i. IsProp a => String -> a -> StrMap GenProp -> Prop i
+fromGenProp key default strMap = let value = lookup key strMap
                           in case value of
                                   Just (LengthP v) -> Property key $ toPropValue v
                                   Just (MarginP v) -> Property key $ toPropValue v
@@ -137,6 +137,7 @@ fromGenProp key default strMap_p = let value_p = lookup key strMap
                                   Just (OrientationP v) -> Property key $ toPropValue v
                                   Just (TypefaceP v) -> Property key $ toPropValue v
                                   Just (VisibilityP v) -> Property key $ toPropValue v
+                                  Just (GravityP v) -> Property key $ toPropValue v
                                   Just (NumberP v) -> Property key $ toPropValue v
                                   Just (BooleanP v) -> Property key $ toPropValue v
                                   Just (IntP v) -> Property key $ toPropValue v

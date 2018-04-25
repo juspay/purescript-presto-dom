@@ -122,7 +122,7 @@ module PrestoDOM.Properties.SetChildProps
 import Prelude
 
 import Data.Tuple (Tuple(..))
-import PrestoDOM.Types.Core (Length, GenProp(..))
+import PrestoDOM.Types.Core (Gravity, InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, GenProp(..))
 
 
 override_c :: String -> String -> Tuple String GenProp

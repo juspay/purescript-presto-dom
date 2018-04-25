@@ -43,7 +43,7 @@ data GenProp
     | OrientationP Orientation
     | TypefaceP Typeface
     | VisibilityP Visibility
-    | GravityP
+    | GravityP Gravity
     | NumberP Number
     | BooleanP Boolean
     | IntP Int
