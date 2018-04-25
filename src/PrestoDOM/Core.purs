@@ -69,8 +69,8 @@ patchAndRun state myDom = do
   storeMachine newMachine
 
 initUIWithScreen
-  :: forall action st eff retAction
-   . Screen action st eff retAction
+  :: forall action st eff
+   . Screen action st eff Unit
   -> (Either Error Unit -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
   -> Eff ( frp :: FRP, dom :: DOM | eff) (Canceler ( frp :: FRP, dom :: DOM | eff ))
 initUIWithScreen { initialState, view, eval } cb = do
