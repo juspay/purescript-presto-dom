@@ -51,7 +51,7 @@ module PrestoDOM.Properties.SetChildProps
     , inputType_c
     , inputTypeI_c
 
-    , layout_gravity_c
+    , layoutGravity_c
     , layoutTransition_c
     , letterSpacing_c
     , lineHeight_c
