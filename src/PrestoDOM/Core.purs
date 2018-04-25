@@ -15,10 +15,10 @@ import FRP (FRP)
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
 import FRP.Event as E
-import Halogen.VDom (Step(..), VDom, VDomMachine, VDomSpec(..), buildVDom)
+import Halogen.VDom (Step(Step), VDomMachine, VDomSpec(VDomSpec), buildVDom)
 import Halogen.VDom.DOM.Prop (Prop)
 import Halogen.VDom.Machine (never, step, extract)
-import PrestoDOM.Types.Core (PrestoDOM, Screen)
+import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(Elem), PrestoDOM, Screen)
 import Unsafe.Coerce (unsafeCoerce)
 import PrestoDOM.Utils (continue)
 
@@ -68,18 +68,33 @@ patchAndRun state myDom = do
   newMachine <- step machine (myDom state)
   storeMachine newMachine
 
-initScreen
-  :: forall action eff
-   . VDom (Array (Prop action)) Void
+initUIWithScreen
+  :: forall action st eff retAction
+   . Screen action st eff retAction
   -> (Either Error Unit -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
   -> Eff ( frp :: FRP, dom :: DOM | eff) (Canceler ( frp :: FRP, dom :: DOM | eff ))
-initScreen view cb = do
+initUIWithScreen { initialState, view, eval } cb = do
+  { event, push } <- E.create
+  root <- getRootNode
+  machine <- buildVDom (spec root) (view push initialState)
+  storeMachine machine
+  insertDom root (extract machine)
+  cb $ Right unit
+  pure nonCanceler
+
+initUI
+  :: forall eff
+   . (Either Error Unit -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
+  -> Eff ( frp :: FRP, dom :: DOM | eff) (Canceler ( frp :: FRP, dom :: DOM | eff ))
+initUI cb = do
   root <- getRootNode
   machine <- buildVDom (spec root) view
   storeMachine machine
   insertDom root (extract machine)
   cb $ Right unit
   pure nonCanceler
+    where
+          view = Elem (ElemSpec Nothing (ElemName "linearLayout") []) []
 
 
 runScreen'
