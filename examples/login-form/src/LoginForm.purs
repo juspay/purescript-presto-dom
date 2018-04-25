@@ -18,7 +18,7 @@ import Halogen.VDom (buildVDom, extract)
 import PrestoDOM.Core (mapDom, getRootNode, insertDom, patchAndRun, spec, storeMachine)
 import PrestoDOM.Events (onClick)
 import PrestoDOM.Types.Core (PrestoDOM, Screen, Eval)
-import Utils (continue, continueWithCmd, updateAndExit, exit)
+import PrestoDOM.Utils (continue, continueWithCmd, updateAndExit, exit)
 
 data Action =
   Username FormField.Action

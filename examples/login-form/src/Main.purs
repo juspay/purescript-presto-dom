@@ -13,14 +13,14 @@ import FRP (FRP)
 import LoginForm as LoginForm
 import LoginTest as LoginTest
 import SplashScreen as SplashScreen
-import PrestoDOM.Core (runScreen, initScreen)
+import PrestoDOM.Core (runScreen, initUIWithScreen)
 import PrestoDOM.Types.Core (Screen)
 
 main :: forall eff. Eff ( frp :: FRP, dom :: DOM, timer :: T.TIMER, console :: C.CONSOLE, exception :: EXCEPTION | eff ) Unit
 main = do
   _ <- launchAff_ do
      log "sojkhkk"
-     _ <- makeAff (\cb -> initScreen SplashScreen.view cb)
+     _ <- makeAff (\cb -> initUIWithScreen SplashScreen.screen cb)
      _ <- delay $ Milliseconds 1000.0
      log "yo oo oo"
      _ <- runUI LoginForm.screen "2"

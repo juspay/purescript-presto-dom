@@ -15,11 +15,34 @@ import FormField as FormField
 import Halogen.VDom (buildVDom, extract)
 import PrestoDOM.Core (mapDom, getRootNode, insertDom, patchAndRun, spec, storeMachine)
 import PrestoDOM.Events (onClick)
-import PrestoDOM.Types.Core (PrestoDOM, Screen)
+import PrestoDOM.Types.Core (PrestoDOM, Screen, Eval)
+import PrestoDOM.Utils (continue, continueWithCmd, updateAndExit, exit)
+
+data Action =
+  Splash
+
+type State =
+  {}
+
+initialState :: State
+initialState =
+  {}
+
+eval :: forall eff. Action -> State -> Eval eff Action Unit State
+eval _ state = continue state
 
 
-view :: forall a w. PrestoDOM a w
-view =
+screen :: forall eff. Screen Action State eff Unit
+screen =
+  {
+    initialState
+  , view
+  , eval
+  }
+
+-- TODO : Make push implicit
+view :: forall i w eff. (Action -> Eff (frp :: FRP | eff) Unit) -> State -> PrestoDOM Action w
+view push state =
   linearLayout
     [ height MATCH_PARENT
     , width MATCH_PARENT
