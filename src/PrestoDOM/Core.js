@@ -125,7 +125,7 @@ exports.getRootNode = function() {
 
 exports.insertDom = insertDom;
 
-window.__PRESTO_ID = 1;
+window.__PRESTO_ID =  typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : 1;
 
 function domAll(elem) {
   if (!elem.__ref) {
@@ -180,7 +180,7 @@ function applyProp(element, attribute, set) {
       var cmd = cmdForAndroid(prop, set);
       Android.runInUI(cmd, null);
   } else if (window.__OS == "IOS"){
-    Android.runInUI(iOSParseParams("linearLayout", prop, "get").config);
+    Android.runInUI(prop);
   } else {
     Android.runInUI(webParseParams("linearLayout", prop, "set"));
   }
@@ -217,7 +217,7 @@ window.addAttribute = addAttribute;
 window.insertDom = insertDom;
 window.createPrestoElement = function () {
   return {
-    __id: window.__PRESTO_ID++
+    __id: typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++
   };
 }
 window.__screenSubs = {};
@@ -282,7 +282,7 @@ function insertDom(root) {
     return function () {
       root.props.height = "match_parent";
       root.props.width = "match_parent";
-      root.props.id = window.__PRESTO_ID++;
+      root.props.id = typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++;
       root.type = "relativeLayout";
       root.__ref = window.createPrestoElement();
 
@@ -295,7 +295,11 @@ function insertDom(root) {
         }
       };
       if(window.__OS == "ANDROID"){
-        Android.Render(JSON.stringify(domAll(root)), null);
+        if(typeof Android.getNewID == "function") {
+          Android.Render(JSON.stringify(domAll(root)), null, "false");
+        } else {
+          Android.Render(JSON.stringify(domAll(root)), null);
+        }
       }else if(window.__OS == "WEB"){
         Android.Render(domAll(root), null);
       }else{
