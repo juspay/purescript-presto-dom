@@ -329,8 +329,8 @@ layoutTransition_c = Tuple "layoutTransition" <<< BooleanP
 letterSpacing_c :: Number -> Tuple String GenProp
 letterSpacing_c = Tuple "letterSpacing" <<< NumberP
 
-lineHeight_c :: Int -> Tuple String GenProp
-lineHeight_c = Tuple "lineHeight" <<< IntP
+lineHeight_c :: String -> Tuple String GenProp
+lineHeight_c = Tuple "lineHeight" <<< StringP
 
 
 

@@ -349,7 +349,7 @@ layoutTransition_p = fromGenProp "layoutTransition"
 letterSpacing_p :: forall i. Number -> StrMap GenProp -> Prop i
 letterSpacing_p = fromGenProp "letterSpacing"
 
-lineHeight_p :: forall i. Int -> StrMap GenProp -> Prop i
+lineHeight_p :: forall i. String -> StrMap GenProp -> Prop i
 lineHeight_p = fromGenProp "lineHeight"
 
 

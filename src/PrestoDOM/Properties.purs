@@ -333,7 +333,7 @@ layoutTransition = prop (PropName "layoutTransition")
 letterSpacing :: forall i. Number -> Prop i
 letterSpacing = prop (PropName "letterSpacing")
 
-lineHeight :: forall i. Int -> Prop i
+lineHeight :: forall i. String -> Prop i
 lineHeight = prop (PropName "lineHeight")
 
 
