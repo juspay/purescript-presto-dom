@@ -4,6 +4,7 @@ module PrestoDOM
     , module Events
     , module Properties
     , module Types
+    , module Utils
     ) where
 
 import PrestoDOM.Elements.Elements as Elements
@@ -11,3 +12,4 @@ import PrestoDOM.Events as Events
 import PrestoDOM.Properties as Properties
 import PrestoDOM.Types.Core as Types
 import PrestoDOM.Core as PrestoDOM
+import PrestoDOM.Utils (continue, continueWithCmd, updateAndExit, exit) as Utils

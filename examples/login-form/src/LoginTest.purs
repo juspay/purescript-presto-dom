@@ -15,7 +15,7 @@ import FormField as FormField
 import Halogen.VDom (buildVDom, extract)
 import PrestoDOM.Core (mapDom, getRootNode, insertDom, patchAndRun, spec, storeMachine)
 import PrestoDOM.Events (onClick)
-import PrestoDOM.Types.Core (PrestoDOM, Screen, Eval)
+import PrestoDOM.Types.Core (PrestoDOM, Screen, Eval, Namespace(..))
 import PrestoDOM.Utils (continue, continueWithCmd, updateAndExit, exit)
 
 data Action =
@@ -48,7 +48,7 @@ screen =
 -- TODO : Make push implicit
 view :: forall i w eff. (Action -> Eff (frp :: FRP | eff) Unit) -> State -> PrestoDOM Action w
 view push state =
-  linearLayout
+  linearLayout_ (Namespace "loginTest")
     [ height MATCH_PARENT
     , width MATCH_PARENT
     , background "#323232"

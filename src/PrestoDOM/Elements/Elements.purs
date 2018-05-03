@@ -3,6 +3,10 @@ module PrestoDOM.Elements.Elements
     , Leaf
     , element
     , keyed
+
+    , linearLayout_
+    , relativeLayout_
+
     , linearLayout
     , relativeLayout
     , horizontalScrollView
@@ -30,7 +34,7 @@ import Prelude
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
 import Halogen.VDom.DOM.Prop (Prop)
-import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(..))
+import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(..), Namespace)
 
 type Node i p
    = Array i
@@ -40,6 +44,15 @@ type Node i p
 type Leaf i p
    = Array i
   -> VDom (Array i) p
+
+rootElement
+    :: forall i p
+     . Namespace
+    -> ElemName
+    -> Array (Prop i)
+    -> Array (VDom (Array (Prop i)) p)
+    -> VDom (Array (Prop i)) p
+rootElement screenName elemName = Elem <<< ElemSpec (Just screenName) elemName
 
 element :: forall i p. ElemName -> Array (Prop i) -> Array (VDom (Array (Prop i)) p) -> VDom (Array (Prop i)) p
 element elemName = Elem <<< ElemSpec Nothing elemName
@@ -52,6 +65,14 @@ node elem = element (ElemName elem)
 
 leaf :: forall i p. String -> Leaf (Prop i) p
 leaf elem props = element (ElemName elem) props []
+
+
+
+linearLayout_ :: forall i p. Namespace -> Node (Prop i) p
+linearLayout_ screenName = rootElement screenName (ElemName "linearLayout")
+
+relativeLayout_ :: forall i p. Namespace -> Node (Prop i) p
+relativeLayout_ screenName = rootElement screenName (ElemName "relativeLayout")
 
 
 

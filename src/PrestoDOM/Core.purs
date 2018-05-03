@@ -18,7 +18,7 @@ import FRP.Event as E
 import Halogen.VDom (Step(Step), VDomMachine, VDomSpec(VDomSpec), buildVDom)
 import Halogen.VDom.DOM.Prop (Prop)
 import Halogen.VDom.Machine (never, step, extract)
-import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(Elem), PrestoDOM, Screen)
+import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(Elem), PrestoDOM, Screen, Namespace)
 import Unsafe.Coerce (unsafeCoerce)
 import PrestoDOM.Utils (continue)
 
@@ -28,8 +28,13 @@ foreign import cleanupAttributes ∷ forall i eff. Element → (Array (Prop i)) 
 foreign import getLatestMachine :: forall m a b eff. Eff eff (Step m a b)
 foreign import storeMachine :: forall eff m a b. Step m a b -> Eff eff Unit
 foreign import getRootNode :: forall eff. Eff eff Document
-foreign import setRootNode :: forall eff. Eff eff Document
+foreign import setRootNode :: forall a eff. Maybe a -> Eff eff Document
 foreign import insertDom :: forall a b eff. a -> b -> Eff eff Unit
+
+foreign import saveScreenNameImpl :: forall eff. Maybe Namespace -> Eff eff Unit
+foreign import getPrevScreen :: forall eff. Eff eff (Maybe Namespace)
+
+
 
 buildAttributes
   ∷ ∀ eff a
@@ -63,10 +68,10 @@ spec document =  VDomSpec {
     , document : document
     }
 
-patchAndRun :: forall t state i. state -> (state -> VDom (Array (Prop i)) Void) -> Eff t Unit
-patchAndRun state myDom = do
+patchAndRun :: forall t  i. VDom (Array (Prop i)) Void -> Eff t Unit
+patchAndRun myDom = do
   machine <- getLatestMachine
-  newMachine <- step machine (myDom state)
+  newMachine <- step machine (myDom)
   storeMachine newMachine
 
 initUIWithScreen
@@ -76,8 +81,10 @@ initUIWithScreen
   -> Eff ( frp :: FRP, dom :: DOM | eff) (Canceler ( frp :: FRP, dom :: DOM | eff ))
 initUIWithScreen { initialState, view, eval } cb = do
   { event, push } <- E.create
-  root <- setRootNode
-  machine <- buildVDom (spec root) (view push initialState)
+  let myDom = view push initialState
+  root <- setRootNode Nothing
+  _ <- saveScreenName myDom
+  machine <- buildVDom (spec root) myDom
   storeMachine machine
   insertDom root (extract machine)
   cb $ Right unit
@@ -88,7 +95,8 @@ initUI
    . (Either Error Unit -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
   -> Eff ( frp :: FRP, dom :: DOM | eff) (Canceler ( frp :: FRP, dom :: DOM | eff ))
 initUI cb = do
-  root <- setRootNode
+  root <- setRootNode Nothing
+  _ <- saveScreenName view
   machine <- buildVDom (spec root) view
   storeMachine machine
   insertDom root (extract machine)
@@ -98,47 +106,57 @@ initUI cb = do
           view = Elem (ElemSpec Nothing (ElemName "linearLayout") []) []
 
 
-runScreen'
+runScreen
     :: forall action st eff retAction
-     . Boolean
-    -> Screen action st eff retAction
+     . Screen action st eff retAction
     -> (Either Error retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
     -> Eff ( frp :: FRP, dom :: DOM | eff ) (Canceler ( frp :: FRP, dom :: DOM | eff ))
-runScreen' rerender { initialState, view, eval } cb = do
+runScreen { initialState, view, eval } cb = do
   { event, push } <- E.create
   let initState = initialState
-  case rerender of
-    true -> do
+  let myDom = view push initState
+  screenName <- saveScreenName myDom
+  patch <- compareScreen (screenName)
+
+  case patch of
+    false -> do
         root <- getRootNode
-        machine <- buildVDom (spec root) (view push initState)
+        machine <- buildVDom (spec root) myDom
         storeMachine machine
         insertDom root (extract machine)
-    false ->
-        patchAndRun initState (view push)
+    true ->
+        patchAndRun myDom
   -- let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action)) event (Right initialState)
   let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
   _ <- sample_ stateBeh event `subscribe` (either (onExit push) $ onStateChange push)
   pure nonCanceler
     where
           onStateChange push (Tuple state cmds) =
-              patchAndRun state (view push)
+              patchAndRun (view push state)
               *> for_ cmds (\effAction -> effAction >>= push)
 
           onExit push (Tuple st ret) =
               case st of
-                   Just s -> patchAndRun s (view push) *> (cb $ Right ret)
+                   Just s -> patchAndRun (view push s) *> (cb $ Right ret)
                    Nothing -> cb $ Right ret
 
 
-  -- (\eitherState ->
-  --     either (\a -> cb $ Right a) (\state -> patchAndRun state (view push) *> pure unit) eitherState)
+          compareScreen (Just currScreen) = do
+              screenName <- getPrevScreen
+              case screenName of
+                   Nothing -> pure false
+                   Just screen -> pure $ (screen == currScreen)
+          compareScreen Nothing = pure false
 
-runScreen
-    :: forall action st eff retAction
-     . Screen action st eff retAction
-    -> (Either Error retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
-    -> Eff ( frp :: FRP, dom :: DOM | eff ) (Canceler ( frp :: FRP, dom :: DOM | eff ))
-runScreen = runScreen' true
+
+saveScreenName :: forall a w eff. VDom a w -> Eff eff (Maybe Namespace)
+saveScreenName (Elem (ElemSpec screen _ _) _) = do
+    _ <- saveScreenNameImpl screen
+    pure screen
+saveScreenName _ = do
+    _ <- saveScreenNameImpl Nothing
+    pure Nothing
+
 
 
 mapDom

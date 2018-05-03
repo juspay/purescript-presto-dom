@@ -278,36 +278,41 @@ function updateAttribute(element, attribute) {
 }
 
 
-exports.setRootNode = function() {
-  var root = {type: "relativeLayout", props: {root: "true"}, children: []};
+exports.setRootNode = function(nothing) {
+  return function () {
+    var root = {type: "relativeLayout", props: {root: "true"}, children: []};
 
-  root.props.height = "match_parent";
-  root.props.width = "match_parent";
-  root.props.id = typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++;
-  root.type = "relativeLayout";
-  root.__ref = window.createPrestoElement();
+    root.props.height = "match_parent";
+    root.props.width = "match_parent";
+    root.props.id = typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++;
+    root.type = "relativeLayout";
+    root.__ref = window.createPrestoElement();
 
-  window.N = root;
-  window.__ROOTSCREEN = {
-    idSet: {
-      root: root.props.id,
-			child: []
-    }
-  };
+    window.N = root;
+    window.__prevScreenName = nothing;
+    window.__currScreenName = nothing;
+    window.__ROOTSCREEN = {
+      idSet: {
+        root: root.props.id,
+        child: []
+      }
+    };
 
-  if(window.__OS == "ANDROID"){
-    if(typeof Android.getNewID == "function") {
-      Android.Render(JSON.stringify(domAll(root)), null, "false");
+    if(window.__OS == "ANDROID"){
+      if(typeof Android.getNewID == "function") {
+        Android.Render(JSON.stringify(domAll(root)), null, "false");
+      } else {
+        Android.Render(JSON.stringify(domAll(root)), null);
+      }
+    } else if (window.__OS == "WEB"){
+      Android.Render(domAll(root), null);
     } else {
-      Android.Render(JSON.stringify(domAll(root)), null);
+      Android.Render(domAll(root), null);
     }
-  } else if (window.__OS == "WEB"){
-    Android.Render(domAll(root), null);
-  } else {
-    Android.Render(domAll(root), null);
-  }
 
-	return root;
+    return root;
+
+  }
 
 }
 
@@ -315,6 +320,24 @@ exports.getRootNode = function() {
   // return {type: "relativeLayout", props: {root: "true"}, children: []};
   return window.N;
 }
+
+exports.saveScreenNameImpl = function(screen) {
+  return function() {
+    window.__prevScreenName = window.__currScreenName;
+    window.__currScreenName = screen;
+  }
+}
+
+exports.getPrevScreen = function() {
+    return window.__prevScreenName;
+}
+
+// exports.logMe = function(tag) {
+//   return function(a) {
+//     console.log(tag, "!!! : ",a);
+//     return a;
+//   }
+// }
 
 function insertDom(root) {
   return function (dom) {
@@ -332,18 +355,17 @@ function insertDom(root) {
 
       var index = window.__ROOTSCREEN.idSet.child.push(dom.__ref.__id);
 
-
       var prop = {
-        id: window.__ROOTSCREEN.idSet.child[index - 2],
-        visibility: "gone"
+          id: window.__ROOTSCREEN.idSet.child[index - 2],
+          visibility: "gone"
       }
 
-      if (window.__OS == "ANDROID") {
+      if (window.__OS == "ANDROID" && index > 1) {
         var cmd = cmdForAndroid(prop, true);
         Android.runInUI(cmd, null);
-      } else if (window.__OS == "IOS"){
+      } else if (window.__OS == "IOS"  && index > 1){
         Android.runInUI(prop);
-      } else {
+      } else if (index > 1) {
         Android.runInUI(webParseParams("relativeLayout", prop, "set"));
       }
 
