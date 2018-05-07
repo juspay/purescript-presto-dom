@@ -343,7 +343,10 @@ exports.getPrevScreen = function() {
 window.__popScreen = popScreen;
 
 function popScreen() {
-  window.__ROOTSCREEN.idSet.child.pop();
+  var __id = window.__ROOTSCREEN.idSet.child.pop();
+
+  Android.removeView(__id);
+
   var length =  window.__ROOTSCREEN.idSet.child.length;
   var prop = {
       id: window.__ROOTSCREEN.idSet.child[length - 1],
