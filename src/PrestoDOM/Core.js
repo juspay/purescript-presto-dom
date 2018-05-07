@@ -289,6 +289,7 @@ exports.setRootNode = function(nothing) {
     root.__ref = window.createPrestoElement();
 
     window.N = root;
+    window.__CACHELIMIT = 50;
     window.__prevScreenName = nothing;
     window.__currScreenName = nothing;
     window.__ROOTSCREEN = {
@@ -339,6 +340,27 @@ exports.getPrevScreen = function() {
 //   }
 // }
 
+window.__popScreen = popScreen;
+
+function popScreen() {
+  window.__ROOTSCREEN.idSet.child.pop();
+  var length =  window.__ROOTSCREEN.idSet.child.length;
+  var prop = {
+      id: window.__ROOTSCREEN.idSet.child[length - 1],
+      visibility: "visible"
+  }
+
+  if (window.__OS == "ANDROID" && length > 1) {
+    var cmd = cmdForAndroid(prop, true);
+    Android.runInUI(cmd, null);
+  } else if (window.__OS == "IOS"  && length > 1){
+    Android.runInUI(prop);
+  } else if (length > 1) {
+    Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+  }
+
+}
+
 function insertDom(root) {
   return function (dom) {
     return function () {
@@ -353,27 +375,31 @@ function insertDom(root) {
 
       dom.props.root = true;
 
-      var index = window.__ROOTSCREEN.idSet.child.push(dom.__ref.__id);
+      var length = window.__ROOTSCREEN.idSet.child.push(dom.__ref.__id);
+      if (length >= window.__CACHELIMIT) {
+        window.__ROOTSCREEN.idSet.child.shift();
+        length -= 1;
+      }
 
       var prop = {
-          id: window.__ROOTSCREEN.idSet.child[index - 2],
+          id: window.__ROOTSCREEN.idSet.child[length - 2],
           visibility: "gone"
       }
 
-      if (window.__OS == "ANDROID" && index > 1) {
+      if (window.__OS == "ANDROID" && length > 1) {
         var cmd = cmdForAndroid(prop, true);
         Android.runInUI(cmd, null);
-      } else if (window.__OS == "IOS"  && index > 1){
+      } else if (window.__OS == "IOS"  && length > 1){
         Android.runInUI(prop);
-      } else if (index > 1) {
+      } else if (length > 1) {
         Android.runInUI(webParseParams("relativeLayout", prop, "set"));
       }
 
       if (window.__OS == "ANDROID") {
-        Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), index - 1, null, null);
+        Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length - 1, null, null);
       }
       else {
-        Android.addViewToParent(rootId, domAll(dom), index - 1, null, null);
+        Android.addViewToParent(rootId, domAll(dom), length - 1, null, null);
       }
 
     }
