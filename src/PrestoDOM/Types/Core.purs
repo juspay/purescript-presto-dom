@@ -5,6 +5,7 @@ module PrestoDOM.Types.Core
     , toPropValue
     , GenProp(..)
     , Screen
+    , PropEff
     , Eval
     , Cmd
     , module VDom
@@ -15,6 +16,7 @@ module PrestoDOM.Types.Core
 import Prelude
 
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Ref (REF)
 import DOM (DOM)
 import Data.Tuple (Tuple)
 import Data.Either (Either)
@@ -30,7 +32,7 @@ import PrestoDOM.Types.DomAttributes as Types
 
 newtype PropName value = PropName String
 type PrestoDOM i w = VDom (Array (Prop i)) w
-type Cmd eff action = Array (Eff (frp :: FRP, dom :: DOM | eff) action)
+type Cmd eff action = Array (Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) action)
 type Eval eff action retAction st = Either (Tuple (Maybe st) retAction) (Tuple st (Cmd eff action))
 
 type Props i = Array (Prop i)
@@ -51,9 +53,11 @@ data GenProp
     | TextP String
 
 
+type PropEff e = Eff ( ref :: REF , frp :: FRP, dom :: DOM | e ) Unit
+
 type Screen action st eff retAction =
   { initialState :: st
-  , view :: (action -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop action)) Void
+  , view :: (action -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop (PropEff eff))) Void
   , eval :: action -> st -> Eval eff action retAction st
   }
 

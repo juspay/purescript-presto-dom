@@ -6,6 +6,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Aff (Canceler, Error, nonCanceler)
 import Data.StrMap (StrMap, fromFoldable)
 import DOM (DOM)
+import Control.Monad.Eff.Ref (REF)
 import DOM.Node.Types (Element, Document)
 import Data.Either (Either(..), either)
 import Data.Foldable (for_)
@@ -16,12 +17,14 @@ import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
 import FRP.Event as E
 import Halogen.VDom (Step(Step), VDomMachine, VDomSpec(VDomSpec), buildVDom)
-import Halogen.VDom.DOM.Prop (Prop)
+import Halogen.VDom.DOM.Prop (Prop, buildProp)
 import Halogen.VDom.Machine (never, step, extract)
-import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(Elem), PrestoDOM, Screen, Namespace)
+import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(Elem), PrestoDOM, Screen, PropEff, Namespace)
 import Unsafe.Coerce (unsafeCoerce)
 import PrestoDOM.Utils (continue)
 
+foreign import logMe :: forall a. String -> a -> a
+foreign import emitter :: forall a eff. a -> Eff eff Unit
 foreign import applyAttributes ∷ forall i eff. Element → (Array (Prop i)) → Eff eff (Array (Prop i))
 foreign import patchAttributes ∷ forall i eff. Element → (Array (Prop i)) → (Array (Prop i)) → Eff eff (Array (Prop i))
 foreign import cleanupAttributes ∷ forall i eff. Element → (Array (Prop i)) → Eff eff Unit
@@ -33,7 +36,6 @@ foreign import insertDom :: forall a b eff. a -> b -> Eff eff Unit
 
 foreign import saveScreenNameImpl :: forall eff. Maybe Namespace -> Eff eff Unit
 foreign import getPrevScreen :: forall eff. Eff eff (Maybe Namespace)
-
 
 
 buildAttributes
@@ -61,12 +63,19 @@ buildAttributes elem = apply
   done ∷ forall e. (Array (Prop a)) → Eff e Unit
   done attrs = pure unit
 
-spec :: forall i e. Document -> VDomSpec e (Array (Prop i)) Void
+spec :: forall i e. Document -> VDomSpec ( ref :: REF , frp :: FRP, dom :: DOM | e ) (Array (Prop (PropEff e))) Void
 spec document =  VDomSpec {
       buildWidget: const never
-    , buildAttributes: buildAttributes
+    , buildAttributes: buildProp logger
+    {-- , buildAttributes: buildAttributes --}
     , document : document
     }
+
+logger :: forall a eff. (a → Eff (ref ∷ REF, dom ∷ DOM | eff) Unit)
+logger a = do
+    _ <- emitter a
+    pure unit
+
 
 patchAndRun :: forall t  i. VDom (Array (Prop i)) Void -> Eff t Unit
 patchAndRun myDom = do
@@ -77,8 +86,8 @@ patchAndRun myDom = do
 initUIWithScreen
   :: forall action st eff
    . Screen action st eff Unit
-  -> (Either Error Unit -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
-  -> Eff ( frp :: FRP, dom :: DOM | eff) (Canceler ( frp :: FRP, dom :: DOM | eff ))
+  -> (Either Error Unit -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit)
+  -> Eff ( ref :: REF, frp :: FRP, dom :: DOM | eff) (Canceler ( ref :: REF, frp :: FRP, dom :: DOM | eff ))
 initUIWithScreen { initialState, view, eval } cb = do
   { event, push } <- E.create
   let myDom = view push initialState
@@ -92,8 +101,8 @@ initUIWithScreen { initialState, view, eval } cb = do
 
 initUI
   :: forall eff
-   . (Either Error Unit -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
-  -> Eff ( frp :: FRP, dom :: DOM | eff) (Canceler ( frp :: FRP, dom :: DOM | eff ))
+   . (Either Error Unit -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit)
+  -> Eff ( ref :: REF, frp :: FRP, dom :: DOM | eff) (Canceler ( ref :: REF, frp :: FRP, dom :: DOM | eff ))
 initUI cb = do
   root <- setRootNode Nothing
   _ <- saveScreenName view
@@ -109,8 +118,8 @@ initUI cb = do
 runScreen
     :: forall action st eff retAction
      . Screen action st eff retAction
-    -> (Either Error retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit)
-    -> Eff ( frp :: FRP, dom :: DOM | eff ) (Canceler ( frp :: FRP, dom :: DOM | eff ))
+    -> (Either Error retAction -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit)
+    -> Eff ( ref :: REF, frp :: FRP, dom :: DOM | eff ) (Canceler ( ref :: REF, frp :: FRP, dom :: DOM | eff ))
 runScreen { initialState, view, eval } cb = do
   { event, push } <- E.create
   let initState = initialState
@@ -161,10 +170,10 @@ saveScreenName _ = do
 
 mapDom
   :: forall i a b state eff w
-   . ((a -> Eff (frp :: FRP | eff) Unit) -> state -> StrMap i -> PrestoDOM a w)
-  -> (b -> Eff (frp :: FRP | eff) Unit)
+   . ((a -> PropEff eff) -> state -> StrMap i -> PrestoDOM (PropEff eff) w)
+  -> (b -> PropEff eff)
   -> state
   -> (a -> b)
   -> Array (Tuple String i)
-  -> PrestoDOM b w
+  -> PrestoDOM (PropEff eff) w
 mapDom view push state actionMap = unsafeCoerce view (push <<< actionMap) state <<< fromFoldable

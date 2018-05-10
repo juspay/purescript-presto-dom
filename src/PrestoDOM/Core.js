@@ -30,9 +30,7 @@ function attachListener(element, eventType, value) {
     }
   }
   else {
-    element.props[eventType] = function(e) {
-      value(e)();
-    }
+    element.props[eventType] = value;
   }
 }
 
@@ -170,17 +168,19 @@ function cmdForAndroid(config, set) {
 }
 
 function applyProp(element, attribute, set) {
-  if (typeof attribute.value1 == "function") {
-    // replaceView(element, attribute, false);
-    return;
-  }
+  // if (typeof attribute.value1 == "function") {
+  //   // replaceView(element, attribute, false);
+  //   return;
+  // }
   var prop = {
     id: element.__ref.__id
   }
   prop[attribute.value0] = attribute.value1;
   if (window.__OS == "ANDROID") {
-      var cmd = cmdForAndroid(prop, set);
-      Android.runInUI(cmd, null);
+    var cmd = cmdForAndroid(prop, set);
+    console.log(element.__ref.__id);
+    console.log(cmd);
+    Android.runInUI(cmd, null);
   } else if (window.__OS == "IOS"){
     Android.runInUI(prop);
   } else {
@@ -190,6 +190,7 @@ function applyProp(element, attribute, set) {
 }
 
 function replaceView(element, attribute, removeProp) {
+  console.log("REPLACE VIEW", element.__ref.__id, element.props);
   const props = R.clone(element.props);
   props.id = element.__ref.__id;
   var rep;
@@ -210,11 +211,16 @@ function replaceView(element, attribute, removeProp) {
   Android.replaceView(JSON.stringify(rep), element.__ref.__id);
 }
 
+
+
+window.attachListener = attachListener;
+
 window.removeChild = removeChild;
 window.addChild = addChild;
-window.addAttribute = addAttribute;
+window.replaceView = replaceView;
+window.addProperty = addAttribute;
 // window.removeAttribute = removeAttribute;
-window.updateAttribute = updateAttribute;
+window.updateProperty = updateAttribute;
 window.addAttribute = addAttribute;
 window.insertDom = insertDom;
 window.createPrestoElement = function () {
@@ -248,7 +254,7 @@ function addChild(child, parent, index) {
 }
 
 function addAttribute(element, attribute) {
-  // console.log("add attr :", attribute);
+  console.log("add attr :", attribute);
   // if (typeof attribute.value1 === "function") {
   //   return;
   //   const fn = attribute.value1;
@@ -256,23 +262,25 @@ function addAttribute(element, attribute) {
   //     fn(e)();
   //   };
   // }
-  // element.props[attribute.value0] = attribute.value1;
+  element.props[attribute.value0] = attribute.value1;
   applyProp(element, attribute, true);
 }
 
 function removeAttribute(element, attribute) {
-  if (window.__OS == "ANDROID") {
+  console.log("remove attr :", attribute);
+  // if (window.__OS == "ANDROID") {
     replaceView(element, attribute, true);
 
-    return;
-  }
-    attribute.value1 = "";
+    // return;
+  // }
+    // attribute.value1 = "";
 
-  applyProp(element, attribute);
+  // applyProp(element, attribute);
 }
 
 function updateAttribute(element, attribute) {
-  // console.log("update attr :", attribute);
+  console.log("update attr :", attribute);
+  element.props[attribute.value0] = attribute.value1;
 
   applyProp(element, attribute, false);
 }
@@ -333,12 +341,19 @@ exports.getPrevScreen = function() {
     return window.__prevScreenName;
 }
 
-// exports.logMe = function(tag) {
-//   return function(a) {
-//     console.log(tag, "!!! : ",a);
-//     return a;
-//   }
-// }
+exports.logMe = function(tag) {
+  return function(a) {
+    console.log(tag, "!!! : ",a);
+    return a;
+  }
+}
+
+exports.emitter = function(a) {
+    return function() {
+      a();
+      console.log("Logger !!! : ",a);
+    }
+}
 
 window.__popScreen = popScreen;
 
