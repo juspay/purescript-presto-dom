@@ -91,13 +91,18 @@ function replaceView(element, attribute, removeProp) {
   //    props[attribute.value0] = attribute.value1;
   // }
   if (viewGroups.indexOf(element.type) != -1){
-      props.root = true;
-      rep = prestoDayum(element.type, props, []);
-    } else {
-      rep = prestoDayum({elemType: element.type, parentType: element.parentNode.type}, props, []);
-    }
-
-  Android.replaceView(JSON.stringify(rep), element.__ref.__id);
+    props.root = true;
+    rep = prestoDayum(element.type, props, []);
+  } else if (window.__OS == "ANDROID") {
+    rep = prestoDayum({elemType: element.type, parentType: element.parentNode.type}, props, []);
+  } else {
+    rep = prestoDayum(element.type, props, []);
+  }
+  if(window.__OS == "ANDROID"){
+    Android.replaceView(JSON.stringify(rep), element.__ref.__id);
+  } else {
+    Android.replaceView(rep, element.__ref.__id);
+  }
 }
 
 
@@ -126,7 +131,7 @@ function addChild(child, parent, index) {
   if(child.type == null) {
     console.log("child null");
   }
-  // console.log("Add child :", child.type);
+  console.log("Add child :", child.__ref.__id, child.type);
   const viewGroups = ["linearLayout", "relativeLayout", "scrollView", "frameLayout", "horizontalScrollView"];
   if (window.__OS == "ANDROID") {
     if (viewGroups.indexOf(child.type) != -1){
