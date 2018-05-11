@@ -43,12 +43,12 @@ initialState =
 
 eval :: forall eff. Action -> State -> Eval eff Action Unit State
 eval (Username action) state = continue state { usernameState = FormField.eval action state.usernameState }
-eval (Password action) state = continue state { passwordState = FormField.eval action state.passwordState }
+eval (Password action) state = let t = if state.passwordState.value == "turn" then false else true in continue state { passwordState = FormField.eval action state.passwordState, toggle = t }
 eval SubmitClicked2 state = continue state { errorMessage = "Yes, yo hoo", toggle = true }
-eval SubmitClicked state = -- continue state { errorMessage = "Your account is blocked", toggle = false }
-    if state.passwordState.value == "blueberry" && state.usernameState.value /= ""
-        then exit unit
-        else (continueWithCmd (state { errorMessage = "Your account is blocked" }) [ (pure $ Username $ FormField.TextChanged "evalaction")])
+eval SubmitClicked state = continue state { errorMessage = "Your account is blocked", toggle = false }
+    {-- if state.passwordState.value == "blueberry" && state.usernameState.value /= "" --}
+    {--     then exit unit --}
+    {--     else (continueWithCmd (state { errorMessage = "Your account is blocked" }) [ (pure $ Username $ FormField.TextChanged "evalaction")]) --}
 
 
 screen :: forall eff. Screen Action State eff Unit
@@ -89,7 +89,8 @@ view push state =
           , color "#000000"
           , background "#ffffff"
           , width MATCH_PARENT
-          , text state.errorMessage
+          , onClick push (const SubmitClicked)
+          , text $ state.passwordState.value <> state.errorMessage
           ]
         , linearLayout
             case state.toggle of
@@ -98,7 +99,7 @@ view push state =
                             , margin $ Margin 20 20 20 20
                             , background "#969696"
                             , gravity CENTER
-                            , onClick push (const SubmitClicked)
+                            {-- , onClick push (const SubmitClicked) --}
                             ])
                  false ->  ([ height $ V 50
                             , width MATCH_PARENT

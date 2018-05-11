@@ -89,7 +89,7 @@ view push state =
     	  , margin $ Margin 20 20 20 20
           , background "#00ffff"
           , gravity CENTER
-          {-- , onClick push (const SubmitClicked) --}
+          , onClick push (const SubmitClicked)
           ]
           [
             textView

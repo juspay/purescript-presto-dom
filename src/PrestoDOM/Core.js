@@ -5,113 +5,6 @@ const iOSParseParams = require("presto-ui").helpers.ios.parseParams;
 const parseParams = require("presto-ui").helpers.android.parseParams;
 const R = require("ramda");
 
-window.__pDom = prestoDayum;
-
-function attachAttributeList(element, attrList) {
-  var key, value;
-
-  for (var i = 0; i < attrList.length; i++) {
-    key = attrList[i].value0;
-    value = attrList[i].value1;
-    if (typeof value == "function") {
-      attachListener(element, key, value);
-    } else {
-      element.props[key] = value;
-    }
-  }
-
-  return null;
-}
-
-function attachListener(element, eventType, value) {
-  if (eventType == "onBackPressed") {
-    element.props["onClick"] = function(e) {
-      window.onBackPressed();
-    }
-  }
-  else {
-    element.props[eventType] = value;
-  }
-}
-
-exports.applyAttributes = function(element) {
-  return function(attrList) {
-    return function() {
-      attachAttributeList(element, attrList);
-      return attrList;
-    }
-  }
-}
-
-exports.patchAttributes = function(element) {
-  return function(oldAttrList) {
-    return function(newAttrList) {
-      return function() {
-        var attrFound = 0;
-
-        for (var i=0; i<oldAttrList.length; i++) {
-
-          if (oldAttrList[i] != null) {
-            attrFound = 0;
-            for (var j=0; j<newAttrList.length; j++) {
-              if (oldAttrList[i].value0 == newAttrList[j].value0) {
-                attrFound = 1;
-
-                if (oldAttrList[i].value1 !== newAttrList[j].value1) {
-                  element.props[oldAttrList[i].value0] = newAttrList[j].value1;
-                  oldAttrList[i].value1 = newAttrList[j].value1;
-                  updateAttribute(element, newAttrList[j]);
-                }
-              }
-            }
-
-            if (!attrFound) {
-              attrFound = true;
-              delete element.props[oldAttrList[i].value0];
-              removeAttribute(element, oldAttrList[i]);
-              oldAttrList[i] = null;
-            }
-          }
-        }
-
-        // oldAttrList = oldAttrList.filter(function (a) {return a;})
-
-        for (var i=0; i<newAttrList.length; i++) {
-          attrFound = 0;
-          for (var j=0; j<oldAttrList.length; j++) {
-
-            if (oldAttrList[j] != null && (oldAttrList[j].value0 == newAttrList[i].value0)) {
-              attrFound = 1;
-            }
-          }
-
-          if (!attrFound) {
-            element.props[newAttrList[i].value0] = newAttrList[i].value1;
-            oldAttrList.push(newAttrList[i]);
-            addAttribute(element, newAttrList[i]);
-          }
-        }
-
-        return oldAttrList;
-      }
-    }
-  }
-}
-
-exports.cleanupAttributes = function(element) {
-  return function(attrList) {
-    return function() {
-      // console.log(element);
-      // console.log(attrList);
-    }
-  }
-}
-
-// exports.done = function() {
-//   console.log("done");
-//   return;
-// }
-
 
 exports.storeMachine = function(machine) {
   return function() {
@@ -168,10 +61,6 @@ function cmdForAndroid(config, set) {
 }
 
 function applyProp(element, attribute, set) {
-  // if (typeof attribute.value1 == "function") {
-  //   // replaceView(element, attribute, false);
-  //   return;
-  // }
   var prop = {
     id: element.__ref.__id
   }
@@ -213,8 +102,6 @@ function replaceView(element, attribute, removeProp) {
 
 
 
-window.attachListener = attachListener;
-
 window.removeChild = removeChild;
 window.addChild = addChild;
 window.replaceView = replaceView;
@@ -255,13 +142,6 @@ function addChild(child, parent, index) {
 
 function addAttribute(element, attribute) {
   console.log("add attr :", attribute);
-  // if (typeof attribute.value1 === "function") {
-  //   return;
-  //   const fn = attribute.value1;
-  //   attribute.value1 = function (e) {
-  //     fn(e)();
-  //   };
-  // }
   element.props[attribute.value0] = attribute.value1;
   applyProp(element, attribute, true);
 }
@@ -326,7 +206,6 @@ exports.setRootNode = function(nothing) {
 }
 
 exports.getRootNode = function() {
-  // return {type: "relativeLayout", props: {root: "true"}, children: []};
   return window.N;
 }
 

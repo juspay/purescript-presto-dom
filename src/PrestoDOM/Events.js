@@ -1,3 +1,7 @@
-exports.unsafeProp = function (a) {
-  return a;
+"use strict";
+
+exports.backPressHandlerImpl = function () {
+  return function(e) {
+    window.onBackPressed();
+  }
 }
