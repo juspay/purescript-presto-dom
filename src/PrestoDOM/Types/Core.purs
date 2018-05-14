@@ -1,8 +1,13 @@
 module PrestoDOM.Types.Core
     ( PropName(..)
     , PrestoDOM
+    , Props
     , toPropValue
-    , Component
+    , GenProp(..)
+    , Screen
+    , PropEff
+    , Eval
+    , Cmd
     , module VDom
     , module Types
     , class IsProp
@@ -11,31 +16,50 @@ module PrestoDOM.Types.Core
 import Prelude
 
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Ref (REF)
 import DOM (DOM)
-import Data.Foreign (Foreign)
-import Data.Foreign.Class (class Decode, class Encode, encode)
-import Data.Foreign.Generic (defaultOptions, genericDecode, genericEncode)
-import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show (genericShow)
+import Data.Tuple (Tuple)
+import Data.Either (Either)
+import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import FRP (FRP)
-import FRP.Event (Event, subscribe)
 import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean, propFromInt, propFromNumber, propFromString)
+import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Types (VDom(..), ElemSpec(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
-import PrestoDOM.Types.DomAttributes (Length, renderLength)
+import PrestoDOM.Types.DomAttributes (Gravity, InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility)
 import PrestoDOM.Types.DomAttributes as Types
 
 newtype PropName value = PropName String
 type PrestoDOM i w = VDom (Array (Prop i)) w
+type Cmd eff action = Array (Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) action)
+type Eval eff action retAction st = Either (Tuple (Maybe st) retAction) (Tuple st (Cmd eff action))
 
-type Component action st eff =
-  {
-    initialState :: st
-  , view :: (action -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop action)) Void
-  , eval :: action -> st -> st
+type Props i = Array (Prop i)
+
+data GenProp
+    = LengthP Length
+    | MarginP Margin
+    | PaddingP Padding
+    | InputTypeP InputType
+    | OrientationP Orientation
+    | TypefaceP Typeface
+    | VisibilityP Visibility
+    | GravityP Gravity
+    | NumberP Number
+    | BooleanP Boolean
+    | IntP Int
+    | StringP String
+    | TextP String
+
+
+type PropEff e = Eff ( ref :: REF , frp :: FRP, dom :: DOM | e ) Unit
+
+type Screen action st eff retAction =
+  { initialState :: st
+  , view :: (action -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop (PropEff eff))) Void
+  , eval :: action -> st -> Eval eff action retAction st
   }
-
 
 derive instance newtypePropName :: Newtype (PropName value) _
 
@@ -56,3 +80,24 @@ instance booleanIsProp :: IsProp Boolean where
 
 instance lengthIsProp :: IsProp Length where
   toPropValue = propFromString <<< renderLength
+
+instance inputTypeIsProp :: IsProp InputType where
+  toPropValue = propFromString <<< renderInputType
+
+instance orientationIsProp :: IsProp Orientation where
+  toPropValue = propFromString <<< renderOrientation
+
+instance typefaceIsProp :: IsProp Typeface where
+  toPropValue = propFromString <<< renderTypeface
+
+instance visibilityIsProp :: IsProp Visibility where
+  toPropValue = propFromString <<< renderVisibility
+
+instance gravityIsProp :: IsProp Gravity where
+  toPropValue = propFromString <<< renderGravity
+
+instance marginIsProp :: IsProp Margin where
+  toPropValue = propFromString <<< renderMargin
+
+instance paddingIsProp :: IsProp Padding where
+  toPropValue = propFromString <<< renderPadding

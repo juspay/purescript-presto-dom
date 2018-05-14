@@ -3,6 +3,10 @@ module PrestoDOM.Elements.Elements
     , Leaf
     , element
     , keyed
+
+    , linearLayout_
+    , relativeLayout_
+
     , linearLayout
     , relativeLayout
     , horizontalScrollView
@@ -25,12 +29,12 @@ module PrestoDOM.Elements.Elements
     ) where
 
 
-import Data.Array
+import Prelude
 
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
 import Halogen.VDom.DOM.Prop (Prop)
-import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(..))
+import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(..), Namespace)
 
 type Node i p
    = Array i
@@ -41,17 +45,35 @@ type Leaf i p
    = Array i
   -> VDom (Array i) p
 
+rootElement
+    :: forall i p
+     . Namespace
+    -> ElemName
+    -> Array (Prop i)
+    -> Array (VDom (Array (Prop i)) p)
+    -> VDom (Array (Prop i)) p
+rootElement screenName elemName = Elem <<< ElemSpec (Just screenName) elemName
+
 element :: forall i p. ElemName -> Array (Prop i) -> Array (VDom (Array (Prop i)) p) -> VDom (Array (Prop i)) p
-element elemName props = Elem (ElemSpec Nothing elemName props)
+element elemName = Elem <<< ElemSpec Nothing elemName
 
 keyed :: forall i p. ElemName -> Array (Prop i) -> Array (Tuple String (VDom (Array (Prop i)) p)) -> VDom (Array (Prop i)) p
-keyed elemName props = Keyed (ElemSpec Nothing elemName props)
+keyed elemName = Keyed <<< ElemSpec Nothing elemName
 
 node :: forall i p. String -> Node (Prop i) p
 node elem = element (ElemName elem)
 
 leaf :: forall i p. String -> Leaf (Prop i) p
 leaf elem props = element (ElemName elem) props []
+
+
+
+linearLayout_ :: forall i p. Namespace -> Node (Prop i) p
+linearLayout_ screenName = rootElement screenName (ElemName "linearLayout")
+
+relativeLayout_ :: forall i p. Namespace -> Node (Prop i) p
+relativeLayout_ screenName = rootElement screenName (ElemName "relativeLayout")
+
 
 
 linearLayout :: forall i p. Node (Prop i) p
@@ -75,6 +97,9 @@ shimmerFrameLayout = node "shimmerFrameLayout"
 tabLayout :: forall i p. Node (Prop i) p
 tabLayout = node "tabLayout"
 
+viewPager :: forall i p. Node (Prop i) p
+viewPager = node "viewPager"
+
 
 imageView :: forall i p. Leaf (Prop i) p
 imageView = leaf "imageView"
@@ -90,9 +115,6 @@ progressBar = leaf "progressBar"
 
 textView :: forall i p. Leaf (Prop i) p
 textView = leaf "textView"
-
-viewPager :: forall i p. Node (Prop i) p
-viewPager = node "viewPager"
 
 button :: forall i p. Leaf (Prop i) p
 button = leaf "button"
