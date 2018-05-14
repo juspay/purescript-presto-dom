@@ -23,9 +23,8 @@ import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(Elem), PrestoDOM, 
 import Unsafe.Coerce (unsafeCoerce)
 import PrestoDOM.Utils (continue)
 
-foreign import logMe :: forall a. String -> a -> a
+{-- foreign import logMe :: forall a. String -> a -> a --}
 foreign import emitter :: forall a eff. a -> Eff eff Unit
--- foreign import applyAttributes ∷ forall i eff. Element → (Array (Prop i)) → Eff eff (Array (Prop i))
 foreign import getLatestMachine :: forall m a b eff. Eff eff (Step m a b)
 foreign import storeMachine :: forall eff m a b. Step m a b -> Eff eff Unit
 foreign import getRootNode :: forall eff. Eff eff Document
@@ -39,8 +38,7 @@ foreign import getPrevScreen :: forall eff. Eff eff (Maybe Namespace)
 spec :: forall e. Document -> VDomSpec ( ref :: REF , frp :: FRP, dom :: DOM | e ) (Array (Prop (PropEff e))) Void
 spec document =  VDomSpec {
       buildWidget: const never
-    , buildAttributes: buildProp logger
-    {-- , buildAttributes: buildAttributes --}
+    , buildAttributes: buildProp id
     , document : document
     }
 

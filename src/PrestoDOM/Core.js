@@ -67,8 +67,6 @@ function applyProp(element, attribute, set) {
   prop[attribute.value0] = attribute.value1;
   if (window.__OS == "ANDROID") {
     var cmd = cmdForAndroid(prop, set);
-    console.log(element.__ref.__id);
-    console.log(cmd);
     Android.runInUI(cmd, null);
   } else if (window.__OS == "IOS"){
     Android.runInUI(prop);
@@ -79,17 +77,12 @@ function applyProp(element, attribute, set) {
 }
 
 function replaceView(element, attribute, removeProp) {
-  console.log("REPLACE VIEW", element.__ref.__id, element.props);
+  // console.log("REPLACE VIEW", element.__ref.__id, element.props);
   const props = R.clone(element.props);
   props.id = element.__ref.__id;
   var rep;
   const viewGroups = ["linearLayout", "relativeLayout", "scrollView", "frameLayout", "horizontalScrollView"];
 
-  // if (removeProp) {
-  //   delete props[attribute.value0];
-  // } else {
-  //    props[attribute.value0] = attribute.value1;
-  // }
   if (viewGroups.indexOf(element.type) != -1){
     props.root = true;
     rep = prestoDayum(element.type, props, []);
@@ -131,7 +124,7 @@ function addChild(child, parent, index) {
   if(child.type == null) {
     console.log("child null");
   }
-  console.log("Add child :", child.__ref.__id, child.type);
+  // console.log("Add child :", child.__ref.__id, child.type);
   const viewGroups = ["linearLayout", "relativeLayout", "scrollView", "frameLayout", "horizontalScrollView"];
   if (window.__OS == "ANDROID") {
     if (viewGroups.indexOf(child.type) != -1){
@@ -146,25 +139,18 @@ function addChild(child, parent, index) {
 }
 
 function addAttribute(element, attribute) {
-  console.log("add attr :", attribute);
+  // console.log("add attr :", attribute);
   element.props[attribute.value0] = attribute.value1;
   applyProp(element, attribute, true);
 }
 
 function removeAttribute(element, attribute) {
-  console.log("remove attr :", attribute);
-  // if (window.__OS == "ANDROID") {
+  // console.log("remove attr :", attribute);
     replaceView(element, attribute, true);
-
-    // return;
-  // }
-    // attribute.value1 = "";
-
-  // applyProp(element, attribute);
 }
 
 function updateAttribute(element, attribute) {
-  console.log("update attr :", attribute);
+  // console.log("update attr :", attribute);
   element.props[attribute.value0] = attribute.value1;
 
   applyProp(element, attribute, false);
@@ -225,12 +211,12 @@ exports.getPrevScreen = function() {
     return window.__prevScreenName;
 }
 
-exports.logMe = function(tag) {
-  return function(a) {
-    console.log(tag, "!!! : ",a);
-    return a;
-  }
-}
+// exports.logMe = function(tag) {
+//   return function(a) {
+//     console.log(tag, "!!! : ",a);
+//     return a;
+//   }
+// }
 
 exports.emitter = function(a) {
     return function() {
