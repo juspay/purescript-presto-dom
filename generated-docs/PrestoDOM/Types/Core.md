@@ -46,7 +46,13 @@ data GenProp
 #### `Screen`
 
 ``` purescript
-type Screen action st eff retAction = { initialState :: st, view :: (action -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop action)) Void, eval :: action -> st -> Eval eff action retAction st }
+type Screen action st eff retAction = { initialState :: st, view :: (action -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop (PropEff eff))) Void, eval :: action -> st -> Eval eff action retAction st }
+```
+
+#### `PropEff`
+
+``` purescript
+type PropEff e = Eff (ref :: REF, frp :: FRP, dom :: DOM | e) Unit
 ```
 
 #### `Eval`
@@ -58,7 +64,7 @@ type Eval eff action retAction st = Either (Tuple (Maybe st) retAction) (Tuple s
 #### `Cmd`
 
 ``` purescript
-type Cmd eff action = Array (Eff (frp :: FRP, dom :: DOM | eff) action)
+type Cmd eff action = Array (Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) action)
 ```
 
 #### `IsProp`

@@ -1,21 +1,9 @@
 ## Module PrestoDOM.Core
 
-#### `applyAttributes`
+#### `emitter`
 
 ``` purescript
-applyAttributes :: forall i eff. Element -> (Array (Prop i)) -> Eff eff (Array (Prop i))
-```
-
-#### `patchAttributes`
-
-``` purescript
-patchAttributes :: forall i eff. Element -> (Array (Prop i)) -> (Array (Prop i)) -> Eff eff (Array (Prop i))
-```
-
-#### `cleanupAttributes`
-
-``` purescript
-cleanupAttributes :: forall i eff. Element -> (Array (Prop i)) -> Eff eff Unit
+emitter :: forall a eff. a -> Eff eff Unit
 ```
 
 #### `getLatestMachine`
@@ -39,7 +27,7 @@ getRootNode :: forall eff. Eff eff Document
 #### `setRootNode`
 
 ``` purescript
-setRootNode :: forall eff. Eff eff Document
+setRootNode :: forall a eff. Maybe a -> Eff eff Document
 ```
 
 #### `insertDom`
@@ -48,52 +36,64 @@ setRootNode :: forall eff. Eff eff Document
 insertDom :: forall a b eff. a -> b -> Eff eff Unit
 ```
 
-#### `buildAttributes`
+#### `saveScreenNameImpl`
 
 ``` purescript
-buildAttributes :: forall eff a. Element -> VDomMachine eff (Array (Prop a)) Unit
+saveScreenNameImpl :: forall eff. Maybe Namespace -> Eff eff Unit
+```
+
+#### `getPrevScreen`
+
+``` purescript
+getPrevScreen :: forall eff. Eff eff (Maybe Namespace)
 ```
 
 #### `spec`
 
 ``` purescript
-spec :: forall i e. Document -> VDomSpec e (Array (Prop i)) Void
+spec :: forall e. Document -> VDomSpec (ref :: REF, frp :: FRP, dom :: DOM | e) (Array (Prop (PropEff e))) Void
+```
+
+#### `logger`
+
+``` purescript
+logger :: forall a eff. (a -> Eff (ref :: REF, dom :: DOM | eff) Unit)
 ```
 
 #### `patchAndRun`
 
 ``` purescript
-patchAndRun :: forall t state i. state -> (state -> VDom (Array (Prop i)) Void) -> Eff t Unit
+patchAndRun :: forall t i. VDom (Array (Prop i)) Void -> Eff t Unit
 ```
 
 #### `initUIWithScreen`
 
 ``` purescript
-initUIWithScreen :: forall action st eff. Screen action st eff Unit -> (Either Error Unit -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> Eff (frp :: FRP, dom :: DOM | eff) (Canceler (frp :: FRP, dom :: DOM | eff))
+initUIWithScreen :: forall action st eff. Screen action st eff Unit -> (Either Error Unit -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) (Canceler (ref :: REF, frp :: FRP, dom :: DOM | eff))
 ```
 
 #### `initUI`
 
 ``` purescript
-initUI :: forall eff. (Either Error Unit -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> Eff (frp :: FRP, dom :: DOM | eff) (Canceler (frp :: FRP, dom :: DOM | eff))
-```
-
-#### `runScreen'`
-
-``` purescript
-runScreen' :: forall action st eff retAction. Boolean -> Screen action st eff retAction -> (Either Error retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> Eff (frp :: FRP, dom :: DOM | eff) (Canceler (frp :: FRP, dom :: DOM | eff))
+initUI :: forall eff. (Either Error Unit -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) (Canceler (ref :: REF, frp :: FRP, dom :: DOM | eff))
 ```
 
 #### `runScreen`
 
 ``` purescript
-runScreen :: forall action st eff retAction. Screen action st eff retAction -> (Either Error retAction -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> Eff (frp :: FRP, dom :: DOM | eff) (Canceler (frp :: FRP, dom :: DOM | eff))
+runScreen :: forall action st eff retAction. Screen action st eff retAction -> (Either Error retAction -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) (Canceler (ref :: REF, frp :: FRP, dom :: DOM | eff))
+```
+
+#### `saveScreenName`
+
+``` purescript
+saveScreenName :: forall a w eff. VDom a w -> Eff eff (Maybe Namespace)
 ```
 
 #### `mapDom`
 
 ``` purescript
-mapDom :: forall i a b state eff w. ((a -> Eff (frp :: FRP | eff) Unit) -> state -> StrMap i -> PrestoDOM a w) -> (b -> Eff (frp :: FRP | eff) Unit) -> state -> (a -> b) -> Array (Tuple String i) -> PrestoDOM b w
+mapDom :: forall i a b state eff w. ((a -> PropEff eff) -> state -> StrMap i -> PrestoDOM (PropEff eff) w) -> (b -> PropEff eff) -> state -> (a -> b) -> Array (Tuple String i) -> PrestoDOM (PropEff eff) w
 ```
 
 

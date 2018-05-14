@@ -63,6 +63,12 @@ shimmerFrameLayout :: forall i p. Node (Prop i) p
 scrollView :: forall i p. Node (Prop i) p
 ```
 
+#### `relativeLayout_`
+
+``` purescript
+relativeLayout_ :: forall i p. Namespace -> Node (Prop i) p
+```
+
 #### `relativeLayout`
 
 ``` purescript
@@ -79,6 +85,12 @@ progressBar :: forall i p. Leaf (Prop i) p
 
 ``` purescript
 listView :: forall i p. Leaf (Prop i) p
+```
+
+#### `linearLayout_`
+
+``` purescript
+linearLayout_ :: forall i p. Namespace -> Node (Prop i) p
 ```
 
 #### `linearLayout`
@@ -143,28 +155,46 @@ button :: forall i p. Leaf (Prop i) p
 
 ### Re-exported from PrestoDOM.Events:
 
-#### `unsafeProp`
-
-``` purescript
-unsafeProp :: forall a. a -> String
-```
-
 #### `onClick`
 
 ``` purescript
-onClick :: forall a eff. (a -> Eff (frp :: FRP | eff) Unit) -> (Unit -> a) -> Prop a
+onClick :: forall a eff. (a -> PropEff eff) -> (Unit -> a) -> Prop (PropEff eff)
 ```
 
 #### `onChange`
 
 ``` purescript
-onChange :: forall a eff. (a -> Eff (frp :: FRP | eff) Unit) -> (String -> a) -> Prop a
+onChange :: forall a eff. (a -> PropEff eff) -> (String -> a) -> Prop (PropEff eff)
 ```
 
 #### `onBackPressed`
 
 ``` purescript
-onBackPressed :: forall a eff. (a -> Eff (frp :: FRP | eff) Unit) -> (Unit -> a) -> Prop a
+onBackPressed :: forall a eff. (a -> PropEff eff) -> (Unit -> a) -> Prop (PropEff eff)
+```
+
+#### `makeEvent`
+
+``` purescript
+makeEvent :: forall eff a. (a -> PropEff eff) -> (Event -> PropEff eff)
+```
+
+#### `event`
+
+``` purescript
+event :: forall a. EventType -> (Event -> Maybe a) -> Prop a
+```
+
+#### `backPressHandlerImpl`
+
+``` purescript
+backPressHandlerImpl :: forall eff. PropEff eff
+```
+
+#### `backPressHandler`
+
+``` purescript
+backPressHandler :: forall eff. (Event -> PropEff eff)
 ```
 
 ### Re-exported from PrestoDOM.Properties:
@@ -993,7 +1023,7 @@ data Typeface
 #### `Screen`
 
 ``` purescript
-type Screen action st eff retAction = { initialState :: st, view :: (action -> Eff (frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop action)) Void, eval :: action -> st -> Eval eff action retAction st }
+type Screen action st eff retAction = { initialState :: st, view :: (action -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop (PropEff eff))) Void, eval :: action -> st -> Eval eff action retAction st }
 ```
 
 #### `Props`
@@ -1012,6 +1042,12 @@ newtype PropName value
 ##### Instances
 ``` purescript
 Newtype (PropName value) _
+```
+
+#### `PropEff`
+
+``` purescript
+type PropEff e = Eff (ref :: REF, frp :: FRP, dom :: DOM | e) Unit
 ```
 
 #### `Prop`
@@ -1175,7 +1211,7 @@ Generic ElemName
 #### `Cmd`
 
 ``` purescript
-type Cmd eff action = Array (Eff (frp :: FRP, dom :: DOM | eff) action)
+type Cmd eff action = Array (Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) action)
 ```
 
 #### `IsProp`
@@ -1263,5 +1299,31 @@ renderInputType :: InputType -> String
 
 ``` purescript
 renderGravity :: Gravity -> String
+```
+
+### Re-exported from PrestoDOM.Utils:
+
+#### `updateAndExit`
+
+``` purescript
+updateAndExit :: forall state action retAction eff. state -> retAction -> Eval eff action retAction state
+```
+
+#### `exit`
+
+``` purescript
+exit :: forall state action retAction eff. retAction -> Eval eff action retAction state
+```
+
+#### `continueWithCmd`
+
+``` purescript
+continueWithCmd :: forall state action retAction eff. state -> Cmd eff action -> Eval eff action retAction state
+```
+
+#### `continue`
+
+``` purescript
+continue :: forall state action retAction eff. state -> Eval eff action retAction state
 ```
 

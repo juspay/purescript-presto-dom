@@ -24,6 +24,18 @@ element :: forall i p. ElemName -> Array (Prop i) -> Array (VDom (Array (Prop i)
 keyed :: forall i p. ElemName -> Array (Prop i) -> Array (Tuple String (VDom (Array (Prop i)) p)) -> VDom (Array (Prop i)) p
 ```
 
+#### `linearLayout_`
+
+``` purescript
+linearLayout_ :: forall i p. Namespace -> Node (Prop i) p
+```
+
+#### `relativeLayout_`
+
+``` purescript
+relativeLayout_ :: forall i p. Namespace -> Node (Prop i) p
+```
+
 #### `linearLayout`
 
 ``` purescript

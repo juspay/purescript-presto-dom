@@ -1,27 +1,45 @@
 ## Module PrestoDOM.Events
 
-#### `unsafeProp`
+#### `backPressHandlerImpl`
 
 ``` purescript
-unsafeProp :: forall a. a -> String
+backPressHandlerImpl :: forall eff. PropEff eff
+```
+
+#### `event`
+
+``` purescript
+event :: forall a. EventType -> (Event -> Maybe a) -> Prop a
+```
+
+#### `makeEvent`
+
+``` purescript
+makeEvent :: forall eff a. (a -> PropEff eff) -> (Event -> PropEff eff)
+```
+
+#### `backPressHandler`
+
+``` purescript
+backPressHandler :: forall eff. (Event -> PropEff eff)
 ```
 
 #### `onClick`
 
 ``` purescript
-onClick :: forall a eff. (a -> Eff (frp :: FRP | eff) Unit) -> (Unit -> a) -> Prop a
+onClick :: forall a eff. (a -> PropEff eff) -> (Unit -> a) -> Prop (PropEff eff)
 ```
 
 #### `onChange`
 
 ``` purescript
-onChange :: forall a eff. (a -> Eff (frp :: FRP | eff) Unit) -> (String -> a) -> Prop a
+onChange :: forall a eff. (a -> PropEff eff) -> (String -> a) -> Prop (PropEff eff)
 ```
 
 #### `onBackPressed`
 
 ``` purescript
-onBackPressed :: forall a eff. (a -> Eff (frp :: FRP | eff) Unit) -> (Unit -> a) -> Prop a
+onBackPressed :: forall a eff. (a -> PropEff eff) -> (Unit -> a) -> Prop (PropEff eff)
 ```
 
 
