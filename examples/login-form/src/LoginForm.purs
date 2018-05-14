@@ -69,12 +69,20 @@ view push state =
     , gravity CENTER
     ]
     [ linearLayout
-      [ height $ V 600
-      , width $ V 400
-      , background "#000000"
-      , orientation VERTICAL
-      , gravity CENTER
-      ]
+    case state.toggle of
+                 true -> ([ height $ V 600
+                          , width $ V 400
+                          {-- , background "#000000" --}
+                          , orientation VERTICAL
+                          , gravity CENTER
+                          ])
+                 false -> ([ height $ V 600
+                          , width $ V 400
+                          , background "#000000"
+                          , orientation VERTICAL
+                          , onClick push (const SubmitClicked)
+                          {-- , gravity CENTER --}
+                          ])
       [ (mapDom FormField.view push state.usernameState Username [])
       , (mapDom FormField.view push state.passwordState Password [])
       , linearLayout
