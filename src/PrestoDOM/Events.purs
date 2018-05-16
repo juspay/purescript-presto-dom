@@ -2,22 +2,34 @@ module PrestoDOM.Events where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
 -- import DOM.Event.Types (EventType(..), Event) as DOM
-import FRP (FRP)
-import Halogen.VDom.DOM.Prop (Prop)
-import PrestoDOM.Properties (prop)
-import PrestoDOM.Types.Core (PropName(..))
+import DOM.Event.Types (EventType(..), Event) as DOM
+import Data.Maybe (Maybe(..))
+import Halogen.VDom.DOM.Prop (Prop(..))
+import PrestoDOM.Types.Core (PropEff)
+import Unsafe.Coerce as U
 
--- TODO : Remove this
-foreign import unsafeProp :: forall a. a -> String
+foreign import backPressHandlerImpl :: forall eff. PropEff eff
 
-onClick :: forall a eff. (a ->  Eff (frp :: FRP | eff) Unit) -> (Unit -> a) -> Prop a
-onClick push f = prop (PropName "onClick") (unsafeProp (push <<< f))
+event :: forall a. DOM.EventType -> (DOM.Event → Maybe a) -> Prop a
+event = Handler
 
-onChange :: forall a eff. (a ->  Eff (frp :: FRP | eff) Unit) -> (String -> a) -> Prop a
-onChange push f = prop (PropName "onChange") (unsafeProp (push <<< f))
+makeEvent :: forall eff a. (a -> PropEff eff ) -> (DOM.Event → PropEff eff)
+makeEvent push = \ev -> do
+    _ <- push (U.unsafeCoerce ev)
+    pure unit
 
-onBackPressed :: forall a eff. (a ->  Eff (frp :: FRP | eff) Unit) -> (Unit -> a) -> Prop a
-onBackPressed push f = prop (PropName "onBackPressed") (unsafeProp (push <<< f))
+backPressHandler :: forall eff.  (DOM.Event → PropEff eff)
+backPressHandler = \ev -> do
+    _ <- backPressHandlerImpl
+    pure unit
+
+onClick :: forall a eff. (a ->  PropEff eff) -> (Unit -> a) -> Prop (PropEff eff)
+onClick push f = event (DOM.EventType "onClick") (Just <<< (makeEvent (push <<< f)))
+
+onChange :: forall a eff. (a -> PropEff eff ) -> (String -> a) -> Prop (PropEff eff)
+onChange push f = event (DOM.EventType "onChange") (Just <<< (makeEvent (push <<< f)))
+
+onBackPressed :: forall a eff. (a ->  PropEff eff) -> (Unit -> a) -> Prop (PropEff eff)
+onBackPressed push f = event (DOM.EventType "onClick") (Just <<< backPressHandler)
 

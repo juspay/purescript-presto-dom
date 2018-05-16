@@ -13,7 +13,7 @@ import FRP.Behavior (sample_, step, unfold)
 import FRP.Event (create, subscribe)
 import Halogen.VDom (buildVDom, extract)
 import PrestoDOM.Events (onChange)
-import PrestoDOM.Types.Core (PrestoDOM)
+import PrestoDOM.Types.Core (PrestoDOM, PropEff)
 
 data Action = TextChanged String
 type Label = String
@@ -30,7 +30,7 @@ eval :: Action -> State -> State
 eval (TextChanged value) state = state { value = value }
 
 
-view :: forall i w eff. (Action -> Eff (frp :: FRP | eff) Unit) -> State -> StrMap String -> PrestoDOM Action w
+view :: forall i w eff. (Action -> PropEff eff) -> State -> StrMap String -> PrestoDOM (PropEff eff) w
 view push state _ =
   linearLayout
     [ height $ V 150

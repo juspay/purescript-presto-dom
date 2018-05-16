@@ -17,16 +17,18 @@ import FormField as FormField
 import Halogen.VDom (buildVDom, extract)
 import PrestoDOM.Core (mapDom, getRootNode, insertDom, patchAndRun, spec, storeMachine)
 import PrestoDOM.Events (onClick)
-import PrestoDOM.Types.Core (PrestoDOM, Screen, Eval, Namespace(..))
+import PrestoDOM.Types.Core (PrestoDOM, Screen, Eval, Namespace(..), PropEff)
 import PrestoDOM.Utils (continue, continueWithCmd, updateAndExit, exit)
 
 data Action =
   Username FormField.Action
   | Password FormField.Action
   | SubmitClicked
+  | SubmitClicked2
 
 type State =
   { errorMessage :: String
+  , toggle :: Boolean
   , usernameState :: FormField.State
   , passwordState :: FormField.State
   }
@@ -34,17 +36,19 @@ type State =
 initialState :: State
 initialState =
   { errorMessage : ""
+  , toggle : true
   , usernameState : (FormField.initialState "username")
   , passwordState : (FormField.initialState "password")
   }
 
 eval :: forall eff. Action -> State -> Eval eff Action Unit State
 eval (Username action) state = continue state { usernameState = FormField.eval action state.usernameState }
-eval (Password action) state = continue state { passwordState = FormField.eval action state.passwordState }
-eval SubmitClicked state =
-    if state.passwordState.value == "blueberry" && state.usernameState.value /= ""
-        then exit unit
-        else (continueWithCmd (state { errorMessage = "Your account is blocked" }) [ (pure $ Username $ FormField.TextChanged "evalaction")])
+eval (Password action) state = let t = if state.passwordState.value == "turn" then false else true in continue state { passwordState = FormField.eval action state.passwordState, toggle = t }
+eval SubmitClicked2 state = continue state { errorMessage = "Yes, yo hoo", toggle = true }
+eval SubmitClicked state = continue state { errorMessage = "Your account is blocked", toggle = false }
+    {-- if state.passwordState.value == "blueberry" && state.usernameState.value /= "" --}
+    {--     then exit unit --}
+    {--     else (continueWithCmd (state { errorMessage = "Your account is blocked" }) [ (pure $ Username $ FormField.TextChanged "evalaction")]) --}
 
 
 screen :: forall eff. Screen Action State eff Unit
@@ -56,7 +60,7 @@ screen =
   }
 
 -- TODO : Make push implicit
-view :: forall i w eff. (Action -> Eff (frp :: FRP | eff) Unit) -> State -> PrestoDOM Action w
+view :: forall i w eff. (Action -> PropEff eff) -> State -> PrestoDOM (PropEff eff) w
 view push state =
   linearLayout_ (Namespace "loginForm")
     [ height MATCH_PARENT
@@ -65,12 +69,20 @@ view push state =
     , gravity CENTER
     ]
     [ linearLayout
-      [ height $ V 600
-      , width $ V 400
-      , background "#000000"
-      , orientation VERTICAL
-      , gravity CENTER
-      ]
+    case state.toggle of
+                 true -> ([ height $ V 600
+                          , width $ V 400
+                          {-- , background "#000000" --}
+                          , orientation VERTICAL
+                          , gravity CENTER
+                          ])
+                 false -> ([ height $ V 600
+                          , width $ V 400
+                          , background "#000000"
+                          , orientation VERTICAL
+                          , onClick push (const SubmitClicked)
+                          {-- , gravity CENTER --}
+                          ])
       [ (mapDom FormField.view push state.usernameState Username [])
       , (mapDom FormField.view push state.passwordState Password [])
       , linearLayout
@@ -85,16 +97,26 @@ view push state =
           , color "#000000"
           , background "#ffffff"
           , width MATCH_PARENT
-          , text state.errorMessage
+          , onClick push (const SubmitClicked)
+          , text $ state.passwordState.value <> state.errorMessage
           ]
         , linearLayout
-          [ height $ V 50
-          , width MATCH_PARENT
-          , margin $ Margin 20 20 20 20
-          , background "#969696"
-          , gravity CENTER
-          , onClick push (const SubmitClicked)
-          ]
+            case state.toggle of
+                 true ->   ([ height $ V 50
+                            , width MATCH_PARENT
+                            , margin $ Margin 20 20 20 20
+                            , background "#969696"
+                            , gravity CENTER
+                            {-- , onClick push (const SubmitClicked) --}
+                            ])
+                 false ->  ([ height $ V 50
+                            , width MATCH_PARENT
+                            , margin $ Margin 20 20 20 20
+                            , background "#969696"
+                            , gravity CENTER
+                            , onClick push (const SubmitClicked2)
+                            ])
+
           [
             textView
             [ width (V 80)

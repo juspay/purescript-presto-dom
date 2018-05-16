@@ -5,115 +5,6 @@ const iOSParseParams = require("presto-ui").helpers.ios.parseParams;
 const parseParams = require("presto-ui").helpers.android.parseParams;
 const R = require("ramda");
 
-window.__pDom = prestoDayum;
-
-function attachAttributeList(element, attrList) {
-  var key, value;
-
-  for (var i = 0; i < attrList.length; i++) {
-    key = attrList[i].value0;
-    value = attrList[i].value1;
-    if (typeof value == "function") {
-      attachListener(element, key, value);
-    } else {
-      element.props[key] = value;
-    }
-  }
-
-  return null;
-}
-
-function attachListener(element, eventType, value) {
-  if (eventType == "onBackPressed") {
-    element.props["onClick"] = function(e) {
-      window.onBackPressed();
-    }
-  }
-  else {
-    element.props[eventType] = function(e) {
-      value(e)();
-    }
-  }
-}
-
-exports.applyAttributes = function(element) {
-  return function(attrList) {
-    return function() {
-      attachAttributeList(element, attrList);
-      return attrList;
-    }
-  }
-}
-
-exports.patchAttributes = function(element) {
-  return function(oldAttrList) {
-    return function(newAttrList) {
-      return function() {
-        var attrFound = 0;
-
-        for (var i=0; i<oldAttrList.length; i++) {
-
-          if (oldAttrList[i] != null) {
-            attrFound = 0;
-            for (var j=0; j<newAttrList.length; j++) {
-              if (oldAttrList[i].value0 == newAttrList[j].value0) {
-                attrFound = 1;
-
-                if (oldAttrList[i].value1 !== newAttrList[j].value1) {
-                  element.props[oldAttrList[i].value0] = newAttrList[j].value1;
-                  oldAttrList[i].value1 = newAttrList[j].value1;
-                  updateAttribute(element, newAttrList[j]);
-                }
-              }
-            }
-
-            if (!attrFound) {
-              attrFound = true;
-              delete element.props[oldAttrList[i].value0];
-              removeAttribute(element, oldAttrList[i]);
-              oldAttrList[i] = null;
-            }
-          }
-        }
-
-        // oldAttrList = oldAttrList.filter(function (a) {return a;})
-
-        for (var i=0; i<newAttrList.length; i++) {
-          attrFound = 0;
-          for (var j=0; j<oldAttrList.length; j++) {
-
-            if (oldAttrList[j] != null && (oldAttrList[j].value0 == newAttrList[i].value0)) {
-              attrFound = 1;
-            }
-          }
-
-          if (!attrFound) {
-            element.props[newAttrList[i].value0] = newAttrList[i].value1;
-            oldAttrList.push(newAttrList[i]);
-            addAttribute(element, newAttrList[i]);
-          }
-        }
-
-        return oldAttrList;
-      }
-    }
-  }
-}
-
-exports.cleanupAttributes = function(element) {
-  return function(attrList) {
-    return function() {
-      // console.log(element);
-      // console.log(attrList);
-    }
-  }
-}
-
-// exports.done = function() {
-//   console.log("done");
-//   return;
-// }
-
 
 exports.storeMachine = function(machine) {
   return function() {
@@ -170,17 +61,13 @@ function cmdForAndroid(config, set) {
 }
 
 function applyProp(element, attribute, set) {
-  if (typeof attribute.value1 == "function") {
-    // replaceView(element, attribute, false);
-    return;
-  }
   var prop = {
     id: element.__ref.__id
   }
   prop[attribute.value0] = attribute.value1;
   if (window.__OS == "ANDROID") {
-      var cmd = cmdForAndroid(prop, set);
-      Android.runInUI(cmd, null);
+    var cmd = cmdForAndroid(prop, set);
+    Android.runInUI(cmd, null);
   } else if (window.__OS == "IOS"){
     Android.runInUI(prop);
   } else {
@@ -190,31 +77,35 @@ function applyProp(element, attribute, set) {
 }
 
 function replaceView(element, attribute, removeProp) {
+  // console.log("REPLACE VIEW", element.__ref.__id, element.props);
   const props = R.clone(element.props);
   props.id = element.__ref.__id;
   var rep;
   const viewGroups = ["linearLayout", "relativeLayout", "scrollView", "frameLayout", "horizontalScrollView"];
 
-  // if (removeProp) {
-  //   delete props[attribute.value0];
-  // } else {
-  //    props[attribute.value0] = attribute.value1;
-  // }
   if (viewGroups.indexOf(element.type) != -1){
-      props.root = true;
-      rep = prestoDayum(element.type, props, []);
-    } else {
-      rep = prestoDayum({elemType: element.type, parentType: element.parentNode.type}, props, []);
-    }
-
-  Android.replaceView(JSON.stringify(rep), element.__ref.__id);
+    props.root = true;
+    rep = prestoDayum(element.type, props, []);
+  } else if (window.__OS == "ANDROID") {
+    rep = prestoDayum({elemType: element.type, parentType: element.parentNode.type}, props, []);
+  } else {
+    rep = prestoDayum(element.type, props, []);
+  }
+  if(window.__OS == "ANDROID"){
+    Android.replaceView(JSON.stringify(rep), element.__ref.__id);
+  } else {
+    Android.replaceView(rep, element.__ref.__id);
+  }
 }
+
+
 
 window.removeChild = removeChild;
 window.addChild = addChild;
-window.addAttribute = addAttribute;
+window.replaceView = replaceView;
+window.addProperty = addAttribute;
 // window.removeAttribute = removeAttribute;
-window.updateAttribute = updateAttribute;
+window.updateProperty = updateAttribute;
 window.addAttribute = addAttribute;
 window.insertDom = insertDom;
 window.createPrestoElement = function () {
@@ -233,7 +124,7 @@ function addChild(child, parent, index) {
   if(child.type == null) {
     console.log("child null");
   }
-  // console.log("Add child :", child.type);
+  // console.log("Add child :", child.__ref.__id, child.type);
   const viewGroups = ["linearLayout", "relativeLayout", "scrollView", "frameLayout", "horizontalScrollView"];
   if (window.__OS == "ANDROID") {
     if (viewGroups.indexOf(child.type) != -1){
@@ -249,30 +140,18 @@ function addChild(child, parent, index) {
 
 function addAttribute(element, attribute) {
   // console.log("add attr :", attribute);
-  // if (typeof attribute.value1 === "function") {
-  //   return;
-  //   const fn = attribute.value1;
-  //   attribute.value1 = function (e) {
-  //     fn(e)();
-  //   };
-  // }
-  // element.props[attribute.value0] = attribute.value1;
+  element.props[attribute.value0] = attribute.value1;
   applyProp(element, attribute, true);
 }
 
 function removeAttribute(element, attribute) {
-  if (window.__OS == "ANDROID") {
+  // console.log("remove attr :", attribute);
     replaceView(element, attribute, true);
-
-    return;
-  }
-    attribute.value1 = "";
-
-  applyProp(element, attribute);
 }
 
 function updateAttribute(element, attribute) {
   // console.log("update attr :", attribute);
+  element.props[attribute.value0] = attribute.value1;
 
   applyProp(element, attribute, false);
 }
@@ -318,7 +197,6 @@ exports.setRootNode = function(nothing) {
 }
 
 exports.getRootNode = function() {
-  // return {type: "relativeLayout", props: {root: "true"}, children: []};
   return window.N;
 }
 
@@ -339,6 +217,13 @@ exports.getPrevScreen = function() {
 //     return a;
 //   }
 // }
+
+exports.emitter = function(a) {
+    return function() {
+      a();
+      console.log("Logger !!! : ",a);
+    }
+}
 
 window.__popScreen = popScreen;
 
