@@ -9,16 +9,19 @@ import Control.Monad.Aff (Aff)
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
 import Data.Either (Either(..))
+import Data.Exists (Exists, mkExists, runExists)
 import Data.Tuple (Tuple(..))
 import FRP (FRP)
 import FRP.Behavior (sample_, step, unfold)
 import FRP.Event (create, subscribe)
 import FormField as FormField
 import Halogen.VDom (buildVDom, extract)
-import PrestoDOM.Core (mapDom, getRootNode, insertDom, patchAndRun, spec, storeMachine)
+import PrestoDOM.Core (mapDom, getRootNode, insertDom, patchAndRun, spec, storeMachine, Thunk(..))
 import PrestoDOM.Events (onClick)
 import PrestoDOM.Types.Core (PrestoDOM, Screen, Eval, Namespace(..), PropEff)
 import PrestoDOM.Utils (continue, continueWithCmd, updateAndExit, exit)
+import Widget.CanvasJS.Charts as W
+
 
 data Action =
   Username FormField.Action
@@ -51,7 +54,7 @@ eval SubmitClicked state = continue state { errorMessage = "Your account is bloc
     {--     else (continueWithCmd (state { errorMessage = "Your account is blocked" }) [ (pure $ Username $ FormField.TextChanged "evalaction")]) --}
 
 
-screen :: forall eff. Screen Action State eff Unit
+screen :: forall eff. Screen Action State eff Unit (Exists (Thunk eff))
 screen =
   {
     initialState
@@ -60,7 +63,7 @@ screen =
   }
 
 -- TODO : Make push implicit
-view :: forall i w eff. (Action -> PropEff eff) -> State -> PrestoDOM (PropEff eff) w
+view :: forall i w eff. (Action -> PropEff eff) -> State -> PrestoDOM (PropEff eff) (Exists (Thunk eff))
 view push state =
   linearLayout_ (Namespace "loginForm")
     [ height MATCH_PARENT
@@ -69,63 +72,10 @@ view push state =
     , gravity CENTER
     ]
     [ linearLayout
-    case state.toggle of
-                 true -> ([ height $ V 600
-                          , width $ V 400
-                          {-- , background "#000000" --}
-                          , orientation VERTICAL
-                          , gravity CENTER
-                          ])
-                 false -> ([ height $ V 600
-                          , width $ V 400
-                          , background "#000000"
-                          , orientation VERTICAL
-                          , onClick push (const SubmitClicked)
-                          {-- , gravity CENTER --}
-                          ])
-      [ (mapDom FormField.view push state.usernameState Username [])
-      , (mapDom FormField.view push state.passwordState Password [])
-      , linearLayout
-        [ height $ V 150
-        , width MATCH_PARENT
-        , orientation VERTICAL
-        , background "#eae212"
-        , gravity CENTER
-        ]
-        [ textView
-          [ height $ V 50
-          , color "#000000"
-          , background "#ffffff"
-          , width MATCH_PARENT
-          , onClick push (const SubmitClicked)
-          , text $ state.passwordState.value <> state.errorMessage
-          ]
-        , linearLayout
-            case state.toggle of
-                 true ->   ([ height $ V 50
-                            , width MATCH_PARENT
-                            , margin $ Margin 20 20 20 20
-                            , background "#969696"
-                            , gravity CENTER
-                            {-- , onClick push (const SubmitClicked) --}
-                            ])
-                 false ->  ([ height $ V 50
-                            , width MATCH_PARENT
-                            , margin $ Margin 20 20 20 20
-                            , background "#969696"
-                            , gravity CENTER
-                            , onClick push (const SubmitClicked2)
-                            ])
-
-          [
-            textView
-            [ width (V 80)
-            , height (V 25)
-            , text "Submit"
-            , color "#007700"
-            , textSize 28
-            ]
-          ]
-        ]
-      ]
+			[ height $ V 600
+			, width $ V 1600
+			, orientation VERTICAL
+    	, gravity CENTER
+			]
+			[ W.siteTraffic { viewID : "canvasJS", cData : W.chartData }  ]
     ]

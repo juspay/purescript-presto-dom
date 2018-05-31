@@ -55,9 +55,9 @@ data GenProp
 
 type PropEff e = Eff ( ref :: REF , frp :: FRP, dom :: DOM | e ) Unit
 
-type Screen action st eff retAction =
+type Screen action st eff retAction w =
   { initialState :: st
-  , view :: (action -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop (PropEff eff))) Void
+  , view :: (action -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop (PropEff eff))) w
   , eval :: action -> st -> Eval eff action retAction st
   }
 

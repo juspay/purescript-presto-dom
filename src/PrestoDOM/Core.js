@@ -249,6 +249,15 @@ function popScreen() {
 
 }
 
+exports.processWidget = function (){
+  if(window.widgets) {
+    window.widgets.forEach(function (obj) {
+      obj.fn(obj.id_);
+    });
+    window.widgets = [];
+  }
+}
+
 function insertDom(root) {
   return function (dom) {
     return function () {

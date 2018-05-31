@@ -4,10 +4,13 @@ import Prelude
 
 import Control.Monad.Eff (Eff)
 import Control.Monad.Aff (Canceler, Error, nonCanceler)
+import Data.Exists (Exists, runExists)
+import Data.Function.Uncurried as Fn
 import Data.StrMap (StrMap, fromFoldable)
 import DOM (DOM)
 import Control.Monad.Eff.Ref (REF)
 import DOM.Node.Types (Document)
+import DOM.Node.Types (Node) as DOM
 import Data.Either (Either(..), either)
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
@@ -16,9 +19,10 @@ import FRP (FRP)
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
 import FRP.Event as E
-import Halogen.VDom (Step, VDomSpec(VDomSpec), buildVDom)
+import Halogen.VDom (Step(..), VDomSpec(VDomSpec), buildVDom, VDomMachine)
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
 import Halogen.VDom.Machine (never, step, extract)
+import Halogen.VDom.Util (refEq)
 import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(Elem), PrestoDOM, Screen, PropEff, Namespace)
 import Unsafe.Coerce (unsafeCoerce)
 import PrestoDOM.Utils (continue)
@@ -30,14 +34,42 @@ foreign import storeMachine :: forall eff m a b. Step m a b -> Eff eff Unit
 foreign import getRootNode :: forall eff. Eff eff Document
 foreign import setRootNode :: forall a eff. Maybe a -> Eff eff Document
 foreign import insertDom :: forall a b eff. a -> b -> Eff eff Unit
+foreign import processWidget :: forall eff. Eff eff Unit
 
 foreign import saveScreenNameImpl :: forall eff. Maybe Namespace -> Eff eff Unit
 foreign import getPrevScreen :: forall eff. Eff eff (Maybe Namespace)
 
 
-spec :: forall e. Document -> VDomSpec ( ref :: REF , frp :: FRP, dom :: DOM | e ) (Array (Prop (PropEff e))) Void
+data Thunk e b = Thunk b (b → Eff ( ref :: REF , frp :: FRP, dom :: DOM | e ) DOM.Node)
+
+
+buildWidget
+  ∷ ∀ e
+	. VDomSpec ( ref :: REF , frp :: FRP, dom :: DOM | e ) (Array (Prop (PropEff e))) (Exists (Thunk e))
+	→ VDomMachine ( ref :: REF , frp :: FRP, dom :: DOM | e ) (Exists (Thunk e)) DOM.Node
+buildWidget spec = render
+  where
+        render = runExists \(Thunk a render') → do
+           node ← render' a
+           pure (Step node
+                (Fn.runFn2 patch (unsafeCoerce a) node)
+                (pure unit))
+        patch = Fn.mkFn2 \a node → runExists \(Thunk b render') →
+           if Fn.runFn2 refEq a b
+               then pure (Step node
+                         (Fn.runFn2 patch a node)
+                         (pure unit))
+               else do
+                  node <- render' b
+                  pure (Step node
+                       (Fn.runFn2 patch (unsafeCoerce b) node)
+                       (pure unit))
+
+
+
+spec :: forall e. Document -> VDomSpec ( ref :: REF , frp :: FRP, dom :: DOM | e ) (Array (Prop (PropEff e))) (Exists (Thunk e))
 spec document =  VDomSpec {
-      buildWidget: const never
+      buildWidget
     , buildAttributes: buildProp id
     , document : document
     }
@@ -48,7 +80,7 @@ logger a = do
     pure unit
 
 
-patchAndRun :: forall t  i. VDom (Array (Prop i)) Void -> Eff t Unit
+patchAndRun :: forall eff w i. VDom (Array (Prop i)) w -> Eff eff Unit
 patchAndRun myDom = do
   machine <- getLatestMachine
   newMachine <- step machine (myDom)
@@ -56,7 +88,7 @@ patchAndRun myDom = do
 
 initUIWithScreen
   :: forall action st eff
-   . Screen action st eff Unit
+   . Screen action st eff Unit (Exists (Thunk eff))
   -> (Either Error Unit -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit)
   -> Eff ( ref :: REF, frp :: FRP, dom :: DOM | eff) (Canceler ( ref :: REF, frp :: FRP, dom :: DOM | eff ))
 initUIWithScreen { initialState, view, eval } cb = do
@@ -66,6 +98,7 @@ initUIWithScreen { initialState, view, eval } cb = do
   _ <- saveScreenName myDom
   machine <- buildVDom (spec root) myDom
   storeMachine machine
+  {-- ref ← Ref.newRef machine --}
   insertDom root (extract machine)
   cb $ Right unit
   pure nonCanceler
@@ -88,7 +121,7 @@ initUI cb = do
 
 runScreen
     :: forall action st eff retAction
-     . Screen action st eff retAction
+     . Screen action st eff retAction (Exists (Thunk eff))
     -> (Either Error retAction -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit)
     -> Eff ( ref :: REF, frp :: FRP, dom :: DOM | eff ) (Canceler ( ref :: REF, frp :: FRP, dom :: DOM | eff ))
 runScreen { initialState, view, eval } cb = do
@@ -104,6 +137,7 @@ runScreen { initialState, view, eval } cb = do
         machine <- buildVDom (spec root) myDom
         storeMachine machine
         insertDom root (extract machine)
+        processWidget
     true ->
         patchAndRun myDom
   -- let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action)) event (Right initialState)

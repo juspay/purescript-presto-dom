@@ -37,7 +37,7 @@ eval SubmitClicked state = updateAndExit (state {visibility = GONE}) unit
 eval _ state = continue state
 
 
-screen :: forall eff. Screen Action State eff Unit
+screen :: forall eff w. Screen Action State eff Unit w
 screen =
   {
     initialState

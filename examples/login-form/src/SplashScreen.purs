@@ -32,7 +32,7 @@ eval :: forall eff. Action -> State -> Eval eff Action Unit State
 eval _ state = continue state
 
 
-screen :: forall eff. Screen Action State eff Unit
+screen :: forall eff w. Screen Action State eff Unit w
 screen =
   {
     initialState
@@ -43,7 +43,7 @@ screen =
 -- TODO : Make push implicit
 view :: forall i w eff. (Action -> PropEff eff) -> State -> PrestoDOM (PropEff eff) w
 view push state =
-  linearLayout_ (Namespace "loginForm")
+  linearLayout_ (Namespace "Splash")
     [ height MATCH_PARENT
     , width MATCH_PARENT
     , background "#111111"

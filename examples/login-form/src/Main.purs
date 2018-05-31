@@ -32,11 +32,11 @@ main = do
 
   pure unit
 
-{-- runUI --}
-{--     :: forall action eff retAction st --}
-{--      . Screen action st eff retAction --}
-{--     -> String --}
-{--     -> Aff (frp :: FRP, dom :: DOM, console :: C.CONSOLE | eff) Unit --}
+runUI
+    :: forall action eff retAction st
+     . Screen action st eff retAction
+    -> String
+    -> Aff (ref :: REF , frp :: FRP, dom :: DOM, console :: CONSOLE | eff) Unit
 runUI screen  txt = do
   _ <- makeAff (\cb -> runScreen screen cb)
   log $ "Completed " <> txt
