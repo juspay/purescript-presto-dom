@@ -8,6 +8,7 @@ module PrestoDOM.Types.Core
     , PropEff
     , Eval
     , Cmd
+    , Thunk(..)
     , module VDom
     , module Types
     , class IsProp
@@ -20,8 +21,11 @@ import Control.Monad.Eff.Ref (REF)
 import DOM (DOM)
 import Data.Tuple (Tuple)
 import Data.Either (Either)
+import Data.Exists (Exists, runExists)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
+
+import DOM.Node.Types (Node) as DOM
 import FRP (FRP)
 import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean, propFromInt, propFromNumber, propFromString)
 import Halogen.VDom.DOM.Prop (Prop) as VDom
@@ -29,6 +33,9 @@ import Halogen.VDom.Types (VDom(..), ElemSpec(..), ElemName(..), Namespace(..)) 
 import Halogen.VDom.Types (VDom)
 import PrestoDOM.Types.DomAttributes (Gravity, InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility)
 import PrestoDOM.Types.DomAttributes as Types
+
+data Thunk e b = Thunk b (b → Eff ( ref :: REF , frp :: FRP, dom :: DOM | e ) DOM.Node)
+
 
 newtype PropName value = PropName String
 type PrestoDOM i w = VDom (Array (Prop i)) w
@@ -55,9 +62,9 @@ data GenProp
 
 type PropEff e = Eff ( ref :: REF , frp :: FRP, dom :: DOM | e ) Unit
 
-type Screen action st eff retAction w =
+type Screen action st eff retAction =
   { initialState :: st
-  , view :: (action -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop (PropEff eff))) w
+  , view :: (action -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop (PropEff eff))) (Exists (Thunk eff))
   , eval :: action -> st -> Eval eff action retAction st
   }
 

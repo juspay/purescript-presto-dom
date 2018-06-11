@@ -5,6 +5,11 @@ const iOSParseParams = require("presto-ui").helpers.ios.parseParams;
 const parseParams = require("presto-ui").helpers.android.parseParams;
 const R = require("ramda");
 
+const callbackMapper = require("presto-ui").helpers.android.callbackMapper;
+
+window.callbackMapper = callbackMapper.map;
+
+
 
 exports.storeMachine = function(machine) {
   return function() {
@@ -252,7 +257,7 @@ function popScreen() {
 exports.processWidget = function (){
   if(window.widgets) {
     window.widgets.forEach(function (obj) {
-      obj.fn(obj.id_);
+      obj.fn(obj.id_)();
     });
     window.widgets = [];
   }

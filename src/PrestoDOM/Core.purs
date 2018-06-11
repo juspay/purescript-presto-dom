@@ -23,7 +23,7 @@ import Halogen.VDom (Step(..), VDomSpec(VDomSpec), buildVDom, VDomMachine)
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
 import Halogen.VDom.Machine (never, step, extract)
 import Halogen.VDom.Util (refEq)
-import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(Elem), PrestoDOM, Screen, PropEff, Namespace)
+import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(Elem), PrestoDOM, Screen, PropEff, Namespace, Thunk(..))
 import Unsafe.Coerce (unsafeCoerce)
 import PrestoDOM.Utils (continue)
 
@@ -40,7 +40,6 @@ foreign import saveScreenNameImpl :: forall eff. Maybe Namespace -> Eff eff Unit
 foreign import getPrevScreen :: forall eff. Eff eff (Maybe Namespace)
 
 
-data Thunk e b = Thunk b (b → Eff ( ref :: REF , frp :: FRP, dom :: DOM | e ) DOM.Node)
 
 
 buildWidget
@@ -88,7 +87,7 @@ patchAndRun myDom = do
 
 initUIWithScreen
   :: forall action st eff
-   . Screen action st eff Unit (Exists (Thunk eff))
+   . Screen action st eff Unit
   -> (Either Error Unit -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit)
   -> Eff ( ref :: REF, frp :: FRP, dom :: DOM | eff) (Canceler ( ref :: REF, frp :: FRP, dom :: DOM | eff ))
 initUIWithScreen { initialState, view, eval } cb = do
@@ -121,7 +120,7 @@ initUI cb = do
 
 runScreen
     :: forall action st eff retAction
-     . Screen action st eff retAction (Exists (Thunk eff))
+     . Screen action st eff retAction
     -> (Either Error retAction -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit)
     -> Eff ( ref :: REF, frp :: FRP, dom :: DOM | eff ) (Canceler ( ref :: REF, frp :: FRP, dom :: DOM | eff ))
 runScreen { initialState, view, eval } cb = do

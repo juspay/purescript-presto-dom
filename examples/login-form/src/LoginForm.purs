@@ -75,7 +75,7 @@ view push state =
 			[ height $ V 600
 			, width $ V 1600
 			, orientation VERTICAL
-    	, gravity CENTER
+    	    , gravity CENTER
 			]
 			[ W.siteTraffic { viewID : "canvasJS", cData : W.chartData }  ]
     ]
