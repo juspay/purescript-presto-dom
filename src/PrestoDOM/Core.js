@@ -242,6 +242,7 @@ function screenIsInStack(screen) {
         window.__currScreenName = screen;
         for (var j = 0,k=rem.length; j < k; j++) {
           Android.removeView(rem[j].id);
+          delete window.MACHINE_MAP[rem[j].name.value0];
         }
         makeVisible();
       }
@@ -309,6 +310,7 @@ function popScreen() {
   var __id = obj.id;
 
   Android.removeView(__id);
+  delete window.MACHINE_MAP[obj.name.value0];
 
   var length =  window.__ROOTSCREEN.idSet.child.length;
   var prop = {
