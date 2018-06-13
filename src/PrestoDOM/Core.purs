@@ -25,14 +25,13 @@ import PrestoDOM.Utils (continue)
 
 {-- foreign import logMe :: forall a. String -> a -> a --}
 foreign import emitter :: forall a eff. a -> Eff eff Unit
-foreign import getLatestMachine :: forall m a b eff. Eff eff (Step m a b)
-foreign import storeMachine :: forall eff m a b. Step m a b -> Eff eff Unit
+foreign import getLatestMachine :: forall m a b eff. Maybe Namespace -> Eff eff (Step m a b)
+foreign import storeMachine :: forall eff m a b. Step m a b -> Maybe Namespace -> Eff eff Unit
 foreign import getRootNode :: forall eff. Eff eff Document
 foreign import setRootNode :: forall a eff. Maybe a -> Eff eff Document
 foreign import insertDom :: forall a b eff. a -> b -> Eff eff Unit
 
-foreign import saveScreenNameImpl :: forall eff. Maybe Namespace -> Eff eff Unit
-foreign import getPrevScreen :: forall eff. Eff eff (Maybe Namespace)
+foreign import saveScreenNameImpl :: forall eff. Maybe Namespace -> Eff eff Boolean
 
 
 spec :: forall e. Document -> VDomSpec ( ref :: REF , frp :: FRP, dom :: DOM | e ) (Array (Prop (PropEff e))) Void
@@ -50,9 +49,10 @@ logger a = do
 
 patchAndRun :: forall t  i. VDom (Array (Prop i)) Void -> Eff t Unit
 patchAndRun myDom = do
-  machine <- getLatestMachine
+  screenName <- getScreenName myDom
+  machine <- getLatestMachine screenName
   newMachine <- step machine (myDom)
-  storeMachine newMachine
+  storeMachine newMachine screenName
 
 initUIWithScreen
   :: forall action st eff
@@ -63,9 +63,7 @@ initUIWithScreen { initialState, view, eval } cb = do
   { event, push } <- E.create
   let myDom = view push initialState
   root <- setRootNode Nothing
-  _ <- saveScreenName myDom
   machine <- buildVDom (spec root) myDom
-  storeMachine machine
   insertDom root (extract machine)
   cb $ Right unit
   pure nonCanceler
@@ -76,9 +74,7 @@ initUI
   -> Eff ( ref :: REF, frp :: FRP, dom :: DOM | eff) (Canceler ( ref :: REF, frp :: FRP, dom :: DOM | eff ))
 initUI cb = do
   root <- setRootNode Nothing
-  _ <- saveScreenName view
   machine <- buildVDom (spec root) view
-  storeMachine machine
   insertDom root (extract machine)
   cb $ Right unit
   pure nonCanceler
@@ -95,14 +91,14 @@ runScreen { initialState, view, eval } cb = do
   { event, push } <- E.create
   let initState = initialState
   let myDom = view push initState
-  screenName <- saveScreenName myDom
-  patch <- compareScreen (screenName)
+  screenName <- getScreenName myDom
+  patch <- compareScreen screenName
 
   case patch of
     false -> do
         root <- getRootNode
         machine <- buildVDom (spec root) myDom
-        storeMachine machine
+        storeMachine machine screenName
         insertDom root (extract machine)
     true ->
         patchAndRun myDom
@@ -117,25 +113,19 @@ runScreen { initialState, view, eval } cb = do
 
           onExit push (Tuple st ret) =
               case st of
-                   Just s -> patchAndRun (view push s) *> (cb $ Right ret)
+                   Just s -> patchAndRun (view push  s) *> (cb $ Right ret)
                    Nothing -> cb $ Right ret
 
 
-          compareScreen (Just currScreen) = do
-              screenName <- getPrevScreen
-              case screenName of
-                   Nothing -> pure false
-                   Just screen -> pure $ (screen == currScreen)
-          compareScreen Nothing = pure false
 
+getScreenName :: forall a w eff. VDom a w -> Eff eff (Maybe Namespace)
+getScreenName (Elem (ElemSpec screen _ _) _) = pure screen
+getScreenName _ = pure Nothing
 
-saveScreenName :: forall a w eff. VDom a w -> Eff eff (Maybe Namespace)
-saveScreenName (Elem (ElemSpec screen _ _) _) = do
-    _ <- saveScreenNameImpl screen
-    pure screen
-saveScreenName _ = do
-    _ <- saveScreenNameImpl Nothing
-    pure Nothing
+compareScreen :: forall a w eff. Maybe Namespace -> Eff eff Boolean
+compareScreen screen = do
+    bool <- saveScreenNameImpl screen
+    pure bool
 
 
 

@@ -30,6 +30,6 @@ onClick push f = event (DOM.EventType "onClick") (Just <<< (makeEvent (push <<< 
 onChange :: forall a eff. (a -> PropEff eff ) -> (String -> a) -> Prop (PropEff eff)
 onChange push f = event (DOM.EventType "onChange") (Just <<< (makeEvent (push <<< f)))
 
-onBackPressed :: forall a eff. (a ->  PropEff eff) -> (Unit -> a) -> Prop (PropEff eff)
-onBackPressed push f = event (DOM.EventType "onClick") (Just <<< backPressHandler)
+attachBackPress :: forall a eff. (a ->  PropEff eff) -> (Unit -> a) -> Prop (PropEff eff)
+attachBackPress push f = event (DOM.EventType "onClick") (Just <<< backPressHandler)
 
