@@ -180,6 +180,7 @@ exports.setRootNode = function(nothing) {
     window.__CACHELIMIT = 50;
     window.__psNothing = nothing;
     window.MACHINE_MAP = {};
+    window.__CANCELER = {};
     window.__screenNothing = true;
     window.__prevScreenName = nothing;
     window.__currScreenName = nothing;
