@@ -39,7 +39,7 @@ initialState :: State
 initialState =
   { errorMessage : ""
   , toggle : true
-  , timer : 30
+  , timer : 120
   , usernameState : (FormField.initialState "username")
   , passwordState : (FormField.initialState "password")
   }
