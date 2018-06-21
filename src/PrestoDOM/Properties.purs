@@ -9,6 +9,7 @@ module PrestoDOM.Properties
     , accessibilityHint
     , adjustViewBounds
     , alpha
+    , animation
 
     , background
     , backgroundColor
@@ -158,6 +159,8 @@ adjustViewBounds = prop (PropName "adjustViewBounds")
 alpha :: forall i. Number -> Prop i
 alpha = prop (PropName "alpha")
 
+animation :: forall i. String -> Prop i
+animation = prop (PropName "animation")
 
 
 -- | String
