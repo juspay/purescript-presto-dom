@@ -180,6 +180,7 @@ exports.setRootNode = function(nothing) {
     window.__CACHELIMIT = 50;
     window.__psNothing = nothing;
     window.MACHINE_MAP = {};
+    window.__stashScreen = [];
     window.__screenNothing = true;
     window.__prevScreenName = nothing;
     window.__currScreenName = nothing;
@@ -212,6 +213,12 @@ exports.getRootNode = function() {
   return window.N;
 }
 
+function clearStash () {
+  var len = window.__stashScreen.length;
+  for (var i = 0; i < len; i++) {
+    Android.removeView(window.__stashScreen[i]);
+  }
+}
 
 function makeVisible () {
   var length =  window.__ROOTSCREEN.idSet.child.length;
@@ -257,6 +264,8 @@ function screenIsInStack(screen) {
 exports.saveScreenNameImpl = function(screen) {
   return function() {
 
+    clearStash();
+
     if (screen == window.__psNothing) {
       window.__screenNothing = true;
       return false;
@@ -299,43 +308,6 @@ exports.emitter = function(a) {
     }
 }
 
-window.__popScreen = popScreen;
-
-function popScreen() {
-  if (window.__ROOTSCREEN.idSet.child.length == 1) {
-    return;
-  }
-
-  var obj = window.__ROOTSCREEN.idSet.child.pop();
-  var __id = obj.id;
-
-  Android.removeView(__id);
-  delete window.MACHINE_MAP[obj.name.value0];
-
-  var length =  window.__ROOTSCREEN.idSet.child.length;
-  var prop = {
-      id: window.__ROOTSCREEN.idSet.child[length - 1].id,
-      visibility: "visible"
-  }
-
-  window.__currScreenName = window.__prevScreenName;
-  if (length < 2) {
-    window.__prevScreenName = window.__psNothing;
-  }
-  else {
-    window.__prevScreenName = window.__ROOTSCREEN.idSet.child[length-2].name;
-  }
-
-  if (window.__OS == "ANDROID") {
-    var cmd = cmdForAndroid(prop, true);
-    Android.runInUI(cmd, null);
-  } else if (window.__OS == "IOS"){
-    Android.runInUI(prop);
-  } else {
-    Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-  }
-
-}
 
 function insertDom(root) {
   return function (dom) {
@@ -350,6 +322,7 @@ function insertDom(root) {
 
       dom.props.root = true;
       if (window.__screenNothing) {
+        window.__stashScreen.push(dom.__ref.__id);
         window.__screenNothing = false;
       }
       else {
