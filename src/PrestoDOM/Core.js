@@ -1,4 +1,5 @@
 "use strict";
+
 const prestoDayum = require("presto-ui").doms;
 const webParseParams = require("presto-ui").helpers.web.parseParams;
 const iOSParseParams = require("presto-ui").helpers.ios.parseParams;
@@ -52,9 +53,9 @@ function domAll(elem) {
   return prestoDayum(type, props, children);
 }
 
-function cmdForAndroid(config, set) {
+function cmdForAndroid(config, set, type) {
   if (set) {
-    var cmd = parseParams("linearLayout", config, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
+    var cmd = parseParams(type, config, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
     cmd = cmd.replace(/PARAM_CTR_HOLDER.*;/g, "get_view->getLayoutParams;");
 
     return cmd;
@@ -64,7 +65,7 @@ function cmdForAndroid(config, set) {
   var runInUI;
   delete config.id;
   config.root = "true";
-  runInUI = parseParams("linearLayout", config, "get").runInUI;
+  runInUI = parseParams(type, config, "get").runInUI;
   cmd += runInUI + ';';
   return cmd;
 }
@@ -75,7 +76,7 @@ function applyProp(element, attribute, set) {
   }
   prop[attribute.value0] = attribute.value1;
   if (window.__OS == "ANDROID") {
-    var cmd = cmdForAndroid(prop, set);
+    var cmd = cmdForAndroid(prop, set, element.type);
     Android.runInUI(cmd, null);
   } else if (window.__OS == "IOS"){
     Android.runInUI(prop);
@@ -227,7 +228,7 @@ function makeVisible () {
       visibility: "visible"
   }
   if (window.__OS == "ANDROID") {
-    var cmd = cmdForAndroid(prop, true);
+    var cmd = cmdForAndroid(prop, true, "linearLayout");
     Android.runInUI(cmd, null);
   } else if (window.__OS == "IOS"){
     Android.runInUI(prop);
@@ -341,7 +342,7 @@ function insertDom(root) {
           }
 
           if (window.__OS == "ANDROID" && length > 1) {
-            var cmd = cmdForAndroid(prop, true);
+            var cmd = cmdForAndroid(prop, true, "relativeLayout");
             Android.runInUI(cmd, null);
           } else if (window.__OS == "IOS"  && length > 1){
             Android.runInUI(prop);
