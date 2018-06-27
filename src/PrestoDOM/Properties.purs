@@ -568,7 +568,7 @@ visibility = prop (PropName "visibility")
 {-- type: 'f', --}
 {--           match_parent: -1, --}
 {--                 wrap_content: -2, --}
-weight :: forall i. Number -> Prop i
+weight :: forall i. String -> Prop i
 weight = prop (PropName "weight")
 
 width :: forall i. Length -> Prop i
