@@ -43,7 +43,7 @@ screen =
 -- TODO : Make push implicit
 view :: forall i w eff. (Action -> PropEff eff) -> State -> PrestoDOM (PropEff eff) w
 view push state =
-  linearLayout_ (Namespace "Splash")
+  linearLayout
     [ height MATCH_PARENT
     , width MATCH_PARENT
     , background "#111111"
