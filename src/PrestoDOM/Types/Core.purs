@@ -6,6 +6,7 @@ module PrestoDOM.Types.Core
     , GenProp(..)
     , Screen
     , PropEff
+    , PushEff
     , Eval
     , Cmd
     , Thunk(..)
@@ -61,6 +62,7 @@ data GenProp
 
 
 type PropEff e = Eff ( ref :: REF , frp :: FRP, dom :: DOM | e ) Unit
+type PushEff e = Eff ( ref :: REF , frp :: FRP, dom :: DOM | e )
 
 type Screen action st eff retAction =
   { initialState :: st

@@ -573,7 +573,7 @@ visibility_p = fromGenProp "visibility"
 {-- type: 'f', --}
 {--           match_parent: -1, --}
 {--                 wrap_content: -2, --}
-weight_p :: forall i. String -> StrMap GenProp -> Prop i
+weight_p :: forall i. Number -> StrMap GenProp -> Prop i
 weight_p = fromGenProp "weight"
 
 width_p :: forall i. Length -> StrMap GenProp -> Prop i
