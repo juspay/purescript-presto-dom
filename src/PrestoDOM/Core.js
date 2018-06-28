@@ -1,4 +1,5 @@
 "use strict";
+
 const prestoDayum = require("presto-ui").doms;
 const webParseParams = require("presto-ui").helpers.web.parseParams;
 const iOSParseParams = require("presto-ui").helpers.ios.parseParams;
@@ -52,9 +53,9 @@ function domAll(elem) {
   return prestoDayum(type, props, children);
 }
 
-function cmdForAndroid(config, set) {
+function cmdForAndroid(config, set, type) {
   if (set) {
-    var cmd = parseParams("linearLayout", config, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
+    var cmd = parseParams(type, config, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
     cmd = cmd.replace(/PARAM_CTR_HOLDER.*;/g, "get_view->getLayoutParams;");
 
     return cmd;
@@ -64,7 +65,7 @@ function cmdForAndroid(config, set) {
   var runInUI;
   delete config.id;
   config.root = "true";
-  runInUI = parseParams("linearLayout", config, "get").runInUI;
+  runInUI = parseParams(type, config, "get").runInUI;
   cmd += runInUI + ';';
   return cmd;
 }
@@ -75,7 +76,7 @@ function applyProp(element, attribute, set) {
   }
   prop[attribute.value0] = attribute.value1;
   if (window.__OS == "ANDROID") {
-    var cmd = cmdForAndroid(prop, set);
+    var cmd = cmdForAndroid(prop, set, element.type);
     Android.runInUI(cmd, null);
   } else if (window.__OS == "IOS"){
     Android.runInUI(prop);
@@ -181,6 +182,7 @@ exports.setRootNode = function(nothing) {
     window.__psNothing = nothing;
     window.MACHINE_MAP = {};
     window.__CANCELER = {};
+    window.__stashScreen = [];
     window.__screenNothing = true;
     window.__prevScreenName = nothing;
     window.__currScreenName = nothing;
@@ -213,6 +215,12 @@ exports.getRootNode = function() {
   return window.N;
 }
 
+function clearStash () {
+  var len = window.__stashScreen.length;
+  for (var i = 0; i < len; i++) {
+    Android.removeView(window.__stashScreen[i]);
+  }
+}
 
 function makeVisible () {
   var length =  window.__ROOTSCREEN.idSet.child.length;
@@ -221,7 +229,7 @@ function makeVisible () {
       visibility: "visible"
   }
   if (window.__OS == "ANDROID") {
-    var cmd = cmdForAndroid(prop, true);
+    var cmd = cmdForAndroid(prop, true, "linearLayout");
     Android.runInUI(cmd, null);
   } else if (window.__OS == "IOS"){
     Android.runInUI(prop);
@@ -257,6 +265,8 @@ function screenIsInStack(screen) {
 
 exports.saveScreenNameImpl = function(screen) {
   return function() {
+
+    clearStash();
 
     if (screen == window.__psNothing) {
       window.__screenNothing = true;
@@ -300,43 +310,6 @@ exports.emitter = function(a) {
     }
 }
 
-window.__popScreen = popScreen;
-
-function popScreen() {
-  if (window.__ROOTSCREEN.idSet.child.length == 1) {
-    return;
-  }
-
-  var obj = window.__ROOTSCREEN.idSet.child.pop();
-  var __id = obj.id;
-
-  Android.removeView(__id);
-  delete window.MACHINE_MAP[obj.name.value0];
-
-  var length =  window.__ROOTSCREEN.idSet.child.length;
-  var prop = {
-      id: window.__ROOTSCREEN.idSet.child[length - 1].id,
-      visibility: "visible"
-  }
-
-  window.__currScreenName = window.__prevScreenName;
-  if (length < 2) {
-    window.__prevScreenName = window.__psNothing;
-  }
-  else {
-    window.__prevScreenName = window.__ROOTSCREEN.idSet.child[length-2].name;
-  }
-
-  if (window.__OS == "ANDROID") {
-    var cmd = cmdForAndroid(prop, true);
-    Android.runInUI(cmd, null);
-  } else if (window.__OS == "IOS"){
-    Android.runInUI(prop);
-  } else {
-    Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-  }
-
-}
 
 function insertDom(root) {
   return function (dom) {
@@ -351,6 +324,7 @@ function insertDom(root) {
 
       dom.props.root = true;
       if (window.__screenNothing) {
+        window.__stashScreen.push(dom.__ref.__id);
         window.__screenNothing = false;
       }
       else {
@@ -369,7 +343,7 @@ function insertDom(root) {
           }
 
           if (window.__OS == "ANDROID" && length > 1) {
-            var cmd = cmdForAndroid(prop, true);
+            var cmd = cmdForAndroid(prop, true, "relativeLayout");
             Android.runInUI(cmd, null);
           } else if (window.__OS == "IOS"  && length > 1){
             Android.runInUI(prop);
