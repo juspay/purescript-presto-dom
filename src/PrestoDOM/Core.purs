@@ -30,6 +30,8 @@ foreign import storeMachine :: forall eff m a b. Step m a b -> Maybe Namespace -
 foreign import getRootNode :: forall eff. Eff eff Document
 foreign import setRootNode :: forall a eff. Maybe a -> Eff eff Document
 foreign import insertDom :: forall a b eff. a -> b -> Eff eff Unit
+foreign import setEventCanceller :: forall a eff . a -> Eff eff Unit
+foreign import removeEventListener :: forall eff . Eff eff Unit
 
 foreign import saveScreenNameImpl :: forall eff. Maybe Namespace -> Eff eff Boolean
 
@@ -104,14 +106,15 @@ runScreen { initialState, view, eval } cb = do
         patchAndRun myDom
   -- let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action)) event (Right initialState)
   let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
-  _ <- sample_ stateBeh event `subscribe` (either (onExit push) $ onStateChange push)
+  setEventCanceller =<< sample_ stateBeh event `subscribe` (either (onExit push) $ onStateChange push)
   pure nonCanceler
     where
           onStateChange push (Tuple state cmds) =
               patchAndRun (view push state)
               *> for_ cmds (\effAction -> effAction >>= push)
 
-          onExit push (Tuple st ret) =
+          onExit push (Tuple st ret) = do
+              removeEventListener
               case st of
                    Just s -> patchAndRun (view push  s) *> (cb $ Right ret)
                    Nothing -> cb $ Right ret
