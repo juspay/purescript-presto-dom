@@ -56,7 +56,7 @@ function domAll(elem) {
 function cmdForAndroid(config, set, type) {
   if (set) {
     var cmd = parseParams(type, config, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
-    cmd = cmd.replace(/PARAM_CTR_HOLDER.*;/g, "get_view->getLayoutParams;");
+    cmd = cmd.replace(/PARAM_CTR_HOLDER[^;]*/g, "get_view->getLayoutParams;");
 
     return cmd;
   }
@@ -194,7 +194,7 @@ exports.setRootNode = function(nothing) {
 
     if(window.__OS == "ANDROID"){
       if(typeof Android.getNewID == "function") {
-        Android.Render(JSON.stringify(domAll(root)), null, "false");
+        Android.Render(JSON.stringify(domAll(root)), null, "true");
       } else {
         Android.Render(JSON.stringify(domAll(root)), null);
       }
@@ -248,10 +248,14 @@ function screenIsInStack(screen) {
         else
           window.__prevScreenName = window.__ROOTSCREEN.idSet.child[i-1].name;
         window.__currScreenName = screen;
-        for (var j = 0,k=rem.length; j < k; j++) {
-          Android.removeView(rem[j].id);
-          delete window.MACHINE_MAP[rem[j].name.value0];
-        }
+
+        setTimeout(function() {
+          for (var j = 0,k=rem.length; j < k; j++) {
+            Android.removeView(rem[j].id);
+            delete window.MACHINE_MAP[rem[j].name.value0];
+          }
+        }, 1000);
+
         makeVisible();
       }
       return true;
@@ -265,7 +269,9 @@ function screenIsInStack(screen) {
 exports.saveScreenNameImpl = function(screen) {
   return function() {
 
-    clearStash();
+    setTimeout(function() {
+      clearStash();
+    }, 1000);
 
     if (screen == window.__psNothing) {
       window.__screenNothing = true;
@@ -341,14 +347,17 @@ function insertDom(root) {
               visibility: "gone"
           }
 
-          if (window.__OS == "ANDROID" && length > 1) {
-            var cmd = cmdForAndroid(prop, true, "relativeLayout");
-            Android.runInUI(cmd, null);
-          } else if (window.__OS == "IOS"  && length > 1){
-            Android.runInUI(prop);
-          } else if (length > 1) {
-            Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-          }
+          setTimeout(function() {
+            if (window.__OS == "ANDROID" && length > 1) {
+              var cmd = cmdForAndroid(prop, true, "relativeLayout");
+              Android.runInUI(cmd, null);
+            } else if (window.__OS == "IOS"  && length > 1){
+              Android.runInUI(prop);
+            } else if (length > 1) {
+              Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+            }
+          }, 1000);
+
         }
       }
 
