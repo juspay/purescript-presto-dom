@@ -5,11 +5,9 @@ module PrestoDOM.Types.Core
     , toPropValue
     , GenProp(..)
     , Screen
-    , PropEff
-    , PushEff
     , Eval
     , Cmd
-    , Thunk(..)
+    , PrestoWidget(..)
     , module VDom
     , module Types
     , class IsProp
@@ -17,31 +15,31 @@ module PrestoDOM.Types.Core
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Ref (REF)
-import DOM (DOM)
 import Data.Tuple (Tuple)
 import Data.Either (Either)
-import Data.Exists (Exists, runExists)
+{-- import Data.Exists (Exists) --}
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
+import Effect (Effect)
 
-import DOM.Node.Types (Node) as DOM
-import FRP (FRP)
 import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean, propFromInt, propFromNumber, propFromString)
 import Halogen.VDom.DOM.Prop (Prop) as VDom
-import Halogen.VDom.Types (VDom(..), ElemSpec(..), ElemName(..), Namespace(..)) as VDom
+import Halogen.VDom.Thunk (Thunk)
+import Halogen.VDom.Types (VDom(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
 import PrestoDOM.Types.DomAttributes (Gravity, InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility)
 import PrestoDOM.Types.DomAttributes as Types
 
-data Thunk e b = Thunk b (b → Eff ( ref :: REF , frp :: FRP, dom :: DOM | e ) DOM.Node)
+{-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
 
+newtype PrestoWidget a = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget a))
+
+derive instance newtypePrestoWidget ∷ Newtype (PrestoWidget a) _
 
 newtype PropName value = PropName String
 type PrestoDOM i w = VDom (Array (Prop i)) w
-type Cmd eff action = Array (Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) action)
-type Eval eff action retAction st = Either (Tuple (Maybe st) retAction) (Tuple st (Cmd eff action))
+type Cmd action = Array (Effect action)
+type Eval action returnType state = Either (Tuple (Maybe state) returnType) (Tuple state (Cmd action))
 
 type Props i = Array (Prop i)
 
@@ -61,13 +59,10 @@ data GenProp
     | TextP String
 
 
-type PropEff e = Eff ( ref :: REF , frp :: FRP, dom :: DOM | e ) Unit
-type PushEff e = Eff ( ref :: REF , frp :: FRP, dom :: DOM | e )
-
-type Screen action st eff retAction =
-  { initialState :: st
-  , view :: (action -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop (PropEff eff))) (Exists (Thunk eff))
-  , eval :: action -> st -> Eval eff action retAction st
+type Screen action state returnType =
+  { initialState :: state
+  , view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
+  , eval :: action -> state -> Eval action returnType state
   }
 
 derive instance newtypePropName :: Newtype (PropName value) _

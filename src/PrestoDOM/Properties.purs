@@ -1,6 +1,6 @@
 module PrestoDOM.Properties
     ( prop
-    , id_
+    , id
 
     , root
     , a_duration
@@ -132,8 +132,8 @@ import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Padding, Gravit
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
 prop (PropName name) = Property name <<< toPropValue
 
-id_ :: forall i. String -> Prop i
-id_ = prop (PropName "id")
+id :: forall i. String -> Prop i
+id = prop (PropName "id")
 
 
 -- | Boolean

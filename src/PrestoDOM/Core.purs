@@ -2,135 +2,158 @@ module PrestoDOM.Core where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Aff (Canceler, Error, nonCanceler)
-import Data.Exists (Exists, runExists)
-import Data.Function.Uncurried as Fn
-import Data.StrMap (StrMap, fromFoldable)
-import DOM (DOM)
-import Control.Monad.Eff.Ref (REF)
-import DOM.Node.Types (Document)
-import DOM.Node.Types (Node) as DOM
+import Effect (Effect)
+import Effect.Aff (Canceler, Error, nonCanceler)
+{-- import Data.Function.Uncurried as Fn --}
+import Data.Newtype (un)
+import Effect.Uncurried as EFn
+import Web.DOM.Document (Document) as DOM
 import Data.Either (Either(..), either)
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..), fst)
-import FRP (FRP)
+import Foreign.Object as Object
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
 import FRP.Event as E
-import Halogen.VDom (Step(..), VDomSpec(VDomSpec), buildVDom, VDomMachine)
+import Halogen.VDom (VDomSpec(VDomSpec), buildVDom)
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
-import Halogen.VDom.Machine (never, step, extract)
-import Halogen.VDom.Util (refEq)
-import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(Elem), PrestoDOM, Screen, PropEff, Namespace, Thunk(..))
-import Unsafe.Coerce (unsafeCoerce)
+import Halogen.VDom.Machine (Step, step, extract)
+import Halogen.VDom.Thunk (Thunk, buildThunk)
+import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..))
 import PrestoDOM.Utils (continue)
 
 {-- foreign import logMe :: forall a. String -> a -> a --}
-foreign import emitter :: forall a eff. a -> Eff eff Unit
-foreign import getLatestMachine :: forall m a b eff. Maybe Namespace -> Eff eff (Step m a b)
-foreign import storeMachine :: forall eff m a b. Step m a b -> Maybe Namespace -> Eff eff Unit
-foreign import getRootNode :: forall eff. Eff eff Document
-foreign import setRootNode :: forall a eff. Maybe a -> Eff eff Document
-foreign import insertDom :: forall a b eff. a -> b -> Eff eff Unit
-foreign import processWidget :: forall eff. Eff eff Unit
+foreign import emitter
+    :: forall a
+     . EFn.EffectFn1
+        a
+        Unit
 
-foreign import saveScreenNameImpl :: forall eff. Maybe Namespace -> Eff eff Boolean
+foreign import getLatestMachine
+    :: forall a b
+     . EFn.EffectFn1
+        (Maybe Namespace)
+        (Step a b)
 
+foreign import storeMachine
+    :: forall a b
+     . EFn.EffectFn2
+        (Step a b)
+        (Maybe Namespace)
+        Unit
 
+foreign import getRootNode :: Effect DOM.Document
 
+foreign import setRootNode
+    :: forall a
+     . EFn.EffectFn1
+        (Maybe a)
+        DOM.Document
 
-buildWidget
-  ∷ ∀ e
-	. VDomSpec ( ref :: REF , frp :: FRP, dom :: DOM | e ) (Array (Prop (PropEff e))) (Exists (Thunk e))
-	→ VDomMachine ( ref :: REF , frp :: FRP, dom :: DOM | e ) (Exists (Thunk e)) DOM.Node
-buildWidget spec = render
-  where
-        render = runExists \(Thunk a render') → do
-           node ← render' a
-           pure (Step node
-                (Fn.runFn2 patch (unsafeCoerce a) node)
-                (pure unit))
-        patch = Fn.mkFn2 \a node → runExists \(Thunk b render') →
-           if Fn.runFn2 refEq a b
-               then pure (Step node
-                         (Fn.runFn2 patch a node)
-                         (pure unit))
-               else do
-                  node <- render' b
-                  pure (Step node
-                       (Fn.runFn2 patch (unsafeCoerce b) node)
-                       (pure unit))
+foreign import insertDom :: forall a b. EFn.EffectFn2 a b Unit
+
+foreign import processWidget :: Effect Unit
 
 
+foreign import saveScreenNameImpl
+    :: EFn.EffectFn1
+        (Maybe Namespace)
+        Boolean
 
-spec :: forall e. Document -> VDomSpec ( ref :: REF , frp :: FRP, dom :: DOM | e ) (Array (Prop (PropEff e))) (Exists (Thunk e))
+
+
+
+{-- buildWidget --}
+{--     ∷ VDomSpec (Array (Prop (Effect Unit))) (Exists Thunk) --}
+{--     → Machine (Exists Thunk) DOM.Node --}
+{-- buildWidget spec = render --}
+{--   where --}
+{--         render = runExists \(Thunk a render') → do --}
+{--            node ← render' a --}
+{--            pure $ mkStep --}
+{--                 (Step node --}
+{--                     (Fn.runFn2 patch (unsafeCoerce a) node) --}
+{--                     (pure unit)) --}
+{--         patch = Fn.mkFn2 \a node → runExists \(Thunk b render') → --}
+{--            if Fn.runFn2 refEq a b --}
+{--                then pure $ mkStep --}
+{--                          (Step node --}
+{--                             (Fn.runFn2 patch a node) --}
+{--                             (EFn.runEffectFn1 halt node)) --}
+{--                else do --}
+{--                   node <- render' b --}
+{--                   pure $ mkStep --}
+{--                        (Step node --}
+{--                        (Fn.runFn2 patch (unsafeCoerce b) node) --}
+{--                        (pure unit)) --}
+
+
+
+spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
 spec document =  VDomSpec {
-      buildWidget
-    , buildAttributes: buildProp id
+      buildWidget : buildThunk (un PrestoWidget)
+    , buildAttributes: buildProp logger
     , document : document
     }
 
-logger :: forall a eff. (a → Eff (ref ∷ REF, dom ∷ DOM | eff) Unit)
+logger :: forall a. (a → Effect Unit)
 logger a = do
-    _ <- emitter a
+    _ <- EFn.runEffectFn1 emitter a
     pure unit
 
 
-patchAndRun :: forall eff w i. VDom (Array (Prop i)) w -> Eff eff Unit
+patchAndRun :: forall w i. VDom (Array (Prop i)) w -> Effect Unit
 patchAndRun myDom = do
   screenName <- getScreenName myDom
-  machine <- getLatestMachine screenName
-  newMachine <- step machine (myDom)
-  storeMachine newMachine screenName
+  machine <- EFn.runEffectFn1 getLatestMachine screenName
+  newMachine <- EFn.runEffectFn2 step (machine) (myDom)
+  EFn.runEffectFn2 storeMachine newMachine screenName
 
 initUIWithScreen
-  :: forall action st eff
-   . Screen action st eff Unit
-  -> (Either Error Unit -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit)
-  -> Eff ( ref :: REF, frp :: FRP, dom :: DOM | eff) (Canceler ( ref :: REF, frp :: FRP, dom :: DOM | eff ))
+  :: forall action state
+   . Screen action state Unit
+  -> (Either Error Unit -> Effect Unit)
+  -> Effect Canceler
 initUIWithScreen { initialState, view, eval } cb = do
   { event, push } <- E.create
   let myDom = view push initialState
-  root <- setRootNode Nothing
-  machine <- buildVDom (spec root) myDom
-  insertDom root (extract machine)
+  root <- EFn.runEffectFn1 setRootNode Nothing
+  machine <- EFn.runEffectFn1 (buildVDom (spec root)) myDom
+  EFn.runEffectFn2 insertDom root (extract machine)
   cb $ Right unit
   pure nonCanceler
 
 initUI
-  :: forall eff
-   . (Either Error Unit -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit)
-  -> Eff ( ref :: REF, frp :: FRP, dom :: DOM | eff) (Canceler ( ref :: REF, frp :: FRP, dom :: DOM | eff ))
+  :: (Either Error Unit -> Effect Unit)
+  -> Effect Canceler
 initUI cb = do
-  root <- setRootNode Nothing
-  machine <- buildVDom (spec root) view
-  insertDom root (extract machine)
+  root <- EFn.runEffectFn1 setRootNode Nothing
+  machine <- EFn.runEffectFn1 (buildVDom (spec root)) view
+  EFn.runEffectFn2 insertDom root (extract machine)
   cb $ Right unit
   pure nonCanceler
     where
-          view = Elem (ElemSpec Nothing (ElemName "linearLayout") []) []
+          view = Elem Nothing (ElemName "linearLayout") [] []
 
 
 runScreen
-    :: forall action st eff retAction
-     . Screen action st eff retAction
-    -> (Either Error retAction -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit)
-    -> Eff ( ref :: REF, frp :: FRP, dom :: DOM | eff ) (Canceler ( ref :: REF, frp :: FRP, dom :: DOM | eff ))
+    :: forall action state returnType
+     . Screen action state returnType
+    -> (Either Error returnType -> Effect Unit)
+    -> Effect Canceler
 runScreen { initialState, view, eval } cb = do
   { event, push } <- E.create
-  let initState = initialState
-  let myDom = view push initState
+  let myDom = view push initialState
   screenName <- getScreenName myDom
   patch <- compareScreen screenName
 
   case patch of
     false -> do
         root <- getRootNode
-        machine <- buildVDom (spec root) myDom
-        storeMachine machine screenName
-        insertDom root (extract machine)
+        machine <- EFn.runEffectFn1 (buildVDom (spec root)) myDom
+        EFn.runEffectFn2 storeMachine machine screenName
+        EFn.runEffectFn2 insertDom root (extract machine)
         processWidget
     true ->
         patchAndRun myDom
@@ -150,23 +173,23 @@ runScreen { initialState, view, eval } cb = do
 
 
 
-getScreenName :: forall a w eff. VDom a w -> Eff eff (Maybe Namespace)
-getScreenName (Elem (ElemSpec screen _ _) _) = pure screen
+getScreenName :: forall a w. VDom a w -> Effect (Maybe Namespace)
+getScreenName (Elem screen _ _ _) = pure screen
 getScreenName _ = pure Nothing
 
-compareScreen :: forall a w eff. Maybe Namespace -> Eff eff Boolean
+compareScreen :: Maybe Namespace -> Effect Boolean
 compareScreen screen = do
-    bool <- saveScreenNameImpl screen
+    bool <- EFn.runEffectFn1 saveScreenNameImpl screen
     pure bool
 
 
 
 mapDom
-  :: forall i a b state eff w
-   . ((a -> PropEff eff) -> state -> StrMap i -> PrestoDOM (PropEff eff) w)
-  -> (b -> PropEff eff)
+  :: forall i a b state w
+   . ((a -> Effect Unit) -> state -> Object.Object i -> PrestoDOM (Effect Unit) w)
+  -> (b -> Effect Unit)
   -> state
   -> (a -> b)
   -> Array (Tuple String i)
-  -> PrestoDOM (PropEff eff) w
-mapDom view push state actionMap = unsafeCoerce view (push <<< actionMap) state <<< fromFoldable
+  -> PrestoDOM (Effect Unit) w
+mapDom view push state actionMap = view (push <<< actionMap) state <<< Object.fromFoldable

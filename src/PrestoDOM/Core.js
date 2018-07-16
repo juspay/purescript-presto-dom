@@ -12,22 +12,17 @@ window.callbackMapper = callbackMapper.map;
 
 
 
-exports.storeMachine = function(machine) {
-  return function(screen) {
-    return function() {
-      window.MACHINE = machine;
-      if (screen.value0)
-        window.MACHINE_MAP[screen.value0] = machine;
-    }
-  }
+exports.storeMachine = function(machine, screen) {
+  window.MACHINE = machine;
+  if (screen.value0)
+    window.MACHINE_MAP[screen.value0] = machine;
 }
 
 exports.getLatestMachine = function(screen) {
-  return function() {
-    if (screen.value0)
-      return window.MACHINE_MAP[screen.value0];
-    return window.MACHINE;
+  if (screen.value0) {
+    return window.MACHINE_MAP[screen.value0];
   }
+  return window.MACHINE;
 }
 
 
@@ -173,47 +168,43 @@ function updateAttribute(element, attribute) {
 
 
 exports.setRootNode = function(nothing) {
-  return function () {
-    var root = {type: "relativeLayout", props: {root: "true"}, children: []};
+  var root = {type: "relativeLayout", props: {root: "true"}, children: []};
 
-    root.props.height = "match_parent";
-    root.props.width = "match_parent";
-    root.props.id = typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++;
-    root.type = "relativeLayout";
-    root.__ref = window.createPrestoElement();
+  root.props.height = "match_parent";
+  root.props.width = "match_parent";
+  root.props.id = typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++;
+  root.type = "relativeLayout";
+  root.__ref = window.createPrestoElement();
 
-    window.N = root;
-    window.__CACHELIMIT = 50;
-    window.__psNothing = nothing;
-    window.MACHINE_MAP = {};
-    window.__CANCELER = {};
-    window.__stashScreen = [];
-    window.__screenNothing = true;
-    window.__prevScreenName = nothing;
-    window.__currScreenName = nothing;
-    window.__ROOTSCREEN = {
-      idSet: {
-        root: root.props.id,
-        child: []
-      }
-    };
-
-    if(window.__OS == "ANDROID"){
-      if(typeof Android.getNewID == "function") {
-        Android.Render(JSON.stringify(domAll(root)), null, "true");
-      } else {
-        Android.Render(JSON.stringify(domAll(root)), null);
-      }
-    } else if (window.__OS == "WEB"){
-      Android.Render(domAll(root), null);
-    } else {
-      Android.Render(domAll(root), null);
+  window.N = root;
+  window.__CACHELIMIT = 50;
+  window.__psNothing = nothing;
+  window.MACHINE_MAP = {};
+  window.__CANCELER = {};
+  window.__stashScreen = [];
+  window.__screenNothing = true;
+  window.__prevScreenName = nothing;
+  window.__currScreenName = nothing;
+  window.__ROOTSCREEN = {
+    idSet: {
+      root: root.props.id,
+      child: []
     }
+  };
 
-    return root;
-
+  if(window.__OS == "ANDROID"){
+    if(typeof Android.getNewID == "function") {
+      Android.Render(JSON.stringify(domAll(root)), null, "true");
+    } else {
+      Android.Render(JSON.stringify(domAll(root)), null);
+    }
+  } else if (window.__OS == "WEB"){
+    Android.Render(domAll(root), null);
+  } else {
+    Android.Render(domAll(root), null);
   }
 
+  return root;
 }
 
 exports.getRootNode = function() {
@@ -273,39 +264,29 @@ function screenIsInStack(screen) {
 }
 
 exports.saveScreenNameImpl = function(screen) {
-  return function() {
 
-    setTimeout(function() {
-      clearStash();
-    }, 1000);
+  setTimeout(function() {
+    clearStash();
+  }, 1000);
 
-    if (screen == window.__psNothing) {
-      window.__screenNothing = true;
-      return false;
+  if (screen == window.__psNothing) {
+    window.__screenNothing = true;
+    return false;
+  } else {
+    window.__screenNothing = false;
+
+    var cond = screenIsInStack(screen)
+
+    if (cond) {
+      return true;
     } else {
-      window.__screenNothing = false;
+      window.__prevScreenName = window.__currScreenName;
+      window.__currScreenName = screen;
 
-      var cond = screenIsInStack(screen)
-
-      if (cond) {
-        return true;
-      } else {
-        window.__prevScreenName = window.__currScreenName;
-        window.__currScreenName = screen;
-
-        return false;
-      }
+      return false;
     }
   }
 }
-
-// exports.getPrevScreen = function() {
-//     if (window.__screenNothing) {
-//       window.__screenNothing = false;
-//       return window.__psNothing;
-//     }
-//     return window.__prevScreenName;
-// }
 
 // exports.logMe = function(tag) {
 //   return function(a) {
@@ -315,10 +296,8 @@ exports.saveScreenNameImpl = function(screen) {
 // }
 
 exports.emitter = function(a) {
-    return function() {
-      a();
-      console.log("Logger !!! : ",a);
-    }
+  a();
+  console.log("Logger !!! : ",a);
 }
 
 
@@ -331,58 +310,53 @@ exports.processWidget = function (){
   }
 }
 
-function insertDom(root) {
-  return function (dom) {
-    return function () {
-      root.children.push(dom);
-      dom.parentNode = root;
-      dom.__ref = window.createPrestoElement();
-      window.N = root;
+function insertDom(root, dom) {
+  root.children.push(dom);
+  dom.parentNode = root;
+  dom.__ref = window.createPrestoElement();
+  window.N = root;
 
-      var rootId = window.__ROOTSCREEN.idSet.root;
+  var rootId = window.__ROOTSCREEN.idSet.root;
 
 
-      dom.props.root = true;
-      if (window.__screenNothing) {
-        window.__stashScreen.push(dom.__ref.__id);
-        window.__screenNothing = false;
+  dom.props.root = true;
+  if (window.__screenNothing) {
+    window.__stashScreen.push(dom.__ref.__id);
+    window.__screenNothing = false;
+  }
+  else {
+    var screenName = window.__currScreenName;
+
+    var length = window.__ROOTSCREEN.idSet.child.push({id: dom.__ref.__id, name: screenName});
+    if (length >= window.__CACHELIMIT) {
+      window.__ROOTSCREEN.idSet.child.shift();
+      length -= 1;
+    }
+
+    if (length >= 2) {
+      var prop = {
+          id: window.__ROOTSCREEN.idSet.child[length - 2].id,
+          visibility: "gone"
       }
-      else {
-        var screenName = window.__currScreenName;
 
-        var length = window.__ROOTSCREEN.idSet.child.push({id: dom.__ref.__id, name: screenName});
-        if (length >= window.__CACHELIMIT) {
-          window.__ROOTSCREEN.idSet.child.shift();
-          length -= 1;
+      setTimeout(function() {
+        if (window.__OS == "ANDROID" && length > 1) {
+          var cmd = cmdForAndroid(prop, true, "relativeLayout");
+          Android.runInUI(cmd, null);
+        } else if (window.__OS == "IOS"  && length > 1){
+          Android.runInUI(prop);
+        } else if (length > 1) {
+          Android.runInUI(webParseParams("relativeLayout", prop, "set"));
         }
-
-        if (length >= 2) {
-          var prop = {
-              id: window.__ROOTSCREEN.idSet.child[length - 2].id,
-              visibility: "gone"
-          }
-
-          setTimeout(function() {
-            if (window.__OS == "ANDROID" && length > 1) {
-              var cmd = cmdForAndroid(prop, true, "relativeLayout");
-              Android.runInUI(cmd, null);
-            } else if (window.__OS == "IOS"  && length > 1){
-              Android.runInUI(prop);
-            } else if (length > 1) {
-              Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-            }
-          }, 1000);
-
-        }
-      }
-
-      if (window.__OS == "ANDROID") {
-        Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length - 1, null, null);
-      }
-      else {
-        Android.addViewToParent(rootId, domAll(dom), length - 1, null, null);
-      }
+      }, 1000);
 
     }
+  }
+
+  if (window.__OS == "ANDROID") {
+    Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length - 1, null, null);
+  }
+  else {
+    Android.addViewToParent(rootId, domAll(dom), length - 1, null, null);
   }
 }

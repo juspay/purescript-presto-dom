@@ -29,12 +29,11 @@ module PrestoDOM.Elements.Elements
     ) where
 
 
-import Prelude
 
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
 import Halogen.VDom.DOM.Prop (Prop)
-import PrestoDOM.Types.Core (ElemName(..), ElemSpec(..), VDom(..), Namespace)
+import PrestoDOM.Types.Core (ElemName(..), VDom(..), Namespace)
 
 type Node i p
    = Array i
@@ -52,13 +51,13 @@ rootElement
     -> Array (Prop i)
     -> Array (VDom (Array (Prop i)) p)
     -> VDom (Array (Prop i)) p
-rootElement screenName elemName = Elem <<< ElemSpec (Just screenName) elemName
+rootElement screenName elemName = Elem (Just screenName) elemName
 
 element :: forall i p. ElemName -> Array (Prop i) -> Array (VDom (Array (Prop i)) p) -> VDom (Array (Prop i)) p
-element elemName = Elem <<< ElemSpec Nothing elemName
+element elemName = Elem Nothing elemName
 
 keyed :: forall i p. ElemName -> Array (Prop i) -> Array (Tuple String (VDom (Array (Prop i)) p)) -> VDom (Array (Prop i)) p
-keyed elemName = Keyed <<< ElemSpec Nothing elemName
+keyed elemName = Keyed Nothing elemName
 
 node :: forall i p. String -> Node (Prop i) p
 node elem = element (ElemName elem)
