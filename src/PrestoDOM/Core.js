@@ -215,10 +215,14 @@ exports.getRootNode = function() {
 }
 
 function clearStash () {
-  var len = window.__stashScreen.length;
-  for (var i = 0; i < len; i++) {
-    Android.removeView(window.__stashScreen[i]);
-  }
+  var screen = window.__stashScreen;
+  var len = screen.length;
+
+  setTimeout(function() {
+    for (var i = 0; i < len; i++) {
+      Android.removeView(screen[i]);
+    }
+  }, 1000);
 }
 
 function makeVisible () {
@@ -269,9 +273,7 @@ function screenIsInStack(screen) {
 exports.saveScreenNameImpl = function(screen) {
   return function() {
 
-    setTimeout(function() {
-      clearStash();
-    }, 1000);
+    clearStash();
 
     if (screen == window.__psNothing) {
       window.__screenNothing = true;
