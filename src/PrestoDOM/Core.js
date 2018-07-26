@@ -223,6 +223,7 @@ function clearStash () {
       Android.removeView(screen[i]);
     }
   }, 1000);
+  window.__stashScreen = [];
 }
 
 function makeVisible () {
