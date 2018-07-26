@@ -7,6 +7,7 @@ module PrestoDOM.Types.DomAttributes
     , Visibility(..)
     , Padding(..)
     , Margin(..)
+    , Shadow(..)
     , renderMargin
     , renderPadding
     , renderGravity
@@ -15,6 +16,7 @@ module PrestoDOM.Types.DomAttributes
     , renderOrientation
     , renderTypeface
     , renderVisibility
+    , renderShadow
     ) where
 
 import Prelude (show, (<>))
@@ -199,3 +201,9 @@ renderGravity = case _ of
     TOP_VERTICAL -> "top_vertical"
     START -> "start"
     END -> "end"
+
+
+data Shadow = Shadow Number Number Number Number String Number
+
+renderShadow :: Shadow -> String
+renderShadow (Shadow x y blur spread color opacity) = show x <> "," <> show y <> "," <> show blur <> "," <> show spread <> "," <> color <> "," <> show opacity

@@ -27,7 +27,7 @@ import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean, propFromInt, pro
 import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Types (VDom(..), ElemSpec(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
-import PrestoDOM.Types.DomAttributes (Gravity, InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility)
+import PrestoDOM.Types.DomAttributes (Gravity, InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, Shadow, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility, renderShadow)
 import PrestoDOM.Types.DomAttributes as Types
 
 newtype PropName value = PropName String
@@ -51,6 +51,7 @@ data GenProp
     | IntP Int
     | StringP String
     | TextP String
+    | ShadowP Shadow
 
 
 type PropEff e = Eff ( ref :: REF , frp :: FRP, dom :: DOM | e ) Unit
@@ -101,3 +102,6 @@ instance marginIsProp :: IsProp Margin where
 
 instance paddingIsProp :: IsProp Padding where
   toPropValue = propFromString <<< renderPadding
+
+instance shadowIsProp :: IsProp Shadow where
+  toPropValue = propFromString <<< renderShadow
