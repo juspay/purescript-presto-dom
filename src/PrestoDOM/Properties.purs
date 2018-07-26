@@ -92,7 +92,7 @@ module PrestoDOM.Properties
     , selectedTabIndicatorColor
     , selectedTabIndicatorHeight
     , setDate
-    , shadowLayer
+    , shadow
     , showDividers
     , singleLine
     , stroke
@@ -124,7 +124,7 @@ import Prelude
 
 -- import Data.Tuple (Tuple(..))
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Padding, Gravity, InputType, Length, Orientation, Typeface, Visibility, toPropValue)
+import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Padding, Gravity, InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
@@ -477,9 +477,9 @@ selectedTabIndicatorHeight = prop (PropName "selectedTabIndicatorHeight")
 setDate :: forall i. String -> Prop i
 setDate = prop (PropName "setDate")
 
--- | Unknown
-shadowLayer :: forall i. String -> Prop i
-shadowLayer = prop (PropName "shadowLayer")
+-- | Shadow
+shadow :: forall i. Shadow -> Prop i
+shadow = prop (PropName "shadow")
 
 -- | Int
 showDividers :: forall i. Int -> Prop i
