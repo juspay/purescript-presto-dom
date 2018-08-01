@@ -118,6 +118,8 @@ module PrestoDOM.Properties
     , width
     , alignParentBottom
     , alignParentLeft
+    , popupMenu
+    , pattern
     ) where
 
 import Prelude
@@ -573,3 +575,13 @@ alignParentBottom = prop (PropName "alignParentBottom")
 -- | Unknown
 alignParentLeft :: forall i. String -> Prop i
 alignParentLeft = prop (PropName "alignParentLeft")
+
+
+pattern :: forall i. String -> Prop i
+pattern = prop (PropName "pattern")
+
+-- | String
+popupMenu :: forall i. String -> Prop i
+popupMenu = prop (PropName "popupMenu")
+
+

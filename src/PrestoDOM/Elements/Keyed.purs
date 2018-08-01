@@ -38,9 +38,6 @@ horizontalScrollView = keyedNode "horizontalScrollView"
 listView :: forall i p. KeyedNode (Prop i) p
 listView = keyedNode "listView"
 
-scrollView :: forall i p. KeyedNode (Prop i) p
-scrollView = keyedNode "scrollView"
-
 frameLayout :: forall i p. KeyedNode (Prop i) p
 frameLayout = keyedNode "frameLayout"
 
