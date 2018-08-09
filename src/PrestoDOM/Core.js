@@ -485,14 +485,3 @@ exports.updateDom = function (root) {
     }
   }
 }
-
-exports.setEventCanceller = function(eventListenerCancellerFN){
-  return function(){
-    window.eventListenerCancellerFn = eventListenerCancellerFN;
-  }
-}
-
-exports.removeEventListener = function(){
-  window.eventListenerCancellerFn();
-}
-
