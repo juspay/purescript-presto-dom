@@ -3,6 +3,8 @@ module PrestoDOM.Events
     , onChange
     , attachBackPress
     , onMenuItemClick
+    , onBackPressed
+    , onNetworkChanged
     ) where
 
 import Prelude
