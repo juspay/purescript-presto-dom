@@ -1,4 +1,9 @@
-module PrestoDOM.Events where
+module PrestoDOM.Events
+    ( onClick
+    , onChange
+    , attachBackPress
+    , onMenuItemClick
+    ) where
 
 import Prelude
 
@@ -32,4 +37,7 @@ onChange push f = event (DOM.EventType "onChange") (Just <<< (makeEvent (push <<
 
 attachBackPress :: forall a eff. (a ->  PropEff eff) -> (Unit -> a) -> Prop (PropEff eff)
 attachBackPress push f = event (DOM.EventType "onClick") (Just <<< backPressHandler)
+
+onMenuItemClick :: forall a eff. (a -> PropEff eff ) -> (Int -> a) -> Prop (PropEff eff)
+onMenuItemClick push f = event (DOM.EventType "onMenuItemClick") (Just <<< (makeEvent (push <<< f)))
 

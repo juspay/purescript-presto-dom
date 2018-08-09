@@ -56,7 +56,7 @@ function domAll(elem) {
 function cmdForAndroid(config, set, type) {
   if (set) {
     var cmd = parseParams(type, config, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
-    cmd = cmd.replace(/PARAM_CTR_HOLDER.*;/g, "get_view->getLayoutParams;");
+    cmd = cmd.replace(/PARAM_CTR_HOLDER[^;]*/g, "get_view->getLayoutParams;");
 
     return cmd;
   }
@@ -182,6 +182,9 @@ exports.setRootNode = function(nothing) {
     window.__psNothing = nothing;
     window.MACHINE_MAP = {};
     window.__stashScreen = [];
+    window.__CACHED_SCREEN = [];
+    window.__lastCachedScreen = {};
+    // Screen nothing is used for stashing the screens without namespace.
     window.__screenNothing = true;
     window.__prevScreenName = nothing;
     window.__currScreenName = nothing;
@@ -194,7 +197,7 @@ exports.setRootNode = function(nothing) {
 
     if(window.__OS == "ANDROID"){
       if(typeof Android.getNewID == "function") {
-        Android.Render(JSON.stringify(domAll(root)), null, "false");
+        Android.Render(JSON.stringify(domAll(root)), null, "true");
       } else {
         Android.Render(JSON.stringify(domAll(root)), null);
       }
@@ -215,17 +218,29 @@ exports.getRootNode = function() {
 }
 
 function clearStash () {
-  var len = window.__stashScreen.length;
-  for (var i = 0; i < len; i++) {
-    Android.removeView(window.__stashScreen[i]);
-  }
+  var screen = window.__stashScreen;
+  var len = screen.length;
+
+  setTimeout(function() {
+    for (var i = 0; i < len; i++) {
+      Android.removeView(screen[i]);
+    }
+  }, 1000);
+  window.__stashScreen = [];
 }
 
-function makeVisible () {
-  var length =  window.__ROOTSCREEN.idSet.child.length;
-  var prop = {
-      id: window.__ROOTSCREEN.idSet.child[length - 1].id,
-      visibility: "visible"
+function makeVisible (cache, _id) {
+  if (cache) {
+    var prop = {
+        id: _id,
+        visibility: "visible"
+    }
+  } else {
+    var length =  window.__ROOTSCREEN.idSet.child.length;
+    var prop = {
+        id: window.__ROOTSCREEN.idSet.child[length - 1].id,
+        visibility: "visible"
+    }
   }
   if (window.__OS == "ANDROID") {
     var cmd = cmdForAndroid(prop, true, "linearLayout");
@@ -248,11 +263,15 @@ function screenIsInStack(screen) {
         else
           window.__prevScreenName = window.__ROOTSCREEN.idSet.child[i-1].name;
         window.__currScreenName = screen;
-        for (var j = 0,k=rem.length; j < k; j++) {
-          Android.removeView(rem[j].id);
-          delete window.MACHINE_MAP[rem[j].name.value0];
-        }
-        makeVisible();
+
+        setTimeout(function() {
+          for (var j = 0,k=rem.length; j < k; j++) {
+            Android.removeView(rem[j].id);
+            delete window.MACHINE_MAP[rem[j].name.value0];
+          }
+        }, 1000);
+
+        makeVisible(false);
       }
       return true;
     }
@@ -276,6 +295,7 @@ exports.saveScreenNameImpl = function(screen) {
       var cond = screenIsInStack(screen)
 
       if (cond) {
+        hideCachedScreen();
         return true;
       } else {
         window.__prevScreenName = window.__currScreenName;
@@ -286,6 +306,50 @@ exports.saveScreenNameImpl = function(screen) {
     }
   }
 }
+
+function screenIsCached(screen) {
+  var ar = window.__CACHED_SCREEN;
+  for (var i = 0,l=ar.length; i < l; i++) {
+    if (ar[i].name.value0 == screen.value0) {
+      makeVisible(true, ar[i].id);
+      window.__lastCachedScreen.id = ar[i].id;
+      window.__lastCachedScreen.flag = true;
+      return true;
+    }
+  }
+
+  return false;
+
+}
+
+
+exports.cacheScreenImpl = function(screen) {
+  return function() {
+
+    clearStash();
+
+    if (screen == window.__psNothing) {
+      window.__screenNothing = true;
+      return false;
+    } else {
+      window.__screenNothing = false;
+
+      var cond = screenIsCached(screen)
+
+      window.__lastCachedScreen.name = screen;
+
+      return cond;
+      // if (cond) {
+      //   return true;
+      // } else {
+
+      //   return false;
+      // }
+    }
+  }
+}
+
+
 
 // exports.getPrevScreen = function() {
 //     if (window.__screenNothing) {
@@ -309,6 +373,25 @@ exports.emitter = function(a) {
     }
 }
 
+function hideCachedScreen() {
+  if (window.__lastCachedScreen.flag) {
+    window.__lastCachedScreen.flag = false;
+    var prop = {
+        id: window.__lastCachedScreen.id,
+        visibility: "gone"
+    }
+
+    if (window.__OS == "ANDROID") {
+      var cmd = cmdForAndroid(prop, true, "relativeLayout");
+      Android.runInUI(cmd, null);
+    } else if (window.__OS == "IOS") {
+      Android.runInUI(prop);
+    } else {
+      Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+    }
+
+  }
+}
 
 function insertDom(root) {
   return function (dom) {
@@ -319,7 +402,6 @@ function insertDom(root) {
       window.N = root;
 
       var rootId = window.__ROOTSCREEN.idSet.root;
-
 
       dom.props.root = true;
       if (window.__screenNothing) {
@@ -341,14 +423,17 @@ function insertDom(root) {
               visibility: "gone"
           }
 
-          if (window.__OS == "ANDROID" && length > 1) {
-            var cmd = cmdForAndroid(prop, true, "relativeLayout");
-            Android.runInUI(cmd, null);
-          } else if (window.__OS == "IOS"  && length > 1){
-            Android.runInUI(prop);
-          } else if (length > 1) {
-            Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-          }
+          setTimeout(function() {
+            if (window.__OS == "ANDROID" && length > 1) {
+              var cmd = cmdForAndroid(prop, true, "relativeLayout");
+              Android.runInUI(cmd, null);
+            } else if (window.__OS == "IOS"  && length > 1){
+              Android.runInUI(prop);
+            } else if (length > 1) {
+              Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+            }
+          }, 1000);
+
         }
       }
 
@@ -357,6 +442,44 @@ function insertDom(root) {
       }
       else {
         Android.addViewToParent(rootId, domAll(dom), length - 1, null, null);
+      }
+
+      hideCachedScreen();
+
+    }
+  }
+}
+
+exports.updateDom = function (root) {
+  return function (dom) {
+    return function () {
+      root.children.push(dom);
+      dom.parentNode = root;
+      dom.__ref = window.createPrestoElement();
+      window.N = root;
+
+      var rootId = window.__ROOTSCREEN.idSet.root;
+
+      var length = window.__ROOTSCREEN.idSet.child;
+      dom.props.root = true;
+      if (window.__screenNothing) {
+        window.__stashScreen.push(dom.__ref.__id);
+        window.__screenNothing = false;
+      }
+      else {
+        window.__lastCachedScreen.id = dom.__ref.__id;
+        window.__lastCachedScreen.flag = true;
+        var screenName = window.__lastCachedScreen.name;
+
+
+        window.__CACHED_SCREEN.push({id: dom.__ref.__id, name: screenName});
+      }
+
+      if (window.__OS == "ANDROID") {
+        Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length, null, null);
+      }
+      else {
+        Android.addViewToParent(rootId, domAll(dom), length, null, null);
       }
 
     }
@@ -373,21 +496,3 @@ exports.removeEventListener = function(){
   window.eventListenerCancellerFn();
 }
 
-var isUndefined = function(val){
-  return (typeof val == "undefined");
-}
-
-window.manualEventsName = ["onBackPressedEvent","onNetworkChange"];
-function setManualEvents(eventName,callbackFunction){
-  window[eventName] = (!isUndefined(window[eventName])) ? window[eventName] : {};
-  if(!isUndefined(window.__dui_screen)){
-    window[eventName][window.__dui_screen] = callbackFunction;
-    if((!isUndefined(window.__currScreenName.value0)) && (window.__dui_screen != window.__currScreenName.value0)){
-      console.warn("window.__currScreenName is varying from window.__currScreenName");
-    }
-  } else {
-    console.error("Please set value to __dui_screen");
-  }
-}
-
-window.setManualEvents = setManualEvents;
