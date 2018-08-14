@@ -6,6 +6,10 @@ const iOSParseParams = require("presto-ui").helpers.ios.parseParams;
 const parseParams = require("presto-ui").helpers.android.parseParams;
 const R = require("ramda");
 
+const callbackMapper = require("presto-ui").helpers.android.callbackMapper;
+
+window.callbackMapper = callbackMapper.map;
+
 
 exports.storeMachine = function(machine) {
   return function(screen) {
@@ -438,7 +442,8 @@ function insertDom(root) {
       }
 
       if (window.__OS == "ANDROID") {
-        Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length - 1, null, null);
+        var callback = window.callbackMapper(executePostProcess);
+        Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length - 1, callback, null);
       }
       else {
         Android.addViewToParent(rootId, domAll(dom), length - 1, null, null);
@@ -476,12 +481,27 @@ exports.updateDom = function (root) {
       }
 
       if (window.__OS == "ANDROID") {
-        Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length, null, null);
+        var callback = window.callbackMapper(executePostProcess);
+        Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length, callback, null);
       }
       else {
         Android.addViewToParent(rootId, domAll(dom), length, null, null);
       }
 
     }
+  }
+}
+
+var executePostProcess = function () {
+  for (var tag in window.shadowObject) {
+    JBridge.setShadow(window.shadowObject[tag]["level"],
+                      JSON.stringify(window.shadowObject[tag]["viewId"]),
+                      JSON.stringify(window.shadowObject[tag]["backgroundColor"]),
+                      JSON.stringify(window.shadowObject[tag]["blurValue"]),
+                      JSON.stringify(window.shadowObject[tag]["shadowColor"]),
+                      JSON.stringify(window.shadowObject[tag]["dx"]),
+                      JSON.stringify(window.shadowObject[tag]["dy"]),
+                      JSON.stringify(window.shadowObject[tag]["spread"]),
+                      JSON.stringify(window.shadowObject[tag]["factor"]));
   }
 }
