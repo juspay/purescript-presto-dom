@@ -3,6 +3,8 @@ module PrestoDOM.Events
     , onChange
     , attachBackPress
     , onMenuItemClick
+    , onBackPressed
+    , onNetworkChanged
     ) where
 
 import Prelude
@@ -41,3 +43,8 @@ attachBackPress push f = event (DOM.EventType "onClick") (Just <<< backPressHand
 onMenuItemClick :: forall a eff. (a -> PropEff eff ) -> (Int -> a) -> Prop (PropEff eff)
 onMenuItemClick push f = event (DOM.EventType "onMenuItemClick") (Just <<< (makeEvent (push <<< f)))
 
+onBackPressed :: forall a eff b . (a ->  PropEff eff) -> (b -> a) -> Prop (PropEff eff)
+onBackPressed push f = event (DOM.EventType "onBackPressedEvent") (Just <<< (makeEvent (push <<< f)))
+
+onNetworkChanged :: forall a eff b . (a ->  PropEff eff) -> (b -> a) -> Prop (PropEff eff)
+onNetworkChanged push f = event (DOM.EventType "onNetworkChange") (Just <<< (makeEvent (push <<< f)))

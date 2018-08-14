@@ -50,6 +50,20 @@ function domAll(elem) {
   for (var i = 0; i < elem.children.length; i++) {
     children.push(domAll(elem.children[i]));
   }
+
+  if (type == "viewPager" && window.__OS === "ANDROID") {
+    const pages = children.splice(0);
+    const id  = elem.__ref.__id;
+    props.afterRender = function () {
+      var cardWidth = 0.8;
+      var plusButtonWidth = 0.2;
+      if (pages.length == 1) {
+        plusButtonWidth = 0.8;
+      }
+      JBridge.viewPagerAdapter(id, JSON.stringify(pages), cardWidth, plusButtonWidth);
+    }
+  }
+
   props.id = elem.__ref.__id;
   if(elem.parentType && window.__OS == "ANDROID")
     return prestoDayum({elemType: type, parentType: elem.parentType}, props, children);
