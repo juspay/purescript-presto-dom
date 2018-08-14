@@ -185,6 +185,7 @@ exports.setRootNode = function(nothing) {
     window.__CACHELIMIT = 50;
     window.__psNothing = nothing;
     window.MACHINE_MAP = {};
+    window.shadowObject = {};
     window.__stashScreen = [];
     window.__CACHED_SCREEN = [];
     window.__lastCachedScreen = {};
