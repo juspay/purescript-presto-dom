@@ -250,7 +250,7 @@ elevation = prop (PropName "elevation")
 fillViewport :: forall i. Boolean -> Prop i
 fillViewport = prop (PropName "fillViewport")
 
-focus :: forall i. String -> Prop i
+focus :: forall i. Boolean -> Prop i
 focus = prop (PropName "focus")
 
 -- | Boolean
