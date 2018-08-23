@@ -216,7 +216,7 @@ exports.setRootNode = function(nothing) {
 
     if(window.__OS == "ANDROID"){
       if(typeof Android.getNewID == "function") {
-        Android.Render(JSON.stringify(domAll(root)), null, "true");
+        Android.Render(JSON.stringify(domAll(root)), null, "false");
       } else {
         Android.Render(JSON.stringify(domAll(root)), null);
       }
@@ -331,6 +331,22 @@ function screenIsCached(screen) {
   for (var i = 0,l=ar.length; i < l; i++) {
     if (ar[i].name.value0 == screen.value0) {
       makeVisible(true, ar[i].id);
+      if (window.__lastCachedScreen.name && window.__lastCachedScreen.name != ""  ){
+        var prop = {
+          id: window.__lastCachedScreen.id,
+          visibility: "gone"
+        }
+        if (window.__OS == "ANDROID") {
+          var cmd = cmdForAndroid(prop, true, "relativeLayout");
+          Android.runInUI(cmd, null);
+        } else if (window.__OS == "IOS"){
+          Android.runInUI(prop);
+        } else {
+          Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+        }
+    
+      }
+
       window.__lastCachedScreen.id = ar[i].id;
       window.__lastCachedScreen.flag = true;
       return true;
@@ -487,6 +503,21 @@ exports.updateDom = function (root) {
         window.__screenNothing = false;
       }
       else {
+        if (window.__lastCachedScreen.name && window.__lastCachedScreen.name != ""  ){
+          var prop = {
+            id: window.__lastCachedScreen.id,
+            visibility: "gone"
+          }
+          if (window.__OS == "ANDROID") {
+            var cmd = cmdForAndroid(prop, true, "relativeLayout");
+            Android.runInUI(cmd, null);
+          } else if (window.__OS == "IOS"){
+            Android.runInUI(prop);
+          } else {
+            Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+          }
+      
+        }
         window.__lastCachedScreen.id = dom.__ref.__id;
         window.__lastCachedScreen.flag = true;
         var screenName = window.__lastCachedScreen.name;
