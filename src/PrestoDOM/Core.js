@@ -40,7 +40,7 @@ function domAll(elem) {
   }
 
   if (elem.props.id) {
-    elem.__ref.__id = elem.props.id;
+    elem.__ref.__id = parseInt(elem.props.id, 10) || elem.__ref.__id;
   }
 
   const type = R.clone(elem.type);
