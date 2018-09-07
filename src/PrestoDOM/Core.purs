@@ -30,8 +30,10 @@ foreign import storeMachine :: forall eff m a b. Step m a b -> Maybe Namespace -
 foreign import getRootNode :: forall eff. Eff eff Document
 foreign import setRootNode :: forall a eff. Maybe a -> Eff eff Document
 foreign import insertDom :: forall a b eff. a -> b -> Eff eff Unit
+foreign import updateDom :: forall a b eff. a -> b -> Eff eff Unit
 
 foreign import saveScreenNameImpl :: forall eff. Maybe Namespace -> Eff eff Boolean
+foreign import cacheScreenImpl :: forall eff. Maybe Namespace -> Eff eff Boolean
 
 
 spec :: forall e. Document -> VDomSpec ( ref :: REF , frp :: FRP, dom :: DOM | e ) (Array (Prop (PropEff e))) Void
@@ -82,6 +84,43 @@ initUI cb = do
           view = Elem (ElemSpec Nothing (ElemName "linearLayout") []) []
 
 
+-- TODO:  Move commmon operations of runScreen and showScreen to another function
+showScreen
+    :: forall action st eff retAction
+     . Screen action st eff retAction
+    -> (Either Error retAction -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit)
+    -> Eff ( ref :: REF, frp :: FRP, dom :: DOM | eff ) (Canceler ( ref :: REF, frp :: FRP, dom :: DOM | eff ))
+showScreen { initialState, view, eval } cb = do
+  { event, push } <- E.create
+  let initState = initialState
+  let myDom = view push initState
+  screenName <- getScreenName myDom
+  patch <- checkCachedScreen screenName
+
+  case patch of
+    false -> do
+        root <- getRootNode
+        machine <- buildVDom (spec root) myDom
+        storeMachine machine screenName
+        updateDom root (extract machine)
+    true ->
+        patchAndRun myDom
+
+  let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
+  _ <- sample_ stateBeh event `subscribe` (either (onExit push) $ onStateChange push)
+  pure nonCanceler
+    where
+          onStateChange push (Tuple state cmds) =
+              patchAndRun (view push state)
+              *> for_ cmds (\effAction -> effAction >>= push)
+
+          onExit push (Tuple st ret) =
+              case st of
+                   Just s -> patchAndRun (view push  s) *> (cb $ Right ret)
+                   Nothing -> cb $ Right ret
+
+
+
 runScreen
     :: forall action st eff retAction
      . Screen action st eff retAction
@@ -127,6 +166,10 @@ compareScreen screen = do
     bool <- saveScreenNameImpl screen
     pure bool
 
+checkCachedScreen :: forall a w eff. Maybe Namespace -> Eff eff Boolean
+checkCachedScreen screen = do
+    bool <- cacheScreenImpl screen
+    pure bool
 
 
 mapDom
