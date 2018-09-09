@@ -93,7 +93,7 @@ editText :: forall i p. Leaf (Prop i) p
 #### `listView`
 
 ``` purescript
-listView :: forall i p. Leaf (Prop i) p
+listView :: forall i p. Node (Prop i) p
 ```
 
 #### `progressBar`

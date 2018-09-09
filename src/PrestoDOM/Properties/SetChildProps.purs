@@ -89,7 +89,7 @@ module PrestoDOM.Properties.SetChildProps
     , selectedTabIndicatorColor_c
     , selectedTabIndicatorHeight_c
     , setDate_c
-    , shadowLayer_c
+    , shadow_c
     , showDividers_c
     , singleLine_c
     , stroke_c
@@ -122,7 +122,7 @@ module PrestoDOM.Properties.SetChildProps
 import Prelude
 
 import Data.Tuple (Tuple(..))
-import PrestoDOM.Types.Core (Gravity, InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, GenProp(..))
+import PrestoDOM.Types.Core (Gravity, InputType, Length, Margin, Orientation, Padding, Shadow, Typeface, Visibility, GenProp(..))
 
 
 override_c :: String -> String -> Tuple String GenProp
@@ -471,8 +471,8 @@ setDate_c :: String -> Tuple String GenProp
 setDate_c = Tuple "setDate" <<< StringP
 
 -- | Unknown
-shadowLayer_c :: String -> Tuple String GenProp
-shadowLayer_c = Tuple "shadowLayer" <<< StringP
+shadow_c :: Shadow -> Tuple String GenProp
+shadow_c = Tuple "shadow" <<< ShadowP
 
 -- | Int
 showDividers_c :: Int -> Tuple String GenProp

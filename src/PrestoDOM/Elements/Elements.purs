@@ -84,6 +84,9 @@ relativeLayout = node "relativeLayout"
 horizontalScrollView :: forall i p. Node (Prop i) p
 horizontalScrollView = node "horizontalScrollView"
 
+listView :: forall i p. Node (Prop i) p
+listView = node "listView"
+
 scrollView :: forall i p. Node (Prop i) p
 scrollView = node "scrollView"
 
@@ -105,9 +108,6 @@ imageView = leaf "imageView"
 
 editText :: forall i p. Leaf (Prop i) p
 editText = leaf "editText"
-
-listView :: forall i p. Leaf (Prop i) p
-listView = leaf "listView"
 
 progressBar :: forall i p. Leaf (Prop i) p
 progressBar = leaf "progressBar"

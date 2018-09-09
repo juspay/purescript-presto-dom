@@ -89,7 +89,7 @@ module PrestoDOM.Properties.GetChildProps
     , selectedTabIndicatorColor_p
     , selectedTabIndicatorHeight_p
     , setDate_p
-    , shadowLayer_p
+    , shadow_p
     , showDividers_p
     , singleLine_p
     , stroke_p
@@ -125,7 +125,7 @@ import Data.Maybe (Maybe(..))
 import Foreign.Object (Object, lookup)
 
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.Core (class IsProp, Gravity, InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, toPropValue, GenProp(..))
+import PrestoDOM.Types.Core (class IsProp, Gravity, InputType, Length, Margin, Orientation, Padding, Shadow, Typeface, Visibility, toPropValue, GenProp(..))
 
 fromGenProp :: forall a i. IsProp a => String -> a -> Object GenProp -> Prop i
 fromGenProp key default strMap = let value = lookup key strMap
@@ -142,6 +142,7 @@ fromGenProp key default strMap = let value = lookup key strMap
                                   Just (BooleanP v) -> Property key $ toPropValue v
                                   Just (IntP v) -> Property key $ toPropValue v
                                   Just (StringP v) -> Property key $ toPropValue v
+                                  Just (ShadowP v) -> Property key $ toPropValue v
                                   Just (TextP v) -> Property "text" $ toPropValue v
                                   Nothing -> Property key $ toPropValue default
 
@@ -491,8 +492,8 @@ setDate_p :: forall i. String -> Object GenProp -> Prop i
 setDate_p = fromGenProp "setDate"
 
 -- | Unknown
-shadowLayer_p :: forall i. String -> Object GenProp -> Prop i
-shadowLayer_p = fromGenProp "shadowLayer"
+shadow_p :: forall i. Shadow -> Object GenProp -> Prop i
+shadow_p = fromGenProp "shadow"
 
 -- | Int
 showDividers_p :: forall i. Int -> Object GenProp -> Prop i

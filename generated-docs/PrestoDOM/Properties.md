@@ -6,10 +6,10 @@
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
 ```
 
-#### `id_`
+#### `id`
 
 ``` purescript
-id_ :: forall i. String -> Prop i
+id :: forall i. String -> Prop i
 ```
 
 #### `root`
@@ -23,7 +23,7 @@ Boolean
 #### `a_duration`
 
 ``` purescript
-a_duration :: forall i. String -> Prop i
+a_duration :: forall i. Number -> Prop i
 ```
 
 #### `a_scaleX`
@@ -36,6 +36,18 @@ a_scaleX :: forall i. String -> Prop i
 
 ``` purescript
 a_scaleY :: forall i. String -> Prop i
+```
+
+#### `a_translationX`
+
+``` purescript
+a_translationX :: forall i. Boolean -> Prop i
+```
+
+#### `a_translationY`
+
+``` purescript
+a_translationY :: forall i. Boolean -> Prop i
 ```
 
 #### `accessibilityHint`
@@ -61,6 +73,12 @@ alpha :: forall i. Number -> Prop i
 ```
 
 Number
+
+#### `animation`
+
+``` purescript
+animation :: forall i. String -> Prop i
+```
 
 #### `background`
 
@@ -223,7 +241,7 @@ Boolean
 #### `focus`
 
 ``` purescript
-focus :: forall i. String -> Prop i
+focus :: forall i. Boolean -> Prop i
 ```
 
 #### `focusable`
@@ -606,13 +624,13 @@ setDate :: forall i. String -> Prop i
 
 L, // long
 
-#### `shadowLayer`
+#### `shadow`
 
 ``` purescript
-shadowLayer :: forall i. String -> Prop i
+shadow :: forall i. Shadow -> Prop i
 ```
 
-Unknown
+Shadow
 
 #### `showDividers`
 
@@ -751,7 +769,7 @@ Visibility
 #### `weight`
 
 ``` purescript
-weight :: forall i. String -> Prop i
+weight :: forall i. Number -> Prop i
 ```
 
 #### `width`
@@ -775,5 +793,19 @@ alignParentLeft :: forall i. String -> Prop i
 ```
 
 Unknown
+
+#### `popupMenu`
+
+``` purescript
+popupMenu :: forall i. String -> Prop i
+```
+
+String
+
+#### `pattern`
+
+``` purescript
+pattern :: forall i. String -> Prop i
+```
 
 

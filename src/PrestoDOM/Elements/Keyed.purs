@@ -3,6 +3,11 @@ module PrestoDOM.Elements.Keyed
     , linearLayout
     , relativeLayout
     , horizontalScrollView
+    , listView
+    , frameLayout
+    , shimmerFrameLayout
+    , tabLayout
+    , viewPager
     , scrollView
 	) where
 
@@ -29,6 +34,21 @@ relativeLayout = keyedNode "relativeLayout"
 
 horizontalScrollView :: forall i p. KeyedNode (Prop i) p
 horizontalScrollView = keyedNode "horizontalScrollView"
+
+listView :: forall i p. KeyedNode (Prop i) p
+listView = keyedNode "listView"
+
+frameLayout :: forall i p. KeyedNode (Prop i) p
+frameLayout = keyedNode "frameLayout"
+
+shimmerFrameLayout :: forall i p. KeyedNode (Prop i) p
+shimmerFrameLayout = keyedNode "shimmerFrameLayout"
+
+tabLayout :: forall i p. KeyedNode (Prop i) p
+tabLayout = keyedNode "tabLayout"
+
+viewPager :: forall i p. KeyedNode (Prop i) p
+viewPager = keyedNode "viewPager"
 
 scrollView :: forall i p. KeyedNode (Prop i) p
 scrollView = keyedNode "scrollView"

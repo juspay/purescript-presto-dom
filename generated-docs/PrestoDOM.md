@@ -84,7 +84,7 @@ progressBar :: forall i p. Leaf (Prop i) p
 #### `listView`
 
 ``` purescript
-listView :: forall i p. Leaf (Prop i) p
+listView :: forall i p. Node (Prop i) p
 ```
 
 #### `linearLayout_`
@@ -155,46 +155,40 @@ button :: forall i p. Leaf (Prop i) p
 
 ### Re-exported from PrestoDOM.Events:
 
+#### `onNetworkChanged`
+
+``` purescript
+onNetworkChanged :: forall a b. (a -> Effect Unit) -> (b -> a) -> Prop (Effect Unit)
+```
+
+#### `onMenuItemClick`
+
+``` purescript
+onMenuItemClick :: forall a. (a -> Effect Unit) -> (Int -> a) -> Prop (Effect Unit)
+```
+
 #### `onClick`
 
 ``` purescript
-onClick :: forall a eff. (a -> PropEff eff) -> (Unit -> a) -> Prop (PropEff eff)
+onClick :: forall a. (a -> Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
 ```
 
 #### `onChange`
 
 ``` purescript
-onChange :: forall a eff. (a -> PropEff eff) -> (String -> a) -> Prop (PropEff eff)
+onChange :: forall a. (a -> Effect Unit) -> (String -> a) -> Prop (Effect Unit)
 ```
 
 #### `onBackPressed`
 
 ``` purescript
-onBackPressed :: forall a eff. (a -> PropEff eff) -> (Unit -> a) -> Prop (PropEff eff)
+onBackPressed :: forall a b. (a -> Effect Unit) -> (b -> a) -> Prop (Effect Unit)
 ```
 
-#### `makeEvent`
+#### `attachBackPress`
 
 ``` purescript
-makeEvent :: forall eff a. (a -> PropEff eff) -> (Event -> PropEff eff)
-```
-
-#### `event`
-
-``` purescript
-event :: forall a. EventType -> (Event -> Maybe a) -> Prop a
-```
-
-#### `backPressHandlerImpl`
-
-``` purescript
-backPressHandlerImpl :: forall eff. PropEff eff
-```
-
-#### `backPressHandler`
-
-``` purescript
-backPressHandler :: forall eff. (Event -> PropEff eff)
+attachBackPress :: forall a. (a -> Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
 ```
 
 ### Re-exported from PrestoDOM.Properties:
@@ -208,7 +202,7 @@ width :: forall i. Length -> Prop i
 #### `weight`
 
 ``` purescript
-weight :: forall i. String -> Prop i
+weight :: forall i. Number -> Prop i
 ```
 
 #### `visibility`
@@ -345,13 +339,13 @@ showDividers :: forall i. Int -> Prop i
 
 Int
 
-#### `shadowLayer`
+#### `shadow`
 
 ``` purescript
-shadowLayer :: forall i. String -> Prop i
+shadow :: forall i. Shadow -> Prop i
 ```
 
-Unknown
+Shadow
 
 #### `setDate`
 
@@ -487,6 +481,14 @@ progressColor :: forall i. String -> Prop i
 
 String
 
+#### `popupMenu`
+
+``` purescript
+popupMenu :: forall i. String -> Prop i
+```
+
+String
+
 #### `pivotY`
 
 ``` purescript
@@ -502,6 +504,12 @@ pivotX :: forall i. Number -> Prop i
 ```
 
 Number
+
+#### `pattern`
+
+``` purescript
+pattern :: forall i. String -> Prop i
+```
 
 #### `padding`
 
@@ -663,10 +671,10 @@ imageUrl :: forall i. String -> Prop i
 
 String
 
-#### `id_`
+#### `id`
 
 ``` purescript
-id_ :: forall i. String -> Prop i
+id :: forall i. String -> Prop i
 ```
 
 #### `hintColor`
@@ -756,7 +764,7 @@ focusOut :: forall i. String -> Prop i
 #### `focus`
 
 ``` purescript
-focus :: forall i. String -> Prop i
+focus :: forall i. Boolean -> Prop i
 ```
 
 #### `fillViewport`
@@ -917,6 +925,12 @@ background :: forall i. String -> Prop i
 
 String
 
+#### `animation`
+
+``` purescript
+animation :: forall i. String -> Prop i
+```
+
 #### `alpha`
 
 ``` purescript
@@ -957,6 +971,18 @@ accessibilityHint :: forall i. String -> Prop i
 
 String
 
+#### `a_translationY`
+
+``` purescript
+a_translationY :: forall i. Boolean -> Prop i
+```
+
+#### `a_translationX`
+
+``` purescript
+a_translationX :: forall i. Boolean -> Prop i
+```
+
 #### `a_scaleY`
 
 ``` purescript
@@ -972,7 +998,7 @@ a_scaleX :: forall i. String -> Prop i
 #### `a_duration`
 
 ``` purescript
-a_duration :: forall i. String -> Prop i
+a_duration :: forall i. Number -> Prop i
 ```
 
 ### Re-exported from PrestoDOM.Types.Core:
@@ -991,8 +1017,8 @@ data Visibility
 ``` purescript
 data VDom a w
   = Text String
-  | Elem (ElemSpec a) (Array (VDom a w))
-  | Keyed (ElemSpec a) (Array (Tuple String (VDom a w)))
+  | Elem (Maybe Namespace) ElemName a (Array (VDom a w))
+  | Keyed (Maybe Namespace) ElemName a (Array (Tuple String (VDom a w)))
   | Widget w
   | Grafted (Graft a w)
 ```
@@ -1020,10 +1046,17 @@ data Typeface
   | BOLD_ITALIC
 ```
 
+#### `Shadow`
+
+``` purescript
+data Shadow
+  = Shadow Number Number Number Number String Number
+```
+
 #### `Screen`
 
 ``` purescript
-type Screen action st eff retAction = { initialState :: st, view :: (action -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop (PropEff eff))) Void, eval :: action -> st -> Eval eff action retAction st }
+type Screen action state returnType = { initialState :: state, view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit)), eval :: action -> state -> Eval action returnType state }
 ```
 
 #### `Props`
@@ -1044,12 +1077,6 @@ newtype PropName value
 Newtype (PropName value) _
 ```
 
-#### `PropEff`
-
-``` purescript
-type PropEff e = Eff (ref :: REF, frp :: FRP, dom :: DOM | e) Unit
-```
-
 #### `Prop`
 
 ``` purescript
@@ -1062,6 +1089,18 @@ Parameterized by the type of handlers outputs.
 ##### Instances
 ``` purescript
 Functor Prop
+```
+
+#### `PrestoWidget`
+
+``` purescript
+newtype PrestoWidget a
+  = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget a))
+```
+
+##### Instances
+``` purescript
+Newtype (PrestoWidget a) _
 ```
 
 #### `PrestoDOM`
@@ -1103,7 +1142,6 @@ newtype Namespace
 Newtype Namespace _
 Eq Namespace
 Ord Namespace
-Generic Namespace
 ```
 
 #### `Margin`
@@ -1170,27 +1208,13 @@ data GenProp
   | IntP Int
   | StringP String
   | TextP String
+  | ShadowP Shadow
 ```
 
 #### `Eval`
 
 ``` purescript
-type Eval eff action retAction st = Either (Tuple (Maybe st) retAction) (Tuple st (Cmd eff action))
-```
-
-#### `ElemSpec`
-
-``` purescript
-data ElemSpec a
-  = ElemSpec (Maybe Namespace) ElemName a
-```
-
-##### Instances
-``` purescript
-(Eq a) => Eq (ElemSpec a)
-(Ord a) => Ord (ElemSpec a)
-(Generic a) => Generic (ElemSpec a)
-Functor ElemSpec
+type Eval action returnType state = Either (Tuple (Maybe state) returnType) (Tuple state (Cmd action))
 ```
 
 #### `ElemName`
@@ -1205,13 +1229,12 @@ newtype ElemName
 Newtype ElemName _
 Eq ElemName
 Ord ElemName
-Generic ElemName
 ```
 
 #### `Cmd`
 
 ``` purescript
-type Cmd eff action = Array (Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) action)
+type Cmd action = Array (Effect action)
 ```
 
 #### `IsProp`
@@ -1235,6 +1258,7 @@ IsProp Visibility
 IsProp Gravity
 IsProp Margin
 IsProp Padding
+IsProp Shadow
 ```
 
 #### `renderVisibility`
@@ -1247,6 +1271,12 @@ renderVisibility :: Visibility -> String
 
 ``` purescript
 renderTypeface :: Typeface -> String
+```
+
+#### `renderShadow`
+
+``` purescript
+renderShadow :: Shadow -> String
 ```
 
 #### `renderPadding`
@@ -1306,24 +1336,24 @@ renderGravity :: Gravity -> String
 #### `updateAndExit`
 
 ``` purescript
-updateAndExit :: forall state action retAction eff. state -> retAction -> Eval eff action retAction state
+updateAndExit :: forall state action returnType. state -> returnType -> Eval action returnType state
 ```
 
 #### `exit`
 
 ``` purescript
-exit :: forall state action retAction eff. retAction -> Eval eff action retAction state
+exit :: forall state action returnType. returnType -> Eval action returnType state
 ```
 
 #### `continueWithCmd`
 
 ``` purescript
-continueWithCmd :: forall state action retAction eff. state -> Cmd eff action -> Eval eff action retAction state
+continueWithCmd :: forall state action returnType. state -> Cmd action -> Eval action returnType state
 ```
 
 #### `continue`
 
 ``` purescript
-continue :: forall state action retAction eff. state -> Eval eff action retAction state
+continue :: forall state action returnType. state -> Eval action returnType state
 ```
 

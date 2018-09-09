@@ -87,6 +87,13 @@ data Margin
   | MarginVertical Int Int
 ```
 
+#### `Shadow`
+
+``` purescript
+data Shadow
+  = Shadow Number Number Number Number String Number
+```
+
 #### `renderMargin`
 
 ``` purescript
@@ -149,6 +156,12 @@ renderTypeface :: Typeface -> String
 
 ``` purescript
 renderVisibility :: Visibility -> String
+```
+
+#### `renderShadow`
+
+``` purescript
+renderShadow :: Shadow -> String
 ```
 
 

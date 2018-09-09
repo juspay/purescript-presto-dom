@@ -1,10 +1,13 @@
-module PrestoDOM.Core where
+module PrestoDOM.Core
+   ( runScreen
+   , showScreen
+   , mapDom
+   ) where
 
 import Prelude
 
 import Effect (Effect)
 import Effect.Aff (Canceler, Error, nonCanceler)
-{-- import Data.Function.Uncurried as Fn --}
 import Data.Newtype (un)
 import Effect.Uncurried as EFn
 import Web.DOM.Document (Document) as DOM
@@ -23,7 +26,6 @@ import Halogen.VDom.Thunk (Thunk, buildThunk)
 import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..))
 import PrestoDOM.Utils (continue)
 
-{-- foreign import logMe :: forall a. String -> a -> a --}
 foreign import emitter
     :: forall a
      . EFn.EffectFn1
@@ -53,8 +55,9 @@ foreign import setRootNode
 
 foreign import insertDom :: forall a b. EFn.EffectFn2 a b Unit
 
-foreign import processWidget :: Effect Unit
+foreign import updateDom :: forall a b. EFn.EffectFn2 a b Unit
 
+foreign import processWidget :: Effect Unit
 
 foreign import saveScreenNameImpl
     :: EFn.EffectFn1
@@ -62,33 +65,10 @@ foreign import saveScreenNameImpl
         Boolean
 
 
-
-
-{-- buildWidget --}
-{--     ∷ VDomSpec (Array (Prop (Effect Unit))) (Exists Thunk) --}
-{--     → Machine (Exists Thunk) DOM.Node --}
-{-- buildWidget spec = render --}
-{--   where --}
-{--         render = runExists \(Thunk a render') → do --}
-{--            node ← render' a --}
-{--            pure $ mkStep --}
-{--                 (Step node --}
-{--                     (Fn.runFn2 patch (unsafeCoerce a) node) --}
-{--                     (pure unit)) --}
-{--         patch = Fn.mkFn2 \a node → runExists \(Thunk b render') → --}
-{--            if Fn.runFn2 refEq a b --}
-{--                then pure $ mkStep --}
-{--                          (Step node --}
-{--                             (Fn.runFn2 patch a node) --}
-{--                             (EFn.runEffectFn1 halt node)) --}
-{--                else do --}
-{--                   node <- render' b --}
-{--                   pure $ mkStep --}
-{--                        (Step node --}
-{--                        (Fn.runFn2 patch (unsafeCoerce b) node) --}
-{--                        (pure unit)) --}
-
-
+foreign import cacheScreenImpl
+    :: EFn.EffectFn1
+        (Maybe Namespace)
+        Boolean
 
 spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
 spec document =  VDomSpec {
@@ -137,27 +117,33 @@ initUI cb = do
           view = Elem Nothing (ElemName "linearLayout") [] []
 
 
-runScreen
+
+runScreenImpl
     :: forall action state returnType
-     . Screen action state returnType
+     . Boolean
+    -> Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
-runScreen { initialState, view, eval } cb = do
+runScreenImpl cache { initialState, view, eval } cb = do
   { event, push } <- E.create
   let myDom = view push initialState
   screenName <- getScreenName myDom
-  patch <- compareScreen screenName
+  patch <- if cache
+               then checkCachedScreen screenName
+               else compareScreen screenName
 
   case patch of
     false -> do
         root <- getRootNode
         machine <- EFn.runEffectFn1 (buildVDom (spec root)) myDom
         EFn.runEffectFn2 storeMachine machine screenName
-        EFn.runEffectFn2 insertDom root (extract machine)
+        if cache
+            then EFn.runEffectFn2 updateDom root (extract machine)
+            else EFn.runEffectFn2 insertDom root (extract machine)
         processWidget
     true ->
         patchAndRun myDom
-  -- let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action)) event (Right initialState)
+
   let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
   _ <- sample_ stateBeh event `subscribe` (either (onExit push) $ onStateChange push)
   pure nonCanceler
@@ -171,6 +157,19 @@ runScreen { initialState, view, eval } cb = do
                    Just s -> patchAndRun (view push  s) *> (cb $ Right ret)
                    Nothing -> cb $ Right ret
 
+runScreen
+    :: forall action state returnType
+     . Screen action state returnType
+    -> (Either Error returnType -> Effect Unit)
+    -> Effect Canceler
+runScreen = runScreenImpl false
+
+showScreen
+    :: forall action state returnType
+     . Screen action state returnType
+    -> (Either Error returnType -> Effect Unit)
+    -> Effect Canceler
+showScreen = runScreenImpl true
 
 
 getScreenName :: forall a w. VDom a w -> Effect (Maybe Namespace)
@@ -182,6 +181,10 @@ compareScreen screen = do
     bool <- EFn.runEffectFn1 saveScreenNameImpl screen
     pure bool
 
+checkCachedScreen :: Maybe Namespace -> Effect Boolean
+checkCachedScreen screen = do
+    bool <- EFn.runEffectFn1 cacheScreenImpl screen
+    pure bool
 
 
 mapDom
@@ -193,3 +196,4 @@ mapDom
   -> Array (Tuple String i)
   -> PrestoDOM (Effect Unit) w
 mapDom view push state actionMap = view (push <<< actionMap) state <<< Object.fromFoldable
+

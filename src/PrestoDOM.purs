@@ -7,9 +7,9 @@ module PrestoDOM
     , module Utils
     ) where
 
-import PrestoDOM.Elements.Elements as Elements
+import PrestoDOM.Core (mapDom, runScreen, showScreen) as PrestoDOM
 import PrestoDOM.Events as Events
-import PrestoDOM.Properties as Properties
-import PrestoDOM.Types.Core as Types
-import PrestoDOM.Core as PrestoDOM
 import PrestoDOM.Utils (continue, continueWithCmd, updateAndExit, exit) as Utils
+import PrestoDOM.Elements.Elements as Elements
+import PrestoDOM.Types.Core as Types
+import PrestoDOM.Properties as Properties
