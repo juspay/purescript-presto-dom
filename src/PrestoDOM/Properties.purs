@@ -1,11 +1,13 @@
 module PrestoDOM.Properties
     ( prop
-    , id_
+    , id
 
     , root
     , a_duration
     , a_scaleX
     , a_scaleY
+    , a_translationX
+    , a_translationY
     , accessibilityHint
     , adjustViewBounds
     , alpha
@@ -132,15 +134,15 @@ import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Padding, Gravit
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
 prop (PropName name) = Property name <<< toPropValue
 
-id_ :: forall i. String -> Prop i
-id_ = prop (PropName "id")
+id :: forall i. String -> Prop i
+id = prop (PropName "id")
 
 
 -- | Boolean
 root :: forall i. Boolean -> Prop i
 root = prop (PropName "root")
 
-a_duration :: forall i. String -> Prop i
+a_duration :: forall i. Number -> Prop i
 a_duration = prop (PropName "a_duration")
 
 a_scaleX :: forall i. String -> Prop i
@@ -148,6 +150,12 @@ a_scaleX = prop (PropName "a_scaleX")
 
 a_scaleY :: forall i. String -> Prop i
 a_scaleY = prop (PropName "a_scaleY")
+
+a_translationX :: forall i. Boolean -> Prop i
+a_translationX = prop (PropName "a_translationX")
+
+a_translationY :: forall i. Boolean -> Prop i
+a_translationY = prop (PropName "a_translationY")
 
 -- | String
 accessibilityHint :: forall i. String -> Prop i
@@ -562,7 +570,7 @@ visibility = prop (PropName "visibility")
 {-- type: 'f', --}
 {--           match_parent: -1, --}
 {--                 wrap_content: -2, --}
-weight :: forall i. String -> Prop i
+weight :: forall i. Number -> Prop i
 weight = prop (PropName "weight")
 
 width :: forall i. Length -> Prop i

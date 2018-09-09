@@ -592,10 +592,10 @@ setDate_c :: String -> Tuple String GenProp
 
 L, // long
 
-#### `shadowLayer_c`
+#### `shadow_c`
 
 ``` purescript
-shadowLayer_c :: String -> Tuple String GenProp
+shadow_c :: Shadow -> Tuple String GenProp
 ```
 
 Unknown
@@ -737,7 +737,7 @@ Visibility
 #### `weight_c`
 
 ``` purescript
-weight_c :: String -> Tuple String GenProp
+weight_c :: Number -> Tuple String GenProp
 ```
 
 #### `width_c`

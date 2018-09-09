@@ -8,16 +8,30 @@ import Data.Tuple (Tuple(..))
 import PrestoDOM.Types.Core (Eval, Cmd)
 
 
-continue :: forall state action retAction eff. state -> Eval eff action retAction state
+continue
+  :: forall state action returnType
+   . state
+  -> Eval action returnType state
 continue state = Right (Tuple state [])
 
-exit :: forall state action retAction eff. retAction -> Eval eff action retAction state
+exit
+  :: forall state action returnType
+   . returnType
+  -> Eval action returnType state
 exit = Left <<< Tuple Nothing
 
-updateAndExit :: forall state action retAction eff. state -> retAction -> Eval eff action retAction state
+updateAndExit
+  :: forall state action returnType
+   . state
+  -> returnType
+  -> Eval action returnType state
 updateAndExit state = Left <<< Tuple (Just state)
 
-continueWithCmd :: forall state action retAction eff. state -> Cmd eff action -> Eval eff action retAction state
+continueWithCmd
+  :: forall state action returnType
+   . state
+  -> Cmd action
+  -> Eval action returnType state
 continueWithCmd state cmds = Right (Tuple state cmds)
 
 

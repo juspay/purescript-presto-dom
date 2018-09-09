@@ -3,37 +3,37 @@
 #### `override_p`
 
 ``` purescript
-override_p :: forall i. String -> String -> StrMap GenProp -> Prop i
+override_p :: forall i. String -> String -> Object GenProp -> Prop i
 ```
 
 #### `root_p`
 
 ``` purescript
-root_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+root_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 #### `a_duration_p`
 
 ``` purescript
-a_duration_p :: forall i. String -> StrMap GenProp -> Prop i
+a_duration_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 #### `a_scaleX_p`
 
 ``` purescript
-a_scaleX_p :: forall i. String -> StrMap GenProp -> Prop i
+a_scaleX_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 #### `a_scaleY_p`
 
 ``` purescript
-a_scaleY_p :: forall i. String -> StrMap GenProp -> Prop i
+a_scaleY_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 #### `accessibilityHint_p`
 
 ``` purescript
-accessibilityHint_p :: forall i. String -> StrMap GenProp -> Prop i
+accessibilityHint_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -41,7 +41,7 @@ String
 #### `adjustViewBounds_p`
 
 ``` purescript
-adjustViewBounds_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+adjustViewBounds_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -49,7 +49,7 @@ Boolean
 #### `alpha_p`
 
 ``` purescript
-alpha_p :: forall i. Number -> StrMap GenProp -> Prop i
+alpha_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 Number
@@ -57,7 +57,7 @@ Number
 #### `background_p`
 
 ``` purescript
-background_p :: forall i. String -> StrMap GenProp -> Prop i
+background_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -65,7 +65,7 @@ String
 #### `backgroundColor_p`
 
 ``` purescript
-backgroundColor_p :: forall i. String -> StrMap GenProp -> Prop i
+backgroundColor_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -73,7 +73,7 @@ String
 #### `backgroundDrawable_p`
 
 ``` purescript
-backgroundDrawable_p :: forall i. String -> StrMap GenProp -> Prop i
+backgroundDrawable_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -81,7 +81,7 @@ String
 #### `backgroundTint_p`
 
 ``` purescript
-backgroundTint_p :: forall i. String -> StrMap GenProp -> Prop i
+backgroundTint_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -89,7 +89,7 @@ String
 #### `btnBackground_p`
 
 ``` purescript
-btnBackground_p :: forall i. String -> StrMap GenProp -> Prop i
+btnBackground_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -97,7 +97,7 @@ String
 #### `btnColor_p`
 
 ``` purescript
-btnColor_p :: forall i. String -> StrMap GenProp -> Prop i
+btnColor_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -105,7 +105,7 @@ String
 #### `buttonTint_p`
 
 ``` purescript
-buttonTint_p :: forall i. String -> StrMap GenProp -> Prop i
+buttonTint_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -113,7 +113,7 @@ String
 #### `checked_p`
 
 ``` purescript
-checked_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+checked_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -121,7 +121,7 @@ Boolean
 #### `clickable_p`
 
 ``` purescript
-clickable_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+clickable_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -129,7 +129,7 @@ Boolean
 #### `clipChildren_p`
 
 ``` purescript
-clipChildren_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+clipChildren_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -137,7 +137,7 @@ Boolean
 #### `color_p`
 
 ``` purescript
-color_p :: forall i. String -> StrMap GenProp -> Prop i
+color_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -145,7 +145,7 @@ String
 #### `colorFilter_p`
 
 ``` purescript
-colorFilter_p :: forall i. String -> StrMap GenProp -> Prop i
+colorFilter_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 Unknown
@@ -153,7 +153,7 @@ Unknown
 #### `cornerRadius_p`
 
 ``` purescript
-cornerRadius_p :: forall i. Number -> StrMap GenProp -> Prop i
+cornerRadius_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 Number
@@ -161,7 +161,7 @@ Number
 #### `curve_p`
 
 ``` purescript
-curve_p :: forall i. String -> StrMap GenProp -> Prop i
+curve_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -169,7 +169,7 @@ String
 #### `delay_p`
 
 ``` purescript
-delay_p :: forall i. String -> StrMap GenProp -> Prop i
+delay_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 L, // long
@@ -177,7 +177,7 @@ L, // long
 #### `dividerDrawable_p`
 
 ``` purescript
-dividerDrawable_p :: forall i. String -> StrMap GenProp -> Prop i
+dividerDrawable_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -185,7 +185,7 @@ String
 #### `duration_p`
 
 ``` purescript
-duration_p :: forall i. String -> StrMap GenProp -> Prop i
+duration_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 L, // long
@@ -193,7 +193,7 @@ L, // long
 #### `elevation_p`
 
 ``` purescript
-elevation_p :: forall i. Int -> StrMap GenProp -> Prop i
+elevation_p :: forall i. Int -> Object GenProp -> Prop i
 ```
 
 Int
@@ -201,7 +201,7 @@ Int
 #### `fillViewport_p`
 
 ``` purescript
-fillViewport_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+fillViewport_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -209,13 +209,13 @@ Boolean
 #### `focus_p`
 
 ``` purescript
-focus_p :: forall i. String -> StrMap GenProp -> Prop i
+focus_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 #### `focusable_p`
 
 ``` purescript
-focusable_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+focusable_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -223,13 +223,13 @@ Boolean
 #### `focusOut_p`
 
 ``` purescript
-focusOut_p :: forall i. String -> StrMap GenProp -> Prop i
+focusOut_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 #### `fontFamily_p`
 
 ``` purescript
-fontFamily_p :: forall i. String -> StrMap GenProp -> Prop i
+fontFamily_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 Unknown
@@ -237,7 +237,7 @@ Unknown
 #### `fontSize_p`
 
 ``` purescript
-fontSize_p :: forall i. Int -> StrMap GenProp -> Prop i
+fontSize_p :: forall i. Int -> Object GenProp -> Prop i
 ```
 
 Int
@@ -245,7 +245,7 @@ Int
 #### `fontStyle_p`
 
 ``` purescript
-fontStyle_p :: forall i. String -> StrMap GenProp -> Prop i
+fontStyle_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -253,7 +253,7 @@ String
 #### `foreground_p`
 
 ``` purescript
-foreground_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+foreground_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -261,7 +261,7 @@ Boolean
 #### `gravity_p`
 
 ``` purescript
-gravity_p :: forall i. Gravity -> StrMap GenProp -> Prop i
+gravity_p :: forall i. Gravity -> Object GenProp -> Prop i
 ```
 
 Gravity
@@ -269,7 +269,7 @@ Gravity
 #### `hardware_p`
 
 ``` purescript
-hardware_p :: forall i. String -> StrMap GenProp -> Prop i
+hardware_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 Unknown
@@ -277,13 +277,13 @@ Unknown
 #### `height_p`
 
 ``` purescript
-height_p :: forall i. Length -> StrMap GenProp -> Prop i
+height_p :: forall i. Length -> Object GenProp -> Prop i
 ```
 
 #### `hint_p`
 
 ``` purescript
-hint_p :: forall i. String -> StrMap GenProp -> Prop i
+hint_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -291,7 +291,7 @@ String
 #### `hintColor_p`
 
 ``` purescript
-hintColor_p :: forall i. String -> StrMap GenProp -> Prop i
+hintColor_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -299,7 +299,7 @@ String
 #### `imageUrl_p`
 
 ``` purescript
-imageUrl_p :: forall i. String -> StrMap GenProp -> Prop i
+imageUrl_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -307,7 +307,7 @@ String
 #### `inputType_p`
 
 ``` purescript
-inputType_p :: forall i. InputType -> StrMap GenProp -> Prop i
+inputType_p :: forall i. InputType -> Object GenProp -> Prop i
 ```
 
 InputType
@@ -315,7 +315,7 @@ InputType
 #### `inputTypeI_p`
 
 ``` purescript
-inputTypeI_p :: forall i. Int -> StrMap GenProp -> Prop i
+inputTypeI_p :: forall i. Int -> Object GenProp -> Prop i
 ```
 
 Int
@@ -323,13 +323,13 @@ Int
 #### `layoutGravity_p`
 
 ``` purescript
-layoutGravity_p :: forall i. String -> StrMap GenProp -> Prop i
+layoutGravity_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 #### `layoutTransition_p`
 
 ``` purescript
-layoutTransition_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+layoutTransition_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -337,7 +337,7 @@ Boolean
 #### `letterSpacing_p`
 
 ``` purescript
-letterSpacing_p :: forall i. Number -> StrMap GenProp -> Prop i
+letterSpacing_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 Number
@@ -345,13 +345,13 @@ Number
 #### `lineHeight_p`
 
 ``` purescript
-lineHeight_p :: forall i. String -> StrMap GenProp -> Prop i
+lineHeight_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 #### `margin_p`
 
 ``` purescript
-margin_p :: forall i. Margin -> StrMap GenProp -> Prop i
+margin_p :: forall i. Margin -> Object GenProp -> Prop i
 ```
 
 Margin : left, top, right and bottom
@@ -365,7 +365,7 @@ MarginVertical : top and bottom
 #### `marginEnd_p`
 
 ``` purescript
-marginEnd_p :: forall i. Int -> StrMap GenProp -> Prop i
+marginEnd_p :: forall i. Int -> Object GenProp -> Prop i
 ```
 
 Int
@@ -373,7 +373,7 @@ Int
 #### `marginStart_p`
 
 ``` purescript
-marginStart_p :: forall i. Int -> StrMap GenProp -> Prop i
+marginStart_p :: forall i. Int -> Object GenProp -> Prop i
 ```
 
 Int
@@ -381,7 +381,7 @@ Int
 #### `maxDate_p`
 
 ``` purescript
-maxDate_p :: forall i. String -> StrMap GenProp -> Prop i
+maxDate_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 L, // long
@@ -389,7 +389,7 @@ L, // long
 #### `maxLines_p`
 
 ``` purescript
-maxLines_p :: forall i. Int -> StrMap GenProp -> Prop i
+maxLines_p :: forall i. Int -> Object GenProp -> Prop i
 ```
 
 Int
@@ -397,7 +397,7 @@ Int
 #### `maxSeek_p`
 
 ``` purescript
-maxSeek_p :: forall i. Int -> StrMap GenProp -> Prop i
+maxSeek_p :: forall i. Int -> Object GenProp -> Prop i
 ```
 
 int
@@ -405,7 +405,7 @@ int
 #### `maxWidth_p`
 
 ``` purescript
-maxWidth_p :: forall i. Int -> StrMap GenProp -> Prop i
+maxWidth_p :: forall i. Int -> Object GenProp -> Prop i
 ```
 
 Int
@@ -413,7 +413,7 @@ Int
 #### `minDate_p`
 
 ``` purescript
-minDate_p :: forall i. String -> StrMap GenProp -> Prop i
+minDate_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 L, // long
@@ -421,7 +421,7 @@ L, // long
 #### `minHeight_p`
 
 ``` purescript
-minHeight_p :: forall i. Int -> StrMap GenProp -> Prop i
+minHeight_p :: forall i. Int -> Object GenProp -> Prop i
 ```
 
 Int
@@ -429,7 +429,7 @@ Int
 #### `minWidth_p`
 
 ``` purescript
-minWidth_p :: forall i. Int -> StrMap GenProp -> Prop i
+minWidth_p :: forall i. Int -> Object GenProp -> Prop i
 ```
 
 Int
@@ -437,7 +437,7 @@ Int
 #### `orientation_p`
 
 ``` purescript
-orientation_p :: forall i. Orientation -> StrMap GenProp -> Prop i
+orientation_p :: forall i. Orientation -> Object GenProp -> Prop i
 ```
 
 Orientation
@@ -445,7 +445,7 @@ Orientation
 #### `padding_p`
 
 ``` purescript
-padding_p :: forall i. Padding -> StrMap GenProp -> Prop i
+padding_p :: forall i. Padding -> Object GenProp -> Prop i
 ```
 
 Padding : left, top, right and bottom
@@ -459,7 +459,7 @@ PaddingVertical : top and bottom
 #### `pivotX_p`
 
 ``` purescript
-pivotX_p :: forall i. Number -> StrMap GenProp -> Prop i
+pivotX_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 Number
@@ -467,7 +467,7 @@ Number
 #### `pivotY_p`
 
 ``` purescript
-pivotY_p :: forall i. Number -> StrMap GenProp -> Prop i
+pivotY_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 Number
@@ -475,7 +475,7 @@ Number
 #### `progressColor_p`
 
 ``` purescript
-progressColor_p :: forall i. String -> StrMap GenProp -> Prop i
+progressColor_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -483,7 +483,7 @@ String
 #### `rotation_p`
 
 ``` purescript
-rotation_p :: forall i. Number -> StrMap GenProp -> Prop i
+rotation_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 Number
@@ -491,7 +491,7 @@ Number
 #### `rotationX_p`
 
 ``` purescript
-rotationX_p :: forall i. Number -> StrMap GenProp -> Prop i
+rotationX_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 Number
@@ -499,7 +499,7 @@ Number
 #### `rotationY_p`
 
 ``` purescript
-rotationY_p :: forall i. Number -> StrMap GenProp -> Prop i
+rotationY_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 Number
@@ -507,7 +507,7 @@ Number
 #### `scaleType_p`
 
 ``` purescript
-scaleType_p :: forall i. String -> StrMap GenProp -> Prop i
+scaleType_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -515,7 +515,7 @@ String
 #### `scaleX_p`
 
 ``` purescript
-scaleX_p :: forall i. Number -> StrMap GenProp -> Prop i
+scaleX_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 Number
@@ -523,7 +523,7 @@ Number
 #### `scaleY_p`
 
 ``` purescript
-scaleY_p :: forall i. Number -> StrMap GenProp -> Prop i
+scaleY_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 Number
@@ -531,7 +531,7 @@ Number
 #### `scrollBarX_p`
 
 ``` purescript
-scrollBarX_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+scrollBarX_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -539,7 +539,7 @@ Boolean
 #### `scrollBarY_p`
 
 ``` purescript
-scrollBarY_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+scrollBarY_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -547,7 +547,7 @@ Boolean
 #### `selectable_p`
 
 ``` purescript
-selectable_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+selectable_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -555,7 +555,7 @@ Boolean
 #### `selectableItem_p`
 
 ``` purescript
-selectableItem_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+selectableItem_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -563,7 +563,7 @@ Boolean
 #### `selected_p`
 
 ``` purescript
-selected_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+selected_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -571,7 +571,7 @@ Boolean
 #### `selectedTabIndicatorColor_p`
 
 ``` purescript
-selectedTabIndicatorColor_p :: forall i. String -> StrMap GenProp -> Prop i
+selectedTabIndicatorColor_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -579,7 +579,7 @@ String
 #### `selectedTabIndicatorHeight_p`
 
 ``` purescript
-selectedTabIndicatorHeight_p :: forall i. Int -> StrMap GenProp -> Prop i
+selectedTabIndicatorHeight_p :: forall i. Int -> Object GenProp -> Prop i
 ```
 
 Int
@@ -587,15 +587,15 @@ Int
 #### `setDate_p`
 
 ``` purescript
-setDate_p :: forall i. String -> StrMap GenProp -> Prop i
+setDate_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 L, // long
 
-#### `shadowLayer_p`
+#### `shadow_p`
 
 ``` purescript
-shadowLayer_p :: forall i. String -> StrMap GenProp -> Prop i
+shadow_p :: forall i. Shadow -> Object GenProp -> Prop i
 ```
 
 Unknown
@@ -603,7 +603,7 @@ Unknown
 #### `showDividers_p`
 
 ``` purescript
-showDividers_p :: forall i. Int -> StrMap GenProp -> Prop i
+showDividers_p :: forall i. Int -> Object GenProp -> Prop i
 ```
 
 Int
@@ -611,7 +611,7 @@ Int
 #### `singleLine_p`
 
 ``` purescript
-singleLine_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+singleLine_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -619,7 +619,7 @@ Boolean
 #### `stroke_p`
 
 ``` purescript
-stroke_p :: forall i. String -> StrMap GenProp -> Prop i
+stroke_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 Unknown
@@ -627,7 +627,7 @@ Unknown
 #### `tabTextColors_p`
 
 ``` purescript
-tabTextColors_p :: forall i. String -> StrMap GenProp -> Prop i
+tabTextColors_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 Unknown
@@ -635,7 +635,7 @@ Unknown
 #### `text_p`
 
 ``` purescript
-text_p :: forall i. String -> StrMap GenProp -> Prop i
+text_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -643,7 +643,7 @@ String
 #### `textAllCaps_p`
 
 ``` purescript
-textAllCaps_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+textAllCaps_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -651,7 +651,7 @@ Boolean
 #### `textFromHtml_p`
 
 ``` purescript
-textFromHtml_p :: forall i. String -> StrMap GenProp -> Prop i
+textFromHtml_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -659,7 +659,7 @@ String
 #### `textIsSelectable_p`
 
 ``` purescript
-textIsSelectable_p :: forall i. Boolean -> StrMap GenProp -> Prop i
+textIsSelectable_p :: forall i. Boolean -> Object GenProp -> Prop i
 ```
 
 Boolean
@@ -667,13 +667,13 @@ Boolean
 #### `textSize_p`
 
 ``` purescript
-textSize_p :: forall i. Int -> StrMap GenProp -> Prop i
+textSize_p :: forall i. Int -> Object GenProp -> Prop i
 ```
 
 #### `translationX_p`
 
 ``` purescript
-translationX_p :: forall i. Number -> StrMap GenProp -> Prop i
+translationX_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 Number
@@ -681,7 +681,7 @@ Number
 #### `translationY_p`
 
 ``` purescript
-translationY_p :: forall i. Number -> StrMap GenProp -> Prop i
+translationY_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 Number
@@ -689,7 +689,7 @@ Number
 #### `translationZ_p`
 
 ``` purescript
-translationZ_p :: forall i. Number -> StrMap GenProp -> Prop i
+translationZ_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 Number
@@ -697,7 +697,7 @@ Number
 #### `toast_p`
 
 ``` purescript
-toast_p :: forall i. String -> StrMap GenProp -> Prop i
+toast_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -705,7 +705,7 @@ String
 #### `typeface_p`
 
 ``` purescript
-typeface_p :: forall i. Typeface -> StrMap GenProp -> Prop i
+typeface_p :: forall i. Typeface -> Object GenProp -> Prop i
 ```
 
 Typeface
@@ -713,7 +713,7 @@ Typeface
 #### `url_p`
 
 ``` purescript
-url_p :: forall i. String -> StrMap GenProp -> Prop i
+url_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -721,7 +721,7 @@ String
 #### `values_p`
 
 ``` purescript
-values_p :: forall i. String -> StrMap GenProp -> Prop i
+values_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 String
@@ -729,7 +729,7 @@ String
 #### `visibility_p`
 
 ``` purescript
-visibility_p :: forall i. Visibility -> StrMap GenProp -> Prop i
+visibility_p :: forall i. Visibility -> Object GenProp -> Prop i
 ```
 
 Visibility
@@ -737,19 +737,19 @@ Visibility
 #### `weight_p`
 
 ``` purescript
-weight_p :: forall i. String -> StrMap GenProp -> Prop i
+weight_p :: forall i. Number -> Object GenProp -> Prop i
 ```
 
 #### `width_p`
 
 ``` purescript
-width_p :: forall i. Length -> StrMap GenProp -> Prop i
+width_p :: forall i. Length -> Object GenProp -> Prop i
 ```
 
 #### `alignParentBottom_p`
 
 ``` purescript
-alignParentBottom_p :: forall i. String -> StrMap GenProp -> Prop i
+alignParentBottom_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 Unknown
@@ -757,7 +757,7 @@ Unknown
 #### `alignParentLeft_p`
 
 ``` purescript
-alignParentLeft_p :: forall i. String -> StrMap GenProp -> Prop i
+alignParentLeft_p :: forall i. String -> Object GenProp -> Prop i
 ```
 
 Unknown

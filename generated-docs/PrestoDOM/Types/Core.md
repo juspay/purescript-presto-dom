@@ -41,30 +41,37 @@ data GenProp
   | IntP Int
   | StringP String
   | TextP String
+  | ShadowP Shadow
 ```
 
 #### `Screen`
 
 ``` purescript
-type Screen action st eff retAction = { initialState :: st, view :: (action -> Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) Unit) -> st -> VDom (Array (Prop (PropEff eff))) Void, eval :: action -> st -> Eval eff action retAction st }
-```
-
-#### `PropEff`
-
-``` purescript
-type PropEff e = Eff (ref :: REF, frp :: FRP, dom :: DOM | e) Unit
+type Screen action state returnType = { initialState :: state, view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit)), eval :: action -> state -> Eval action returnType state }
 ```
 
 #### `Eval`
 
 ``` purescript
-type Eval eff action retAction st = Either (Tuple (Maybe st) retAction) (Tuple st (Cmd eff action))
+type Eval action returnType state = Either (Tuple (Maybe state) returnType) (Tuple state (Cmd action))
 ```
 
 #### `Cmd`
 
 ``` purescript
-type Cmd eff action = Array (Eff (ref :: REF, frp :: FRP, dom :: DOM | eff) action)
+type Cmd action = Array (Effect action)
+```
+
+#### `PrestoWidget`
+
+``` purescript
+newtype PrestoWidget a
+  = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget a))
+```
+
+##### Instances
+``` purescript
+Newtype (PrestoWidget a) _
 ```
 
 #### `IsProp`
@@ -88,6 +95,7 @@ IsProp Visibility
 IsProp Gravity
 IsProp Margin
 IsProp Padding
+IsProp Shadow
 ```
 
 
@@ -114,8 +122,8 @@ Functor Prop
 ``` purescript
 data VDom a w
   = Text String
-  | Elem (ElemSpec a) (Array (VDom a w))
-  | Keyed (ElemSpec a) (Array (Tuple String (VDom a w)))
+  | Elem (Maybe Namespace) ElemName a (Array (VDom a w))
+  | Keyed (Maybe Namespace) ElemName a (Array (Tuple String (VDom a w)))
   | Widget w
   | Grafted (Graft a w)
 ```
@@ -145,22 +153,6 @@ newtype Namespace
 Newtype Namespace _
 Eq Namespace
 Ord Namespace
-Generic Namespace
-```
-
-#### `ElemSpec`
-
-``` purescript
-data ElemSpec a
-  = ElemSpec (Maybe Namespace) ElemName a
-```
-
-##### Instances
-``` purescript
-(Eq a) => Eq (ElemSpec a)
-(Ord a) => Ord (ElemSpec a)
-(Generic a) => Generic (ElemSpec a)
-Functor ElemSpec
 ```
 
 #### `ElemName`
@@ -175,7 +167,6 @@ newtype ElemName
 Newtype ElemName _
 Eq ElemName
 Ord ElemName
-Generic ElemName
 ```
 
 ### Re-exported from PrestoDOM.Types.DomAttributes:
@@ -197,6 +188,13 @@ data Typeface
   | BOLD
   | ITALIC
   | BOLD_ITALIC
+```
+
+#### `Shadow`
+
+``` purescript
+data Shadow
+  = Shadow Number Number Number Number String Number
 ```
 
 #### `Padding`
@@ -277,6 +275,12 @@ renderVisibility :: Visibility -> String
 
 ``` purescript
 renderTypeface :: Typeface -> String
+```
+
+#### `renderShadow`
+
+``` purescript
+renderShadow :: Shadow -> String
 ```
 
 #### `renderPadding`

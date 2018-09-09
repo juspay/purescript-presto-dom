@@ -1,45 +1,39 @@
 ## Module PrestoDOM.Events
 
-#### `backPressHandlerImpl`
-
-``` purescript
-backPressHandlerImpl :: forall eff. PropEff eff
-```
-
-#### `event`
-
-``` purescript
-event :: forall a. EventType -> (Event -> Maybe a) -> Prop a
-```
-
-#### `makeEvent`
-
-``` purescript
-makeEvent :: forall eff a. (a -> PropEff eff) -> (Event -> PropEff eff)
-```
-
-#### `backPressHandler`
-
-``` purescript
-backPressHandler :: forall eff. (Event -> PropEff eff)
-```
-
 #### `onClick`
 
 ``` purescript
-onClick :: forall a eff. (a -> PropEff eff) -> (Unit -> a) -> Prop (PropEff eff)
+onClick :: forall a. (a -> Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
 ```
 
 #### `onChange`
 
 ``` purescript
-onChange :: forall a eff. (a -> PropEff eff) -> (String -> a) -> Prop (PropEff eff)
+onChange :: forall a. (a -> Effect Unit) -> (String -> a) -> Prop (Effect Unit)
+```
+
+#### `attachBackPress`
+
+``` purescript
+attachBackPress :: forall a. (a -> Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
+```
+
+#### `onMenuItemClick`
+
+``` purescript
+onMenuItemClick :: forall a. (a -> Effect Unit) -> (Int -> a) -> Prop (Effect Unit)
 ```
 
 #### `onBackPressed`
 
 ``` purescript
-onBackPressed :: forall a eff. (a -> PropEff eff) -> (Unit -> a) -> Prop (PropEff eff)
+onBackPressed :: forall a b. (a -> Effect Unit) -> (b -> a) -> Prop (Effect Unit)
+```
+
+#### `onNetworkChanged`
+
+``` purescript
+onNetworkChanged :: forall a b. (a -> Effect Unit) -> (b -> a) -> Prop (Effect Unit)
 ```
 
 

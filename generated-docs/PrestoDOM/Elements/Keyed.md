@@ -24,6 +24,36 @@ relativeLayout :: forall i p. KeyedNode (Prop i) p
 horizontalScrollView :: forall i p. KeyedNode (Prop i) p
 ```
 
+#### `listView`
+
+``` purescript
+listView :: forall i p. KeyedNode (Prop i) p
+```
+
+#### `frameLayout`
+
+``` purescript
+frameLayout :: forall i p. KeyedNode (Prop i) p
+```
+
+#### `shimmerFrameLayout`
+
+``` purescript
+shimmerFrameLayout :: forall i p. KeyedNode (Prop i) p
+```
+
+#### `tabLayout`
+
+``` purescript
+tabLayout :: forall i p. KeyedNode (Prop i) p
+```
+
+#### `viewPager`
+
+``` purescript
+viewPager :: forall i p. KeyedNode (Prop i) p
+```
+
 #### `scrollView`
 
 ``` purescript

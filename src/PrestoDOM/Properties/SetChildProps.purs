@@ -553,8 +553,8 @@ visibility_c = Tuple "visibility" <<< VisibilityP
 {-- type: 'f', --}
 {--           match_parent: -1, --}
 {--                 wrap_content: -2, --}
-weight_c :: String -> Tuple String GenProp
-weight_c = Tuple "weight" <<< StringP
+weight_c :: Number -> Tuple String GenProp
+weight_c = Tuple "weight" <<< NumberP
 
 width_c :: Length -> Tuple String GenProp
 width_c = Tuple "width" <<< LengthP

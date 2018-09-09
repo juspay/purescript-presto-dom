@@ -11,22 +11,18 @@ const callbackMapper = require("presto-ui").helpers.android.callbackMapper;
 window.callbackMapper = callbackMapper.map;
 
 
-exports.storeMachine = function(machine) {
-  return function(screen) {
-    return function() {
-      window.MACHINE = machine;
-      if (screen.value0)
-        window.MACHINE_MAP[screen.value0] = machine;
-    }
-  }
+
+exports.storeMachine = function(machine, screen) {
+  window.MACHINE = machine;
+  if (screen.value0)
+    window.MACHINE_MAP[screen.value0] = machine;
 }
 
 exports.getLatestMachine = function(screen) {
-  return function() {
-    if (screen.value0)
-      return window.MACHINE_MAP[screen.value0];
-    return window.MACHINE;
+  if (screen.value0) {
+    return window.MACHINE_MAP[screen.value0];
   }
+  return window.MACHINE;
 }
 
 
@@ -51,6 +47,7 @@ function domAll(elem) {
     children.push(domAll(elem.children[i]));
   }
 
+  // android specific code
   if (type == "viewPager" && window.__OS === "ANDROID") {
     const pages = children.splice(0);
     const id  = elem.__ref.__id;
@@ -186,50 +183,49 @@ function updateAttribute(element, attribute) {
 
 
 exports.setRootNode = function(nothing) {
-  return function () {
-    var root = {type: "relativeLayout", props: {root: "true"}, children: []};
+  var root = {type: "relativeLayout", props: {root: "true"}, children: []};
 
-    root.props.height = "match_parent";
-    root.props.width = "match_parent";
-    root.props.id = typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++;
-    root.type = "relativeLayout";
-    root.__ref = window.createPrestoElement();
+  root.props.height = "match_parent";
+  root.props.width = "match_parent";
+  root.props.id = typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++;
+  root.type = "relativeLayout";
+  root.__ref = window.createPrestoElement();
 
-    window.N = root;
-    window.__CACHELIMIT = 50;
-    window.__psNothing = nothing;
-    window.MACHINE_MAP = {};
-    window.shadowObject = {};
-    window.__stashScreen = [];
-    window.__CACHED_SCREEN = [];
-    window.__lastCachedScreen = {};
+  window.N = root;
+  window.__CACHELIMIT = 50;
+  window.__psNothing = nothing;
+  window.MACHINE_MAP = {};
+  window.__CANCELER = {};
+  // Android specific shadow.
+  window.shadowObject = {};
+
+  window.__stashScreen = [];
+  window.__CACHED_SCREEN = [];
+  window.__lastCachedScreen = {};
     // Screen nothing is used for stashing the screens without namespace.
-    window.__screenNothing = true;
-    window.__prevScreenName = nothing;
-    window.__currScreenName = nothing;
-    window.__ROOTSCREEN = {
-      idSet: {
-        root: root.props.id,
-        child: []
-      }
-    };
-
-    if(window.__OS == "ANDROID"){
-      if(typeof Android.getNewID == "function") {
-        Android.Render(JSON.stringify(domAll(root)), null, "false");
-      } else {
-        Android.Render(JSON.stringify(domAll(root)), null);
-      }
-    } else if (window.__OS == "WEB"){
-      Android.Render(domAll(root), null);
-    } else {
-      Android.Render(domAll(root), null);
+  window.__screenNothing = true;
+  window.__prevScreenName = nothing;
+  window.__currScreenName = nothing;
+  window.__ROOTSCREEN = {
+    idSet: {
+      root: root.props.id,
+      child: []
     }
+  };
 
-    return root;
-
+  if(window.__OS == "ANDROID"){
+    if(typeof Android.getNewID == "function") {
+      Android.Render(JSON.stringify(domAll(root)), null, "false");
+    } else {
+      Android.Render(JSON.stringify(domAll(root)), null);
+    }
+  } else if (window.__OS == "WEB"){
+    Android.Render(domAll(root), null);
+  } else {
+    Android.Render(domAll(root), null);
   }
 
+  return root;
 }
 
 exports.getRootNode = function() {
@@ -301,27 +297,25 @@ function screenIsInStack(screen) {
 }
 
 exports.saveScreenNameImpl = function(screen) {
-  return function() {
 
-    clearStash();
+  clearStash();
 
-    if (screen == window.__psNothing) {
-      window.__screenNothing = true;
-      return false;
+  if (screen == window.__psNothing) {
+    window.__screenNothing = true;
+    return false;
+  } else {
+    window.__screenNothing = false;
+
+    var cond = screenIsInStack(screen)
+
+    if (cond) {
+      hideCachedScreen();
+      return true;
     } else {
-      window.__screenNothing = false;
+      window.__prevScreenName = window.__currScreenName;
+      window.__currScreenName = screen;
 
-      var cond = screenIsInStack(screen)
-
-      if (cond) {
-        hideCachedScreen();
-        return true;
-      } else {
-        window.__prevScreenName = window.__currScreenName;
-        window.__currScreenName = screen;
-
-        return false;
-      }
+      return false;
     }
   }
 }
@@ -344,7 +338,6 @@ function screenIsCached(screen) {
         } else {
           Android.runInUI(webParseParams("relativeLayout", prop, "set"));
         }
-    
       }
 
       window.__lastCachedScreen.id = ar[i].id;
@@ -359,7 +352,6 @@ function screenIsCached(screen) {
 
 
 exports.cacheScreenImpl = function(screen) {
-  return function() {
 
     clearStash();
 
@@ -381,7 +373,6 @@ exports.cacheScreenImpl = function(screen) {
       //   return false;
       // }
     }
-  }
 }
 
 
@@ -402,10 +393,8 @@ exports.cacheScreenImpl = function(screen) {
 // }
 
 exports.emitter = function(a) {
-    return function() {
-      a();
-      console.log("Logger !!! : ",a);
-    }
+  a();
+  console.log("Logger !!! : ",a);
 }
 
 function hideCachedScreen() {
@@ -428,126 +417,135 @@ function hideCachedScreen() {
   }
 }
 
-function insertDom(root) {
-  return function (dom) {
-    return function () {
-      root.children.push(dom);
-      dom.parentNode = root;
-      dom.__ref = window.createPrestoElement();
-      window.N = root;
-
-      var rootId = window.__ROOTSCREEN.idSet.root;
-
-      dom.props.root = true;
-      if (window.__screenNothing) {
-        window.__stashScreen.push(dom.__ref.__id);
-        window.__screenNothing = false;
-      }
-      else {
-        var screenName = window.__currScreenName;
-
-        var length = window.__ROOTSCREEN.idSet.child.push({id: dom.__ref.__id, name: screenName});
-        if (length >= window.__CACHELIMIT) {
-          window.__ROOTSCREEN.idSet.child.shift();
-          length -= 1;
-        }
-
-        if (length >= 2) {
-          var prop = {
-              id: window.__ROOTSCREEN.idSet.child[length - 2].id,
-              visibility: "gone"
-          }
-
-          setTimeout(function() {
-            if (window.__OS == "ANDROID" && length > 1) {
-              var cmd = cmdForAndroid(prop, true, "relativeLayout");
-              Android.runInUI(cmd, null);
-            } else if (window.__OS == "IOS"  && length > 1){
-              Android.runInUI(prop);
-            } else if (length > 1) {
-              Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-            }
-          }, 1000);
-
-        }
-      }
-
-      if (window.__OS == "ANDROID") {
-        var callback = window.callbackMapper(executePostProcess);
-        Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length - 1, callback, null);
-      }
-      else {
-        Android.addViewToParent(rootId, domAll(dom), length - 1, null, null);
-      }
-
-      hideCachedScreen();
-
-    }
+exports.processWidget = function (){
+  if(window.widgets) {
+    window.widgets.forEach(function (obj) {
+      obj.fn(obj.id_)();
+    });
+    window.widgets = [];
   }
 }
 
-exports.updateDom = function (root) {
-  return function (dom) {
-    return function () {
-      root.children.push(dom);
-      dom.parentNode = root;
-      dom.__ref = window.createPrestoElement();
-      window.N = root;
+function insertDom(root, dom) {
+  root.children.push(dom);
+  dom.parentNode = root;
+  dom.__ref = window.createPrestoElement();
+  window.N = root;
 
-      var rootId = window.__ROOTSCREEN.idSet.root;
+  var rootId = window.__ROOTSCREEN.idSet.root;
 
-      var length = window.__ROOTSCREEN.idSet.child;
-      dom.props.root = true;
-      if (window.__screenNothing) {
-        window.__stashScreen.push(dom.__ref.__id);
-        window.__screenNothing = false;
+  dom.props.root = true;
+  if (window.__screenNothing) {
+    window.__stashScreen.push(dom.__ref.__id);
+    window.__screenNothing = false;
+  }
+  else {
+    var screenName = window.__currScreenName;
+
+    var length = window.__ROOTSCREEN.idSet.child.push({id: dom.__ref.__id, name: screenName});
+    if (length >= window.__CACHELIMIT) {
+      window.__ROOTSCREEN.idSet.child.shift();
+      length -= 1;
+    }
+
+    if (length >= 2) {
+      var prop = {
+          id: window.__ROOTSCREEN.idSet.child[length - 2].id,
+          visibility: "gone"
       }
-      else {
-        if (window.__lastCachedScreen.name && window.__lastCachedScreen.name != ""  ){
-          var prop = {
-            id: window.__lastCachedScreen.id,
-            visibility: "gone"
-          }
-          if (window.__OS == "ANDROID") {
-            var cmd = cmdForAndroid(prop, true, "relativeLayout");
-            Android.runInUI(cmd, null);
-          } else if (window.__OS == "IOS"){
-            Android.runInUI(prop);
-          } else {
-            Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-          }
-      
+
+      setTimeout(function() {
+        if (window.__OS == "ANDROID" && length > 1) {
+          var cmd = cmdForAndroid(prop, true, "relativeLayout");
+          Android.runInUI(cmd, null);
+        } else if (window.__OS == "IOS"  && length > 1){
+          Android.runInUI(prop);
+        } else if (length > 1) {
+          Android.runInUI(webParseParams("relativeLayout", prop, "set"));
         }
-        window.__lastCachedScreen.id = dom.__ref.__id;
-        window.__lastCachedScreen.flag = true;
-        var screenName = window.__lastCachedScreen.name;
-
-
-        window.__CACHED_SCREEN.push({id: dom.__ref.__id, name: screenName});
-      }
-
-      if (window.__OS == "ANDROID") {
-        var callback = window.callbackMapper(executePostProcess);
-        Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length, callback, null);
-      }
-      else {
-        Android.addViewToParent(rootId, domAll(dom), length, null, null);
-      }
+      }, 1000);
 
     }
   }
+
+  if (window.__OS == "ANDROID") {
+    var callback = window.callbackMapper(executePostProcess);
+    Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length - 1, callback, null);
+  }
+  else {
+    Android.addViewToParent(rootId, domAll(dom), length - 1, null, null);
+  }
+
+  hideCachedScreen();
+
+}
+
+
+
+exports.updateDom = function (root, dom) {
+  root.children.push(dom);
+  dom.parentNode = root;
+  dom.__ref = window.createPrestoElement();
+  window.N = root;
+
+  var rootId = window.__ROOTSCREEN.idSet.root;
+
+  var length = window.__ROOTSCREEN.idSet.child;
+  dom.props.root = true;
+  if (window.__screenNothing) {
+    window.__stashScreen.push(dom.__ref.__id);
+    window.__screenNothing = false;
+  }
+  else {
+    if (window.__lastCachedScreen.name && window.__lastCachedScreen.name != ""  ){
+      var prop = {
+        id: window.__lastCachedScreen.id,
+        visibility: "gone"
+      }
+      if (window.__OS == "ANDROID") {
+        var cmd = cmdForAndroid(prop, true, "relativeLayout");
+        Android.runInUI(cmd, null);
+      } else if (window.__OS == "IOS"){
+        Android.runInUI(prop);
+      } else {
+        Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+      }
+    }
+    window.__lastCachedScreen.id = dom.__ref.__id;
+    window.__lastCachedScreen.flag = true;
+    var screenName = window.__lastCachedScreen.name;
+
+
+    window.__CACHED_SCREEN.push({id: dom.__ref.__id, name: screenName});
+  }
+
+  if (window.__OS == "ANDROID") {
+    var callback = window.callbackMapper(executePostProcess);
+    Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length, callback, null);
+  }
+  else {
+    Android.addViewToParent(rootId, domAll(dom), length, null, null);
+  }
+
 }
 
 var executePostProcess = function () {
-  for (var tag in window.shadowObject) {
-    JBridge.setShadow(window.shadowObject[tag]["level"],
-                      JSON.stringify(window.shadowObject[tag]["viewId"]),
-                      JSON.stringify(window.shadowObject[tag]["backgroundColor"]),
-                      JSON.stringify(window.shadowObject[tag]["blurValue"]),
-                      JSON.stringify(window.shadowObject[tag]["shadowColor"]),
-                      JSON.stringify(window.shadowObject[tag]["dx"]),
-                      JSON.stringify(window.shadowObject[tag]["dy"]),
-                      JSON.stringify(window.shadowObject[tag]["spread"]),
-                      JSON.stringify(window.shadowObject[tag]["factor"]));
-  }
+
+    // Android specific code for shadow support. <Experimental>
+
+    if (JBridge && JBridge.setShadow) {
+      for (var tag in window.shadowObject) {
+        JBridge.setShadow(window.shadowObject[tag]["level"],
+                          JSON.stringify(window.shadowObject[tag]["viewId"]),
+                          JSON.stringify(window.shadowObject[tag]["backgroundColor"]),
+                          JSON.stringify(window.shadowObject[tag]["blurValue"]),
+                          JSON.stringify(window.shadowObject[tag]["shadowColor"]),
+                          JSON.stringify(window.shadowObject[tag]["dx"]),
+                          JSON.stringify(window.shadowObject[tag]["dy"]),
+                          JSON.stringify(window.shadowObject[tag]["spread"]),
+                          JSON.stringify(window.shadowObject[tag]["factor"]));
+      }
+    } else {
+      console.warn("experimental feature: JBridge is not available in native");
+    }
 }
