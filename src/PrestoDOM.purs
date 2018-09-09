@@ -7,7 +7,7 @@ module PrestoDOM
     , module Utils
     ) where
 
-import PrestoDOM.Core (mapDom, runScreen, showScreen) as PrestoDOM
+import PrestoDOM.Core (mapDom, runScreen, showScreen, initUI, initUIWithScreen) as PrestoDOM
 import PrestoDOM.Events as Events
 import PrestoDOM.Utils (continue, continueWithCmd, updateAndExit, exit) as Utils
 import PrestoDOM.Elements.Elements as Elements
