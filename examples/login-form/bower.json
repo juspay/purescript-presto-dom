@@ -1,0 +1,18 @@
+{
+  "name": "login-form",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-prelude": "^4.0.0",
+    "purescript-console": "^4.1.0",
+    "purescript-presto-dom": "https://bitbucket.org/juspay/purescript-presto-dom.git#master",
+    "purescript-aff": "^5.0.0"
+  },
+  "devDependencies": {
+    "purescript-psci-support": "^4.0.0"
+  }
+}
