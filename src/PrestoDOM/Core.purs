@@ -1,6 +1,8 @@
 module PrestoDOM.Core
    ( runScreen
    , showScreen
+   , initUI
+   , initUIWithScreen
    , mapDom
    ) where
 

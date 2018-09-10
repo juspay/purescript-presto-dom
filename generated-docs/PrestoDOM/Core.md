@@ -12,6 +12,18 @@ runScreen :: forall action state returnType. Screen action state returnType -> (
 showScreen :: forall action state returnType. Screen action state returnType -> (Either Error returnType -> Effect Unit) -> Effect Canceler
 ```
 
+#### `initUI`
+
+``` purescript
+initUI :: (Either Error Unit -> Effect Unit) -> Effect Canceler
+```
+
+#### `initUIWithScreen`
+
+``` purescript
+initUIWithScreen :: forall action state. Screen action state Unit -> (Either Error Unit -> Effect Unit) -> Effect Canceler
+```
+
 #### `mapDom`
 
 ``` purescript
