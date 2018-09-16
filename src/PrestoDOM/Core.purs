@@ -4,6 +4,7 @@ module PrestoDOM.Core
    , initUI
    , initUIWithScreen
    , mapDom
+   , renderWidget
    ) where
 
 import Prelude
@@ -13,6 +14,7 @@ import Effect.Aff (Canceler, Error, nonCanceler)
 import Data.Newtype (un)
 import Effect.Uncurried as EFn
 import Web.DOM.Document (Document) as DOM
+import Web.DOM.Node (Node) as DOM
 import Data.Either (Either(..), either)
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
@@ -60,6 +62,7 @@ foreign import insertDom :: forall a b. EFn.EffectFn2 a b Unit
 foreign import updateDom :: forall a b. EFn.EffectFn2 a b Unit
 
 foreign import processWidget :: Effect Unit
+foreign import renderWidget :: EFn.EffectFn1 (EFn.EffectFn1 Int Unit) DOM.Node
 
 foreign import saveScreenNameImpl
     :: EFn.EffectFn1

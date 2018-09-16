@@ -426,6 +426,17 @@ exports.processWidget = function (){
   }
 }
 
+exports.renderWidget = function(renderfn) {
+  if(!window.widgets) {
+      window.widgets = [];
+    }
+
+  var n = window.createPrestoElement();
+
+  window.widgets.push({fn: renderFn, id_: n.__id - 1});
+  return {type: "relativeLayout", props: {height: "match_parent", width: "match_parent"}, children:  [], __ref: n};
+}
+
 function insertDom(root, dom) {
   root.children.push(dom);
   dom.parentNode = root;
