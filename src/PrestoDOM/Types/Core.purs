@@ -29,9 +29,10 @@ import Halogen.VDom.Types (VDom(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
 import PrestoDOM.Types.DomAttributes (Gravity, InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, Shadow, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility, renderShadow)
 import PrestoDOM.Types.DomAttributes (Gravity(..), InputType(..), Length(..), Margin(..), Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility) as Types
+import Web.DOM.Node (Node) as DOM
 {-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
 
-newtype PrestoWidget a = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget a))
+newtype PrestoWidget a = PrestoWidget (VDom (Array (Prop (Effect Unit))) (Effect a))
 
 derive instance newtypePrestoWidget ∷ Newtype (PrestoWidget a) _
 
@@ -61,7 +62,7 @@ data GenProp
 
 type Screen action state returnType =
   { initialState :: state
-  , view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
+  , view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget DOM.Node)
   , eval :: action -> state -> Eval action returnType state
   }
 

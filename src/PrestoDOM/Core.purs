@@ -25,7 +25,7 @@ import FRP.Event (subscribe)
 import FRP.Event as E
 import Halogen.VDom (VDomSpec(VDomSpec), buildVDom)
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
-import Halogen.VDom.Machine (Step, step, extract)
+import Halogen.VDom.Machine (Machine, Step, step, extract)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
 import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..))
 import PrestoDOM.Utils (continue)
@@ -75,9 +75,9 @@ foreign import cacheScreenImpl
         (Maybe Namespace)
         Boolean
 
-spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
+spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget DOM.Node)
 spec document =  VDomSpec {
-      buildWidget : buildThunk (un PrestoWidget)
+      buildWidget : (buildThunk (un PrestoWidget) :: VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget DOM.Node) -> Machine (Thunk PrestoWidget DOM.Node) DOM.Node)
     , buildAttributes: buildProp logger
     , document : document
     }
