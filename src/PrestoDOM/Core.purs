@@ -17,17 +17,18 @@ import Web.DOM.Document (Document) as DOM
 import Web.DOM.Node (Node) as DOM
 import Data.Either (Either(..), either)
 import Data.Foldable (for_)
+import Data.Function.Uncurried (runFn2)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..), fst)
 import Foreign.Object as Object
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
 import FRP.Event as E
-import Halogen.VDom (VDomSpec(VDomSpec), buildVDom)
+import Halogen.VDom (VDomSpec(VDomSpec), buildVDom, VDom(Widget))
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
 import Halogen.VDom.Machine (Machine, Step, step, extract)
-import Halogen.VDom.Thunk (Thunk, buildThunk)
-import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..))
+import Halogen.VDom.Thunk (Thunk, buildThunk, thunk1)
+import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace)
 import PrestoDOM.Utils (continue)
 
 foreign import emitter
@@ -75,9 +76,9 @@ foreign import cacheScreenImpl
         (Maybe Namespace)
         Boolean
 
-spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget DOM.Node)
+spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk Effect DOM.Node)
 spec document =  VDomSpec {
-      buildWidget : (buildThunk (un PrestoWidget) :: VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget DOM.Node) -> Machine (Thunk PrestoWidget DOM.Node) DOM.Node)
+      buildWidget : buildThunk (\effect -> Widget $ runFn2 thunk1 (const effect) unit)
     , buildAttributes: buildProp logger
     , document : document
     }
