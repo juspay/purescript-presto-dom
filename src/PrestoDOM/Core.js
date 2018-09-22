@@ -405,6 +405,8 @@ function hideCachedScreen() {
         visibility: "gone"
     }
 
+    window.__lastCachedScreen.name = "";
+
     if (window.__OS == "ANDROID") {
       var cmd = cmdForAndroid(prop, true, "relativeLayout");
       Android.runInUI(cmd, null);
