@@ -32,7 +32,7 @@ exports.getLatestMachine = function(screen) {
 
 exports.insertDom = insertDom;
 
-window.__PRESTO_ID =  typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : 1;
+window.__PRESTO_ID = window.__ui_id_sequence = typeof Android.getNewID == "function" ? parseInt(Android.getNewID()) * 1000000 : 1;
 
 function domAll(elem) {
   if (!elem.__ref) {
@@ -139,10 +139,14 @@ window.updateProperty = updateAttribute;
 window.addAttribute = addAttribute;
 window.insertDom = insertDom;
 window.createPrestoElement = function () {
-  return {
-    __id: typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++
-  };
-}
+    if(typeof(window.__ui_id_sequence) != "undefined" && window.__ui_id_sequence != null) {
+        return { __id : ++window.__ui_id_sequence };
+    } else {
+        window.__ui_id_sequence = typeof Android.getNewID == "function" ? parseInt(Android.getNewID()) * 1000000 : window.__PRESTO_ID ;
+        return { __id : ++window.__ui_id_sequence };
+    }
+};
+
 window.__screenSubs = {};
 
 function removeChild(child, parent, index) {
@@ -193,7 +197,7 @@ exports.setRootNode = function(nothing) {
 
     root.props.height = "match_parent";
     root.props.width = "match_parent";
-    root.props.id = typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++;
+    root.props.id = window.createPrestoElement().__id;
     root.type = "relativeLayout";
     root.__ref = window.createPrestoElement();
 
