@@ -140,10 +140,10 @@ window.addAttribute = addAttribute;
 window.insertDom = insertDom;
 window.createPrestoElement = function () {
     if(typeof(window.__ui_id_sequence) != "undefined" && window.__ui_id_sequence != null) {
-        return { __id : window.__ui_id_sequence++ };
+        return { __id : ++window.__ui_id_sequence };
     } else {
         window.__ui_id_sequence = typeof Android.getNewID == "function" ? parseInt(Android.getNewID()) * 1000000 : window.__PRESTO_ID ;
-        return { __id : window.__ui_id_sequence++ };
+        return { __id : ++window.__ui_id_sequence };
     }
 };
 
@@ -197,7 +197,7 @@ exports.setRootNode = function(nothing) {
 
     root.props.height = "match_parent";
     root.props.width = "match_parent";
-    root.props.id = window.createPrestoElement();
+    root.props.id = window.createPrestoElement().__id;
     root.type = "relativeLayout";
     root.__ref = window.createPrestoElement();
 
