@@ -198,9 +198,10 @@ exports.setRootNode = function(nothing) {
 
     root.props.height = "match_parent";
     root.props.width = "match_parent";
-    root.props.id = window.createPrestoElement().__id;
+    var elemRef = window.createPrestoElement();
+    root.props.id = elemRef.__id;
     root.type = "relativeLayout";
-    root.__ref = window.createPrestoElement();
+    root.__ref = elemRef;
 
     window.N = root;
     window.__CACHELIMIT = 50;
