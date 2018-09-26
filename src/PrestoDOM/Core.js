@@ -73,10 +73,11 @@ function domAll(elem) {
 
 function cmdForAndroid(config, set, type) {
   if (set) {
-    if (config.id)
-    {
+    if (config.id) {
       var cmd = parseParams(type, config, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
       cmd = cmd.replace(/PARAM_CTR_HOLDER[^;]*/g, "get_view->getLayoutParams;");
+    } else {
+      console.error("ID null, this is not supposed to happen. Debug this or/and raise a issue in bitbucket.");
     }
     return cmd;
   }
@@ -504,14 +505,14 @@ exports.updateDom = function (root) {
 
       var rootId = window.__ROOTSCREEN.idSet.root;
 
-      var length = window.__ROOTSCREEN.idSet.child;
+      var length = window.__ROOTSCREEN.idSet.child.length;
       dom.props.root = true;
       if (window.__screenNothing) {
         window.__stashScreen.push(dom.__ref.__id);
         window.__screenNothing = false;
       }
       else {
-        if (window.__lastCachedScreen.name && window.__lastCachedScreen.name != ""  ){
+        if (window.__lastCachedScreen.id && window.__lastCachedScreen.name && window.__lastCachedScreen.name != ""  ){
           var prop = {
             id: window.__lastCachedScreen.id,
             visibility: "gone"
