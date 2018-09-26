@@ -32,7 +32,7 @@ exports.getLatestMachine = function(screen) {
 
 exports.insertDom = insertDom;
 
-window.__PRESTO_ID =  typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : 1;
+window.__PRESTO_ID = window.__ui_id_sequence = typeof Android.getNewID == "function" ? parseInt(Android.getNewID()) * 1000000 : 1;
 
 function domAll(elem) {
   if (!elem.__ref) {
@@ -73,9 +73,12 @@ function domAll(elem) {
 
 function cmdForAndroid(config, set, type) {
   if (set) {
-    var cmd = parseParams(type, config, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
-    cmd = cmd.replace(/PARAM_CTR_HOLDER[^;]*/g, "get_view->getLayoutParams;");
-
+    if (config.id) {
+      var cmd = parseParams(type, config, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
+      cmd = cmd.replace(/PARAM_CTR_HOLDER[^;]*/g, "get_view->getLayoutParams;");
+    } else {
+      console.error("ID null, this is not supposed to happen. Debug this or/and raise a issue in bitbucket.");
+    }
     return cmd;
   }
 
@@ -137,10 +140,14 @@ window.updateProperty = updateAttribute;
 window.addAttribute = addAttribute;
 window.insertDom = insertDom;
 window.createPrestoElement = function () {
-  return {
-    __id: typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++
-  };
-}
+    if(typeof(window.__ui_id_sequence) != "undefined" && window.__ui_id_sequence != null) {
+        return { __id : ++window.__ui_id_sequence };
+    } else {
+        window.__ui_id_sequence = typeof Android.getNewID == "function" ? parseInt(Android.getNewID()) * 1000000 : window.__PRESTO_ID ;
+        return { __id : ++window.__ui_id_sequence };
+    }
+};
+
 window.__screenSubs = {};
 
 function removeChild(child, parent, index) {
@@ -191,9 +198,10 @@ exports.setRootNode = function(nothing) {
 
     root.props.height = "match_parent";
     root.props.width = "match_parent";
-    root.props.id = typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++;
+    var elemRef = window.createPrestoElement();
+    root.props.id = elemRef.__id;
     root.type = "relativeLayout";
-    root.__ref = window.createPrestoElement();
+    root.__ref = elemRef;
 
     window.N = root;
     window.__CACHELIMIT = 50;
@@ -498,14 +506,14 @@ exports.updateDom = function (root) {
 
       var rootId = window.__ROOTSCREEN.idSet.root;
 
-      var length = window.__ROOTSCREEN.idSet.child;
+      var length = window.__ROOTSCREEN.idSet.child.length;
       dom.props.root = true;
       if (window.__screenNothing) {
         window.__stashScreen.push(dom.__ref.__id);
         window.__screenNothing = false;
       }
       else {
-        if (window.__lastCachedScreen.name && window.__lastCachedScreen.name != ""  ){
+        if (window.__lastCachedScreen.id && window.__lastCachedScreen.name && window.__lastCachedScreen.name != ""  ){
           var prop = {
             id: window.__lastCachedScreen.id,
             visibility: "gone"
