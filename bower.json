@@ -11,7 +11,7 @@
     "purescript-effect": "^2.0.0",
     "purescript-aff": "^5.0.0",
     "purescript-either": "^4.0.0",
-    "purescript-halogen-vdom": "https://github.com/juspay/purescript-halogen-vdom.git#compiler/0.12",
+    "purescript-halogen-vdom": "https://github.com/nlander/purescript-halogen-vdom.git#exposeThunkFeatures",
     "purescript-behaviors": "^7.0.0",
     "purescript-event": "^1.2.4",
     "purescript-maybe": "^4.0.0"

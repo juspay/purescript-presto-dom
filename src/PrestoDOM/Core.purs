@@ -10,6 +10,7 @@ module PrestoDOM.Core
 import Prelude
 
 import Effect (Effect)
+import Effect.Uncurried (mkEffectFn1, mkEffectFn2)
 import Effect.Aff (Canceler, Error, nonCanceler)
 import Data.Newtype (un)
 import Effect.Uncurried as EFn
@@ -26,8 +27,8 @@ import FRP.Event (subscribe)
 import FRP.Event as E
 import Halogen.VDom (VDomSpec(VDomSpec), buildVDom, VDom(Widget))
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
-import Halogen.VDom.Machine (Machine, Step, step, extract)
-import Halogen.VDom.Thunk (Thunk, buildThunk, thunk1)
+import Halogen.VDom.Machine (Machine, Step, Step'(Step), step, extract, mkStep)
+import Halogen.VDom.Thunk (Thunk, unsafeEqThunk, thunk1, runThunk)
 import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace)
 import PrestoDOM.Utils (continue)
 
@@ -76,9 +77,25 @@ foreign import cacheScreenImpl
         (Maybe Namespace)
         Boolean
 
+buildWidget
+  :: VDomSpec (Array (Prop (Effect Unit))) (Thunk Effect DOM.Node)
+  -> Machine (Thunk Effect DOM.Node) DOM.Node
+buildWidget _ = mkEffectFn1 $
+  \t -> do
+    node <- runThunk t
+    pure <<< mkStep $ Step node t (patch node) halt
+  where
+    halt = mkEffectFn1 <<< const $ pure unit
+    patch n = mkEffectFn2 $ \oldThunk newThunk ->
+      if runFn2 unsafeEqThunk oldThunk newThunk
+        then pure <<< mkStep $ Step n oldThunk (patch n) halt
+        else do
+          newNode <- runThunk newThunk
+          pure <<< mkStep $ Step newNode newThunk (patch newNode) halt
+
 spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk Effect DOM.Node)
 spec document =  VDomSpec {
-      buildWidget : buildThunk (\effect -> Widget $ runFn2 thunk1 (const effect) unit)
+      buildWidget
     , buildAttributes: buildProp logger
     , document : document
     }
