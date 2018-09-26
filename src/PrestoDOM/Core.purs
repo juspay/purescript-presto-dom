@@ -161,12 +161,12 @@ getScreenName :: forall a w eff. VDom a w -> Eff eff (Maybe Namespace)
 getScreenName (Elem (ElemSpec screen _ _) _) = pure screen
 getScreenName _ = pure Nothing
 
-compareScreen :: forall a w eff. Maybe Namespace -> Eff eff Boolean
+compareScreen :: forall eff. Maybe Namespace -> Eff eff Boolean
 compareScreen screen = do
     bool <- saveScreenNameImpl screen
     pure bool
 
-checkCachedScreen :: forall a w eff. Maybe Namespace -> Eff eff Boolean
+checkCachedScreen :: forall eff. Maybe Namespace -> Eff eff Boolean
 checkCachedScreen screen = do
     bool <- cacheScreenImpl screen
     pure bool
