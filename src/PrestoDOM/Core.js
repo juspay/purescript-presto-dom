@@ -54,14 +54,15 @@ function domAll(elem) {
   if (type == "viewPager" && window.__OS === "ANDROID") {
     const pages = children.splice(0);
     const id  = elem.__ref.__id;
+    const cardWidth = elem.props.cardWidth || 1.0;
     props.afterRender = function () {
-      var cardWidth = 0.8;
       var plusButtonWidth = 0.2;
       if (pages.length == 1) {
         plusButtonWidth = 0.8;
       }
       JBridge.viewPagerAdapter(id, JSON.stringify(pages), cardWidth, plusButtonWidth);
     }
+    delete elem.props.cardWidth;
   }
 
   props.id = elem.__ref.__id;

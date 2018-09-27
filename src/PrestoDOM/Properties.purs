@@ -19,6 +19,7 @@ module PrestoDOM.Properties
     , btnColor
     , buttonTint
 
+    , cardWidth
     , checked
     , clickable
     , clipChildren
@@ -194,6 +195,8 @@ buttonTint :: forall i. String -> Prop i
 buttonTint = prop (PropName "buttonTint")
 
 
+cardWidth :: forall i. Number -> Prop i
+cardWidth = prop (PropName "cardWidth")
 
 -- | Boolean
 checked :: forall i. Boolean -> Prop i
