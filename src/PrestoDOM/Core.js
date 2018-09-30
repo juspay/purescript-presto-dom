@@ -426,7 +426,7 @@ exports.processWidget = function (){
   }
 }
 
-exports.renderWidget = function(renderfn) {
+exports.renderWidget = function(renderFn) {
   if(!window.widgets) {
       window.widgets = [];
     }
