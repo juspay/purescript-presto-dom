@@ -341,9 +341,10 @@ function screenIsCached(screen) {
     if (ar[i].name.value0 == screen.value0) {
       makeVisible(true, ar[i].id);
       if (window.__lastCachedScreen.name && window.__lastCachedScreen.name != ""  ){
+        var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
         var prop = {
           id: window.__lastCachedScreen.id,
-          visibility: "gone"
+          visibility: __visibility
         }
         if (window.__OS == "ANDROID") {
           var cmd = cmdForAndroid(prop, true, "relativeLayout");
@@ -420,9 +421,10 @@ exports.emitter = function(a) {
 function hideCachedScreen() {
   if (window.__lastCachedScreen.flag) {
     window.__lastCachedScreen.flag = false;
+    var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
     var prop = {
         id: window.__lastCachedScreen.id,
-        visibility: "gone"
+        visibility: __visibility
     }
 
     window.__lastCachedScreen.name = "";
@@ -464,9 +466,10 @@ function insertDom(root) {
         }
 
         if (length >= 2) {
+          var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
           var prop = {
               id: window.__ROOTSCREEN.idSet.child[length - 2].id,
-              visibility: "gone"
+              visibility: __visibility
           }
 
           setTimeout(function() {
@@ -515,9 +518,10 @@ exports.updateDom = function (root) {
       }
       else {
         if (window.__lastCachedScreen.id && window.__lastCachedScreen.name && window.__lastCachedScreen.name != ""  ){
+          var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
           var prop = {
             id: window.__lastCachedScreen.id,
-            visibility: "gone"
+            visibility: __visibility
           }
           if (window.__OS == "ANDROID") {
             var cmd = cmdForAndroid(prop, true, "relativeLayout");
