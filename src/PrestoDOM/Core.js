@@ -554,6 +554,14 @@ exports.updateDom = function (root) {
 }
 
 var executePostProcess = function () {
+
+  if(window.__dui_screen && window["afterRender"]) {
+    for (var tag in window["afterRender"][window.__dui_screen]) {
+      window["afterRender"][window.__dui_screen][tag]()();
+    }
+  }
+
+
   for (var tag in window.shadowObject) {
     JBridge.setShadow(window.shadowObject[tag]["level"],
                       JSON.stringify(window.shadowObject[tag]["viewId"]),
