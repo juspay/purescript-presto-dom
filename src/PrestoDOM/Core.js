@@ -557,7 +557,12 @@ var executePostProcess = function () {
 
   if(window.__dui_screen && window["afterRender"]) {
     for (var tag in window["afterRender"][window.__dui_screen]) {
-      window["afterRender"][window.__dui_screen][tag]()();
+      try {
+        window["afterRender"][window.__dui_screen][tag]()();
+      }
+      catch (err) {
+        console.warn(err);
+      }
     }
   }
 
