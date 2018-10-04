@@ -1,5 +1,6 @@
 module PrestoDOM.Types.DomAttributes
     ( Gravity(..)
+    , Gradient(..)
     , InputType(..)
     , Length(..)
     , Orientation(..)
@@ -11,6 +12,7 @@ module PrestoDOM.Types.DomAttributes
     , renderMargin
     , renderPadding
     , renderGravity
+    , renderGradient
     , renderInputType
     , renderLength
     , renderOrientation
@@ -20,6 +22,9 @@ module PrestoDOM.Types.DomAttributes
     ) where
 
 import Prelude (show, (<>))
+import Data.Function.Uncurried (Fn3, runFn3)
+
+foreign import stringifyGradient :: Fn3 String Number (Array String) String
 
 data Length
     = MATCH_PARENT
@@ -201,6 +206,15 @@ renderGravity = case _ of
     TOP_VERTICAL -> "top_vertical"
     START -> "start"
     END -> "end"
+
+data Gradient
+  = Radial (Array String)
+  | Linear Number (Array String)
+
+renderGradient :: Gradient -> String
+renderGradient = case _ of
+  Radial arr       -> runFn3 stringifyGradient "radial" 0.0 arr
+  Linear angle arr -> runFn3 stringifyGradient "linear" angle arr
 
 
 data Shadow = Shadow Number Number Number Number String Number
