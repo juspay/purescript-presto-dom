@@ -503,7 +503,7 @@ exports.updateDom = function (root, dom) {
 
   var rootId = window.__ROOTSCREEN.idSet.root;
 
-  var length = window.__ROOTSCREEN.idSet.child;
+  var length = window.__ROOTSCREEN.idSet.child.length;
   dom.props.root = true;
   if (window.__screenNothing) {
     window.__stashScreen.push(dom.__ref.__id);
