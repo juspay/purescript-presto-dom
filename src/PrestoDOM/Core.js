@@ -28,7 +28,7 @@ exports.getLatestMachine = function(screen) {
 
 exports.insertDom = insertDom;
 
-window.__PRESTO_ID =  typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : 1;
+window.__PRESTO_ID = window.__ui_id_sequence = typeof Android.getNewID == "function" ? parseInt(Android.getNewID()) * 1000000 : 1;
 
 function domAll(elem) {
   if (!elem.__ref) {
@@ -51,14 +51,15 @@ function domAll(elem) {
   if (type == "viewPager" && window.__OS === "ANDROID") {
     const pages = children.splice(0);
     const id  = elem.__ref.__id;
+    const cardWidth = elem.props.cardWidth || 1.0;
     props.afterRender = function () {
-      var cardWidth = 0.8;
       var plusButtonWidth = 0.2;
       if (pages.length == 1) {
         plusButtonWidth = 0.8;
       }
       JBridge.viewPagerAdapter(id, JSON.stringify(pages), cardWidth, plusButtonWidth);
     }
+    delete elem.props.cardWidth;
   }
 
   props.id = elem.__ref.__id;
@@ -70,9 +71,12 @@ function domAll(elem) {
 
 function cmdForAndroid(config, set, type) {
   if (set) {
-    var cmd = parseParams(type, config, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
-    cmd = cmd.replace(/PARAM_CTR_HOLDER[^;]*/g, "get_view->getLayoutParams;");
-
+    if (config.id) {
+      var cmd = parseParams(type, config, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
+      cmd = cmd.replace(/PARAM_CTR_HOLDER[^;]*/g, "get_view->getLayoutParams;");
+    } else {
+      console.error("ID null, this is not supposed to happen. Debug this or/and raise a issue in bitbucket.");
+    }
     return cmd;
   }
 
@@ -134,10 +138,14 @@ window.updateProperty = updateAttribute;
 window.addAttribute = addAttribute;
 window.insertDom = insertDom;
 window.createPrestoElement = function () {
-  return {
-    __id: typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++
-  };
-}
+    if(typeof(window.__ui_id_sequence) != "undefined" && window.__ui_id_sequence != null) {
+        return { __id : ++window.__ui_id_sequence };
+    } else {
+        window.__ui_id_sequence = typeof Android.getNewID == "function" ? parseInt(Android.getNewID()) * 1000000 : window.__PRESTO_ID ;
+        return { __id : ++window.__ui_id_sequence };
+    }
+};
+
 window.__screenSubs = {};
 
 function removeChild(child, parent, index) {
@@ -187,9 +195,10 @@ exports.setRootNode = function(nothing) {
 
   root.props.height = "match_parent";
   root.props.width = "match_parent";
-  root.props.id = typeof Android.getNewID == "function" ?  parseInt(Android.getNewID()) : window.__PRESTO_ID++;
+  var elemRef = window.createPrestoElement();
+  root.props.id = elemRef.__id;
   root.type = "relativeLayout";
-  root.__ref = window.createPrestoElement();
+  root.__ref = elemRef;
 
   window.N = root;
   window.__CACHELIMIT = 50;
@@ -326,9 +335,10 @@ function screenIsCached(screen) {
     if (ar[i].name.value0 == screen.value0) {
       makeVisible(true, ar[i].id);
       if (window.__lastCachedScreen.name && window.__lastCachedScreen.name != ""  ){
+        var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
         var prop = {
           id: window.__lastCachedScreen.id,
-          visibility: "gone"
+          visibility: __visibility
         }
         if (window.__OS == "ANDROID") {
           var cmd = cmdForAndroid(prop, true, "relativeLayout");
@@ -400,9 +410,10 @@ exports.emitter = function(a) {
 function hideCachedScreen() {
   if (window.__lastCachedScreen.flag) {
     window.__lastCachedScreen.flag = false;
+    var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
     var prop = {
         id: window.__lastCachedScreen.id,
-        visibility: "gone"
+        visibility: __visibility
     }
 
     window.__lastCachedScreen.name = "";
@@ -451,9 +462,10 @@ function insertDom(root, dom) {
     }
 
     if (length >= 2) {
+      var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
       var prop = {
           id: window.__ROOTSCREEN.idSet.child[length - 2].id,
-          visibility: "gone"
+          visibility: __visibility
       }
 
       setTimeout(function() {
@@ -483,7 +495,6 @@ function insertDom(root, dom) {
 }
 
 
-
 exports.updateDom = function (root, dom) {
   root.children.push(dom);
   dom.parentNode = root;
@@ -499,10 +510,11 @@ exports.updateDom = function (root, dom) {
     window.__screenNothing = false;
   }
   else {
-    if (window.__lastCachedScreen.name && window.__lastCachedScreen.name != ""  ){
+    if (window.__lastCachedScreen.id && window.__lastCachedScreen.name && window.__lastCachedScreen.name != ""  ){
+      var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
       var prop = {
         id: window.__lastCachedScreen.id,
-        visibility: "gone"
+        visibility: __visibility
       }
       if (window.__OS == "ANDROID") {
         var cmd = cmdForAndroid(prop, true, "relativeLayout");
@@ -533,21 +545,30 @@ exports.updateDom = function (root, dom) {
 
 var executePostProcess = function () {
 
-    // Android specific code for shadow support. <Experimental>
-
-    if (JBridge && JBridge.setShadow) {
-      for (var tag in window.shadowObject) {
-        JBridge.setShadow(window.shadowObject[tag]["level"],
-                          JSON.stringify(window.shadowObject[tag]["viewId"]),
-                          JSON.stringify(window.shadowObject[tag]["backgroundColor"]),
-                          JSON.stringify(window.shadowObject[tag]["blurValue"]),
-                          JSON.stringify(window.shadowObject[tag]["shadowColor"]),
-                          JSON.stringify(window.shadowObject[tag]["dx"]),
-                          JSON.stringify(window.shadowObject[tag]["dy"]),
-                          JSON.stringify(window.shadowObject[tag]["spread"]),
-                          JSON.stringify(window.shadowObject[tag]["factor"]));
+  if(window.__dui_screen && window["afterRender"]) {
+    for (var tag in window["afterRender"][window.__dui_screen]) {
+      try {
+        window["afterRender"][window.__dui_screen][tag]()();
       }
-    } else {
-      console.warn("experimental feature: JBridge is not available in native");
+      catch (err) {
+        console.warn(err);
+      }
     }
+  }
+
+  if (JBridge && JBridge.setShadow) {
+    for (var tag in window.shadowObject) {
+      JBridge.setShadow(window.shadowObject[tag]["level"],
+                        JSON.stringify(window.shadowObject[tag]["viewId"]),
+                        JSON.stringify(window.shadowObject[tag]["backgroundColor"]),
+                        JSON.stringify(window.shadowObject[tag]["blurValue"]),
+                        JSON.stringify(window.shadowObject[tag]["shadowColor"]),
+                        JSON.stringify(window.shadowObject[tag]["dx"]),
+                        JSON.stringify(window.shadowObject[tag]["dy"]),
+                        JSON.stringify(window.shadowObject[tag]["spread"]),
+                        JSON.stringify(window.shadowObject[tag]["factor"]));
+    }
+  } else {
+    console.warn("experimental feature: JBridge is not available in native");
+  }
 }

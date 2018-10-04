@@ -5,6 +5,7 @@ module PrestoDOM.Events
     , onMenuItemClick
     , onBackPressed
     , onNetworkChanged
+    , afterRender
     ) where
 
 import Prelude
@@ -76,3 +77,5 @@ onBackPressed push f = event (DOM.EventType "onBackPressedEvent") (Just <<< (mak
 onNetworkChanged :: forall a b . (a ->  Effect Unit) -> (b -> a) -> Prop (Effect Unit)
 onNetworkChanged push f = event (DOM.EventType "onNetworkChange") (Just <<< (makeEvent (push <<< f)))
 
+afterRender :: forall a b . (a -> Effect Unit) -> (b -> a) -> Prop (Effect Unit)
+afterRender push f = event (DOM.EventType "afterRender") (Just <<< (makeEvent (push <<< f)))
