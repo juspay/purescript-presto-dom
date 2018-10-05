@@ -21,6 +21,7 @@ module PrestoDOM.Properties
     , btnColor
     , buttonTint
 
+    , cardWidth
     , checked
     , clickable
     , clipChildren
@@ -46,6 +47,7 @@ module PrestoDOM.Properties
     , foreground
 
     , gravity
+    , gradient
 
     , hardware
     , height
@@ -128,7 +130,7 @@ import Prelude
 
 -- import Data.Tuple (Tuple(..))
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Padding, Gravity, InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
+import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Padding, Gravity, Gradient, InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
@@ -202,6 +204,8 @@ buttonTint :: forall i. String -> Prop i
 buttonTint = prop (PropName "buttonTint")
 
 
+cardWidth :: forall i. Number -> Prop i
+cardWidth = prop (PropName "cardWidth")
 
 -- | Boolean
 checked :: forall i. Boolean -> Prop i
@@ -289,6 +293,10 @@ foreground = prop (PropName "foreground")
 -- | Gravity
 gravity :: forall i. Gravity -> Prop i
 gravity = prop (PropName "gravity")
+
+-- | Gradient
+gradient :: forall i. Gradient -> Prop i
+gradient = prop (PropName "gradient")
 
 
 
