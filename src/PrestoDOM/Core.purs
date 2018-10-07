@@ -112,6 +112,7 @@ patchAndRun myDom = do
   machine <- EFn.runEffectFn1 getLatestMachine screenName
   newMachine <- EFn.runEffectFn2 step (machine) (myDom)
   EFn.runEffectFn2 storeMachine newMachine screenName
+  processWidget
 
 initUIWithScreen
   :: forall action state
