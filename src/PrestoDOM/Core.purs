@@ -64,7 +64,7 @@ foreign import insertDom :: forall a b. EFn.EffectFn2 a b Unit
 foreign import updateDom :: forall a b. EFn.EffectFn2 a b Unit
 
 foreign import processWidget :: Effect Unit
-foreign import renderWidget :: EFn.EffectFn1 (Int -> Effect Unit) DOM.Node
+foreign import renderWidget :: EFn.EffectFn2 String (Int -> Effect Unit) DOM.Node
 
 foreign import saveScreenNameImpl
     :: EFn.EffectFn1

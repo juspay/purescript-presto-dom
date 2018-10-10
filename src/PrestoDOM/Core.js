@@ -432,21 +432,26 @@ function hideCachedScreen() {
 
 exports.processWidget = function (){
   if(window.widgets) {
-    window.widgets.forEach(function (obj) {
+    for (var tag in window.widgets) {
+      var obj = window["widgets"][tag];
       obj.fn(obj.id_)();
-    });
-    window.widgets = [];
+    }
   }
 }
 
-exports.renderWidget = function(renderFn) {
+exports.renderWidget = function( namespace, renderFn) {
   if(!window.widgets) {
-      window.widgets = [];
+      window.widgets = {};
     }
 
-  var n = window.createPrestoElement();
+  var n;
+  if (window["widgets"][namespace]) {
+    n = window["widgets"][namespace]["ref"];
+  } else {
+    n = window.createPrestoElement();
+  }
 
-  window.widgets.push({fn: renderFn, id_: n.__id - 1});
+  window["widgets"][namespace] = {fn: renderFn, id_: n.__id - 1, ref: n};
   return {type: "relativeLayout", props: {height: "match_parent", width: "match_parent"}, children:  [], __ref: n};
 }
 
