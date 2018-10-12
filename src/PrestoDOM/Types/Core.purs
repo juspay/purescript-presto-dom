@@ -1,6 +1,8 @@
 module PrestoDOM.Types.Core
     ( PropName(..)
     , PrestoDOM
+    , PrestoWidget
+    , ParentID
     , Props
     , toPropValue
     , GenProp(..)
@@ -35,6 +37,9 @@ type PrestoDOM i w = VDom (Array (Prop i)) w
 type Cmd action = Array (Effect action)
 type Eval action returnType state = Either (Tuple (Maybe state) returnType) (Tuple state (Cmd action))
 
+type ParentID = Int
+type PrestoWidget = Thunk Effect DOM.Node
+
 type Props i = Array (Prop i)
 
 data GenProp
@@ -56,7 +61,7 @@ data GenProp
 
 type Screen action state returnType =
   { initialState :: state
-  , view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk Effect DOM.Node)
+  , view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) PrestoWidget
   , eval :: action -> state -> Eval action returnType state
   }
 

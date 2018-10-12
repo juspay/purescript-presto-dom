@@ -5,14 +5,14 @@ module PrestoDOM.Core
    , initUIWithScreen
    , mapDom
    , renderWidget
+   , makeWidget
    ) where
 
 import Prelude
 
 import Effect (Effect)
-import Effect.Uncurried (mkEffectFn1, mkEffectFn2)
+import Effect.Uncurried (mkEffectFn1, mkEffectFn2, runEffectFn2)
 import Effect.Aff (Canceler, Error, nonCanceler)
-import Data.Newtype (un)
 import Effect.Uncurried as EFn
 import Web.DOM.Document (Document) as DOM
 import Web.DOM.Node (Node) as DOM
@@ -29,8 +29,9 @@ import Halogen.VDom (VDomSpec(VDomSpec), buildVDom, VDom(Widget))
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
 import Halogen.VDom.Machine (Machine, Step, Step'(Step), step, extract, mkStep)
 import Halogen.VDom.Thunk (Thunk, unsafeEqThunk, thunk1, runThunk)
-import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace)
+import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, ParentID, PrestoWidget)
 import PrestoDOM.Utils (continue)
+import Unsafe.Coerce (unsafeCoerce)
 
 foreign import emitter
     :: forall a
@@ -77,9 +78,20 @@ foreign import cacheScreenImpl
         (Maybe Namespace)
         Boolean
 
+makeWidget
+  :: forall thunkArg
+   . String
+  -> (thunkArg -> ParentID -> Effect Unit)
+  -> thunkArg
+  -> PrestoDOM (Effect Unit) PrestoWidget
+makeWidget id widget state = Widget $ runFn2 thunk1 runWidget state
+  where
+    runWidget :: thunkArg -> Effect DOM.Node
+    runWidget st = unsafeCoerce <$> runEffectFn2 renderWidget id ( widget st )
+
 buildWidget
-  :: VDomSpec (Array (Prop (Effect Unit))) (Thunk Effect DOM.Node)
-  -> Machine (Thunk Effect DOM.Node) DOM.Node
+  :: VDomSpec (Array (Prop (Effect Unit))) PrestoWidget
+  -> Machine PrestoWidget DOM.Node
 buildWidget _ = mkEffectFn1 $
   \t -> do
     node <- runThunk t
@@ -93,7 +105,7 @@ buildWidget _ = mkEffectFn1 $
           newNode <- runThunk newThunk
           pure <<< mkStep $ Step newNode newThunk (patch newNode) halt
 
-spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk Effect DOM.Node)
+spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) PrestoWidget
 spec document =  VDomSpec {
       buildWidget
     , buildAttributes: buildProp logger
