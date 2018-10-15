@@ -192,6 +192,7 @@ data Gravity
     | LEFT
     | RIGHT
     | CENTER
+    | BOTTOM
     | TOP_VERTICAL
     | START
     | END
@@ -202,6 +203,7 @@ renderGravity = case _ of
     CENTER_VERTICAL -> "center_vertical"
     LEFT -> "left"
     RIGHT -> "right"
+    BOTTOM -> "bottom"
     CENTER -> "center"
     TOP_VERTICAL -> "top_vertical"
     START -> "start"
