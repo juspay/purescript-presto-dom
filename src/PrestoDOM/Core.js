@@ -553,7 +553,7 @@ exports.updateDom = function (root) {
   }
 }
 
-var executePostProcess = function () {
+function executePostProcess() {
 
   if(window.__dui_screen && window["afterRender"]) {
     for (var tag in window["afterRender"][window.__dui_screen]) {
