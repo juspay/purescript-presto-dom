@@ -498,12 +498,12 @@ function insertDom(root, dom) {
     }
   }
 
+  var callback = window.callbackMapper(executePostProcess);
   if (window.__OS == "ANDROID") {
-    var callback = window.callbackMapper(executePostProcess);
     Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length - 1, callback, null);
   }
   else {
-    Android.addViewToParent(rootId, domAll(dom), length - 1, null, null);
+    Android.addViewToParent(rootId, domAll(dom), length - 1, callback, null);
   }
 
   hideCachedScreen();
@@ -549,12 +549,12 @@ exports.updateDom = function (root, dom) {
     window.__CACHED_SCREEN.push({id: dom.__ref.__id, name: screenName});
   }
 
+  var callback = window.callbackMapper(executePostProcess);
   if (window.__OS == "ANDROID") {
-    var callback = window.callbackMapper(executePostProcess);
     Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length, callback, null);
   }
   else {
-    Android.addViewToParent(rootId, domAll(dom), length, null, null);
+    Android.addViewToParent(rootId, domAll(dom), length, callback, null);
   }
 
 }
