@@ -45,6 +45,11 @@ function domAll(elem) {
 
   const type = R.clone(elem.type);
   const props = R.clone(elem.props);
+
+  if (props.focus == false &&  window.__OS === "ANDROID") {
+    delete props.focus;
+  }
+
   const children = [];
 
   for (var i = 0; i < elem.children.length; i++) {
@@ -97,6 +102,11 @@ function applyProp(element, attribute, set) {
     id: element.__ref.__id
   }
   prop[attribute.value0] = attribute.value1;
+
+  if (attribute.value0 == 'focus' && attribute.value1 == false &&  window.__OS == "ANDROID") {
+    return;
+  }
+
   if (window.__OS == "ANDROID") {
     var cmd = cmdForAndroid(prop, set, element.type);
     Android.runInUI(cmd, null);
