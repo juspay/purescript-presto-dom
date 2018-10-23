@@ -347,6 +347,12 @@ exports.saveScreenNameImpl = function(screen) {
 
 function screenIsCached(screen) {
   var ar = window.__CACHED_SCREEN;
+
+
+  if (window.__lastCachedScreen.name && window.__lastCachedScreen.name.value0 == screen.value0) {
+    return true;
+  }
+
   for (var i = 0,l=ar.length; i < l; i++) {
     if (ar[i].name.value0 == screen.value0) {
       makeVisible(true, ar[i].id);
