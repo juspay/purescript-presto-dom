@@ -17,6 +17,7 @@ exports.storeMachine = function(machine) {
       window.MACHINE = machine;
       if (screen.value0)
         window.MACHINE_MAP[screen.value0] = machine;
+        window.__dui_last_patch_screen = screen.value0;
     }
   }
 }
@@ -268,6 +269,7 @@ function clearStash () {
 }
 
 function makeVisible (cache, _id) {
+  // console.log("SCREEN", " makeVisible", cache, _id);
   if (cache) {
     var prop = {
         id: _id,
@@ -280,6 +282,7 @@ function makeVisible (cache, _id) {
         visibility: "visible"
     }
   }
+  // console.log("SCREEN", " makeVisible", prop);
   if (window.__OS == "ANDROID") {
     var cmd = cmdForAndroid(prop, true, "linearLayout");
     Android.runInUI(cmd, null);
@@ -329,10 +332,12 @@ exports.saveScreenNameImpl = function(screen) {
       return false;
     } else {
       window.__screenNothing = false;
+      window.__dui_last_patch_screen = screen.value0;
 
       var cond = screenIsInStack(screen)
 
       if (cond) {
+        // console.log("SCREEN", " saveScreen calling hide", screen);
         hideCachedScreen();
         return true;
       } else {
@@ -348,6 +353,7 @@ exports.saveScreenNameImpl = function(screen) {
 function screenIsCached(screen) {
   var ar = window.__CACHED_SCREEN;
 
+  // console.log("SCREEN", " screenIsCached", screen);
 
   if (window.__lastCachedScreen.name && window.__lastCachedScreen.name.value0 == screen.value0) {
     return true;
@@ -362,6 +368,7 @@ function screenIsCached(screen) {
           id: window.__lastCachedScreen.id,
           visibility: __visibility
         }
+        // console.log("SCREEN", " screenIsCached", screen, prop);
         if (window.__OS == "ANDROID") {
           var cmd = cmdForAndroid(prop, true, "relativeLayout");
           Android.runInUI(cmd, null);
@@ -394,6 +401,8 @@ exports.cacheScreenImpl = function(screen) {
       return false;
     } else {
       window.__screenNothing = false;
+      window.__dui_last_patch_screen = screen.value0;
+      // console.log("SCREEN", " cachedScreenImpl", screen);
 
       var cond = screenIsCached(screen)
 
@@ -442,6 +451,7 @@ function hideCachedScreen() {
         id: window.__lastCachedScreen.id,
         visibility: __visibility
     }
+    // console.log("SCREEN", " hideCached", prop);
 
     window.__lastCachedScreen.name = "";
 
@@ -510,6 +520,7 @@ function insertDom(root) {
         Android.addViewToParent(rootId, domAll(dom), length - 1, callback, null);
       }
 
+      // console.log("SCREEN", " insertDom calling hide");
       hideCachedScreen();
 
     }
@@ -575,6 +586,7 @@ function executePostProcess() {
     for (var tag in window["afterRender"][window.__dui_screen]) {
       try {
         window["afterRender"][window.__dui_screen][tag]()();
+        window["afterRender"][window.__dui_screen]["executed"] = true;
       }
       catch (err) {
         console.warn(err);
