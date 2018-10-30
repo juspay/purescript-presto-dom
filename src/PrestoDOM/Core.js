@@ -71,6 +71,26 @@ function domAll(elem) {
     delete elem.props.cardWidth;
   }
 
+  if (type == "listView" && props.text) {
+    const id  = elem.__ref.__id;
+    const text = props.text;
+    const cb = props.onChange;
+    delete props.text;
+    props.afterRender = function () {
+      const callbackName = 'listview' + id;
+      window.__BOOT_LOADER[callbackName] = function () {
+        JBridge.bankListRefresh(id);
+      }
+      const fn = function(i) {
+        if (typeof cb === "function") {
+          cb(i);
+        }
+
+      }
+      JBridge.bankList(id, text, callbackName, window.callbackMapper(fn));
+    }
+  }
+
   props.id = elem.__ref.__id;
   if(elem.parentType && window.__OS == "ANDROID")
     return prestoDayum({elemType: type, parentType: elem.parentType}, props, children);
@@ -377,7 +397,7 @@ function screenIsCached(screen) {
         } else {
           Android.runInUI(webParseParams("relativeLayout", prop, "set"));
         }
-    
+
       }
 
       window.__lastCachedScreen.id = ar[i].id;
@@ -558,7 +578,7 @@ exports.updateDom = function (root) {
           } else {
             Android.runInUI(webParseParams("relativeLayout", prop, "set"));
           }
-      
+
         }
         window.__lastCachedScreen.id = dom.__ref.__id;
         window.__lastCachedScreen.flag = true;
