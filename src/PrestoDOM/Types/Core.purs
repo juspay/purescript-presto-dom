@@ -1,13 +1,14 @@
 module PrestoDOM.Types.Core
     ( PropName(..)
     , PrestoDOM
+    , PrestoWidget
+    , ParentID
     , Props
     , toPropValue
     , GenProp(..)
     , Screen
     , Eval
     , Cmd
-    , PrestoWidget(..)
     , module VDom
     , module Types
     , class IsProp
@@ -29,16 +30,15 @@ import Halogen.VDom.Types (VDom(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
 import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, Shadow, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility, renderShadow,  renderGradient)
 import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), Length(..), Margin(..), Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility,  renderGradient) as Types
-{-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
-
-newtype PrestoWidget a = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget a))
-
-derive instance newtypePrestoWidget ∷ Newtype (PrestoWidget a) _
+import Web.DOM.Node (Node) as DOM
 
 newtype PropName value = PropName String
 type PrestoDOM i w = VDom (Array (Prop i)) w
 type Cmd action = Array (Effect action)
 type Eval action returnType state = Either (Tuple (Maybe state) returnType) (Tuple state (Cmd action))
+
+type ParentID = Int
+type PrestoWidget = Thunk Effect DOM.Node
 
 type Props i = Array (Prop i)
 
@@ -61,7 +61,7 @@ data GenProp
 
 type Screen action state returnType =
   { initialState :: state
-  , view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
+  , view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) PrestoWidget
   , eval :: action -> state -> Eval action returnType state
   }
 

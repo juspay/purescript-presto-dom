@@ -4,29 +4,34 @@ module PrestoDOM.Core
    , initUI
    , initUIWithScreen
    , mapDom
+   , renderWidget
+   , makeWidget
    ) where
 
 import Prelude
 
 import Effect (Effect)
+import Effect.Uncurried (mkEffectFn1, mkEffectFn2, runEffectFn2)
 import Effect.Aff (Canceler, Error, nonCanceler)
-import Data.Newtype (un)
 import Effect.Uncurried as EFn
 import Web.DOM.Document (Document) as DOM
+import Web.DOM.Node (Node) as DOM
 import Data.Either (Either(..), either)
 import Data.Foldable (for_)
+import Data.Function.Uncurried (runFn2)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..), fst)
 import Foreign.Object as Object
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
 import FRP.Event as E
-import Halogen.VDom (VDomSpec(VDomSpec), buildVDom)
+import Halogen.VDom (VDomSpec(VDomSpec), buildVDom, VDom(Widget))
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
-import Halogen.VDom.Machine (Step, step, extract)
-import Halogen.VDom.Thunk (Thunk, buildThunk)
-import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..))
+import Halogen.VDom.Machine (Machine, Step, Step'(Step), step, extract, mkStep)
+import Halogen.VDom.Thunk (Thunk, unsafeEqThunk, thunk1, runThunk)
+import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, ParentID, PrestoWidget)
 import PrestoDOM.Utils (continue)
+import Unsafe.Coerce (unsafeCoerce)
 
 foreign import emitter
     :: forall a
@@ -60,6 +65,7 @@ foreign import insertDom :: forall a b. EFn.EffectFn2 a b Unit
 foreign import updateDom :: forall a b. EFn.EffectFn2 a b Unit
 
 foreign import processWidget :: Effect Unit
+foreign import renderWidget :: EFn.EffectFn2 String (Int -> Effect Unit) DOM.Node
 
 foreign import saveScreenNameImpl
     :: EFn.EffectFn1
@@ -72,9 +78,36 @@ foreign import cacheScreenImpl
         (Maybe Namespace)
         Boolean
 
-spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
+makeWidget
+  :: forall thunkArg
+   . String
+  -> (thunkArg -> ParentID -> Effect Unit)
+  -> thunkArg
+  -> PrestoDOM (Effect Unit) PrestoWidget
+makeWidget id widget state = Widget $ runFn2 thunk1 runWidget state
+  where
+    runWidget :: thunkArg -> Effect DOM.Node
+    runWidget st = unsafeCoerce <$> runEffectFn2 renderWidget id ( widget st )
+
+buildWidget
+  :: VDomSpec (Array (Prop (Effect Unit))) PrestoWidget
+  -> Machine PrestoWidget DOM.Node
+buildWidget _ = mkEffectFn1 $
+  \t -> do
+    node <- runThunk t
+    pure <<< mkStep $ Step node t (patch node) halt
+  where
+    halt = mkEffectFn1 <<< const $ pure unit
+    patch n = mkEffectFn2 $ \oldThunk newThunk ->
+      if runFn2 unsafeEqThunk oldThunk newThunk
+        then pure <<< mkStep $ Step n oldThunk (patch n) halt
+        else do
+          newNode <- runThunk newThunk
+          pure <<< mkStep $ Step newNode newThunk (patch newNode) halt
+
+spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) PrestoWidget
 spec document =  VDomSpec {
-      buildWidget : buildThunk (un PrestoWidget)
+      buildWidget
     , buildAttributes: buildProp logger
     , document : document
     }
@@ -91,6 +124,7 @@ patchAndRun myDom = do
   machine <- EFn.runEffectFn1 getLatestMachine screenName
   newMachine <- EFn.runEffectFn2 step (machine) (myDom)
   EFn.runEffectFn2 storeMachine newMachine screenName
+  processWidget
 
 initUIWithScreen
   :: forall action state
