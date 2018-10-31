@@ -78,7 +78,7 @@ function domAll(elem) {
     delete props.text;
     props.afterRender = function () {
       const callbackName = 'listview' + id;
-      window.__BOOT_LOADER[callbackName] = function () {
+      window.top.__BOOT_LOADER[callbackName] = function () {
         JBridge.bankListRefresh(id);
       }
       const fn = function(i) {
