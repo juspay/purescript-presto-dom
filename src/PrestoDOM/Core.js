@@ -163,6 +163,7 @@ function replaceView(element, attribute, removeProp) {
 
 
 
+window.moveChild = moveChild;
 window.removeChild = removeChild;
 window.addChild = addChild;
 window.replaceView = replaceView;
@@ -181,6 +182,12 @@ window.createPrestoElement = function () {
 };
 
 window.__screenSubs = {};
+
+function moveChild(child, parent, index) {
+  Android.moveView(child.__ref.__id, index);
+}
+
+
 
 function removeChild(child, parent, index) {
   // console.log("Remove child :", child.type);
