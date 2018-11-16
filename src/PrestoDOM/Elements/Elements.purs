@@ -104,6 +104,10 @@ viewPager :: forall i p. Node (Prop i) p
 viewPager = node "viewPager"
 
 
+
+lottieAnimationView :: forall i p. Leaf (Prop i) p
+lottieAnimationView = leaf "lottieAnimationView"
+
 imageView :: forall i p. Leaf (Prop i) p
 imageView = leaf "imageView"
 
