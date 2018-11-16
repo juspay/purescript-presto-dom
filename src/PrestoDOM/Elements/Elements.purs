@@ -14,6 +14,7 @@ module PrestoDOM.Elements.Elements
     , frameLayout
     , shimmerFrameLayout
     , tabLayout
+    , lottieAnimationView
     , imageView
     , editText
     , listView
