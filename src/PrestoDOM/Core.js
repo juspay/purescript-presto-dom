@@ -191,7 +191,7 @@ function moveChild(child, parent, index) {
 
 function removeChild(child, parent, index) {
   // console.log("Remove child :", child.type);
-  Android.removeView(child.__ref.__id);
+  Android.removeView(child.__ref.__id + "");
 }
 
 function addChild(child, parent, index) {
@@ -206,7 +206,7 @@ function addChild(child, parent, index) {
     } else {
       child.parentType = parent.type;
     }
-    Android.addViewToParent(parent.__ref.__id, JSON.stringify(domAll(child)), index, null, null);
+    Android.addViewToParent(parent.__ref.__id + "", JSON.stringify(domAll(child)), index, null, null);
   }
   else
     Android.addViewToParent(parent.__ref.__id, domAll(child), index, null, null);
@@ -289,7 +289,7 @@ function clearStash () {
 
   setTimeout(function() {
     for (var i = 0; i < len; i++) {
-      Android.removeView(screen[i]);
+      Android.removeView(screen[i] + "");
     }
   }, 1000);
   window.__stashScreen = [];
@@ -334,7 +334,7 @@ function screenIsInStack(screen) {
 
         setTimeout(function() {
           for (var j = 0,k=rem.length; j < k; j++) {
-            Android.removeView(rem[j].id);
+            Android.removeView(rem[j].id + "");
             delete window.MACHINE_MAP[rem[j].name.value0];
           }
         }, 1000);
@@ -541,7 +541,7 @@ function insertDom(root) {
 
       var callback = window.callbackMapper(executePostProcess);
       if (window.__OS == "ANDROID") {
-        Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length - 1, callback, null);
+        Android.addViewToParent(rootId + "", JSON.stringify(domAll(dom)), length - 1, callback, null);
       }
       else {
         Android.addViewToParent(rootId, domAll(dom), length - 1, callback, null);
@@ -597,7 +597,7 @@ exports.updateDom = function (root) {
 
       var callback = window.callbackMapper(executePostProcess);
       if (window.__OS == "ANDROID") {
-        Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length, callback, null);
+        Android.addViewToParent(rootId + "", JSON.stringify(domAll(dom)), length, callback, null);
       }
       else {
         Android.addViewToParent(rootId, domAll(dom), length, callback, null);
