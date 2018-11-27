@@ -14,6 +14,7 @@ module PrestoDOM.Elements.Elements
     , frameLayout
     , shimmerFrameLayout
     , tabLayout
+    , lottieAnimationView
     , imageView
     , editText
     , listView
@@ -102,6 +103,10 @@ tabLayout = node "tabLayout"
 viewPager :: forall i p. Node (Prop i) p
 viewPager = node "viewPager"
 
+
+
+lottieAnimationView :: forall i p. Leaf (Prop i) p
+lottieAnimationView = leaf "lottieAnimationView"
 
 imageView :: forall i p. Leaf (Prop i) p
 imageView = leaf "imageView"
