@@ -75,7 +75,7 @@ foreign import cacheScreenImpl
 spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
 spec document =  VDomSpec {
       buildWidget : buildThunk (un PrestoWidget)
-    , buildAttributes: buildProp logger
+    , buildAttributes: buildProp identity
     , document : document
     }
 
