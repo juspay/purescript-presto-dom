@@ -10,7 +10,24 @@ const callbackMapper = require("presto-ui").helpers.android.callbackMapper;
 
 window.callbackMapper = callbackMapper.map;
 
+function debounce(func, delay) {
+  var inDebounce = void 0;
+  return function () {
+    var context = this;
+    var args = arguments;
+    clearTimeout(inDebounce);
+    inDebounce = setTimeout(function () {
+      return func.apply(context, args);
+    }, delay);
+  };
+};
 
+window.addEventListener('resize', debounce(function () {
+  console.log("Resize", window.__resizeEvent);
+  if (window.__resizeEvent) {
+    window.__resizeEvent(window.innerWidth);
+  }
+}, 300));
 
 exports.storeMachine = function(machine, screen) {
   window.MACHINE = machine;
@@ -86,6 +103,10 @@ function domAll(elem) {
       }
       JBridge.bankList(id, text, callbackName, window.callbackMapper(fn));
     }
+  }
+
+  if (__OS == "WEB" && props.onResize) {
+    window.__resizeEvent = props.onResize;
   }
 
   props.id = elem.__ref.__id;
