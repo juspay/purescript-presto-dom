@@ -215,7 +215,7 @@ checked = prop (PropName "checked")
 
 -- | Array String
 classList :: forall i. Array String -> Prop i
-classList = prop (PropName "classList") <<< unsafeStringify
+classList = prop (PropName "classList")
 
 -- | String
 className :: forall i. String -> Prop i

@@ -21,6 +21,7 @@ import Data.Either (Either)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Effect (Effect)
+import Global.Unsafe (unsafeStringify)
 
 import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean, propFromInt, propFromNumber, propFromString)
 import Halogen.VDom.DOM.Prop (Prop) as VDom
@@ -81,6 +82,9 @@ instance numberIsProp :: IsProp Number where
 
 instance booleanIsProp :: IsProp Boolean where
   toPropValue = propFromBoolean
+
+instance stringArrayIsProp :: IsProp (Array String) where
+  toPropValue = propFromString <<< unsafeStringify
 
 instance lengthIsProp :: IsProp Length where
   toPropValue = propFromString <<< renderLength
