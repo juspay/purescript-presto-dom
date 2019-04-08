@@ -209,7 +209,7 @@ function moveChild(child, parent, index) {
 
 function removeChild(child, parent, index) {
   // console.log("Remove child :", child.type);
-  Android.removeView(child.__ref.__id + "");
+  Android.removeView(child.__ref.__id);
 }
 
 function addChild(child, parent, index) {
