@@ -209,7 +209,7 @@ function moveChild(child, parent, index) {
 
 function removeChild(child, parent, index) {
   // console.log("Remove child :", child.type);
-  Android.removeView(child.__ref.__id + "");
+  Android.removeView(child.__ref.__id);
 }
 
 function addChild(child, parent, index) {
@@ -306,7 +306,7 @@ function clearStash () {
 
   setTimeout(function() {
     for (var i = 0; i < len; i++) {
-      Android.removeView(screen[i] + "");
+      Android.removeView(screen[i]);
     }
   }, 1000);
   window.__stashScreen = [];
@@ -351,7 +351,7 @@ function screenIsInStack(screen) {
 
         setTimeout(function() {
           for (var j = 0,k=rem.length; j < k; j++) {
-            Android.removeView(rem[j].id + "");
+            Android.removeView(rem[j].id);
             delete window.MACHINE_MAP[rem[j].name.value0];
           }
         }, 1000);
