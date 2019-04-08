@@ -306,7 +306,7 @@ function clearStash () {
 
   setTimeout(function() {
     for (var i = 0; i < len; i++) {
-      Android.removeView(screen[i] + "");
+      Android.removeView(screen[i]);
     }
   }, 1000);
   window.__stashScreen = [];
@@ -351,7 +351,7 @@ function screenIsInStack(screen) {
 
         setTimeout(function() {
           for (var j = 0,k=rem.length; j < k; j++) {
-            Android.removeView(rem[j].id + "");
+            Android.removeView(rem[j].id);
             delete window.MACHINE_MAP[rem[j].name.value0];
           }
         }, 1000);
