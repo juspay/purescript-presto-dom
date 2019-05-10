@@ -15,7 +15,7 @@ Newtype (PropName value) _
 #### `PrestoDOM`
 
 ``` purescript
-type PrestoDOM i w = VDom (Array (Prop i)) w
+type PrestoDOM = VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
 ```
 
 #### `Props`
@@ -47,7 +47,7 @@ data GenProp
 #### `Screen`
 
 ``` purescript
-type Screen action state returnType = { initialState :: state, view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit)), eval :: action -> state -> Eval action returnType state }
+type Screen action state returnType = { initialState :: state, view :: (action -> Effect Unit) -> state -> PrestoDOM, eval :: action -> state -> Eval action returnType state }
 ```
 
 #### `Eval`
@@ -87,12 +87,14 @@ IsProp String
 IsProp Int
 IsProp Number
 IsProp Boolean
+IsProp (Array String)
 IsProp Length
 IsProp InputType
 IsProp Orientation
 IsProp Typeface
 IsProp Visibility
 IsProp Gravity
+IsProp Gradient
 IsProp Margin
 IsProp Padding
 IsProp Shadow
@@ -260,9 +262,18 @@ data Gravity
   | LEFT
   | RIGHT
   | CENTER
+  | BOTTOM
   | TOP_VERTICAL
   | START
   | END
+```
+
+#### `Gradient`
+
+``` purescript
+data Gradient
+  = Radial (Array String)
+  | Linear Number (Array String)
 ```
 
 #### `renderVisibility`
@@ -333,5 +344,11 @@ renderInputType :: InputType -> String
 
 ``` purescript
 renderGravity :: Gravity -> String
+```
+
+#### `renderGradient`
+
+``` purescript
+renderGradient :: Gradient -> String
 ```
 

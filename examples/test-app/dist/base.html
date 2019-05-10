@@ -1,0 +1,152 @@
+<html>
+
+<head>
+  <title>Presto UI</title>
+  <script src="./socket.js"></script>
+  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' name='viewport' />
+  <meta charset="utf-8" />
+	<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700,900" rel="stylesheet">
+  <link href="./style.css" rel="stylesheet">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+  <style>
+  .shadow {
+    -webkit-box-shadow: 4px 9px 24px -14px rgba(0,0,0,0.17);
+  }
+  </style>
+  <script>
+    window.ORDER = {};
+
+    function getPayload(opts) {
+        if (opts &&  Object.keys(opts).length >= 0) {
+            var str = '?';
+
+            for (obj in opts) {
+                str += obj.toString() + '=' + opts[obj].toString() + '&';
+            }
+            return str.slice(0,-1);
+        } else {
+            return '';
+        }
+    }
+
+    var JP = {
+        init: function (opts) {
+            var elem = opts.entry_point;
+            var order = opts.order_id;
+            var mid = opts.merchant_id;
+
+            var url = 'http://localhost:8083/dist';
+                url += getPayload(opts);
+
+            if(opts.integration == "iframe") {
+                elem = document.getElementById( elem);
+
+                elem.innerHTML = '<iframe width="100%" height="100%" src="' + url + '"></iframe>';
+            } else if (opts.integration == "redirect") {
+                location.href = url;
+            }
+
+
+            window.onmessage = function (message) {
+                console.log("Loading URL :: " + message.data.url);
+            }
+        }
+    };
+    </script>
+</head>
+<body>
+    <!-- <button type="button" id="demo" onclick="createOrder()">create order</button> -->
+    <style>
+        * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        letter-spacing: 1.2;
+        }
+
+        input {
+        }
+
+        #content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+    </style>
+    <div id="content"> </div>
+</body>
+<script type="text/javascript">
+    // function createOrder() {
+        function guid() {
+          function s4() {
+              return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+            }
+          return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+        }
+
+        window.order_id = guid();
+
+        var auth = {
+            username: "62B98E21B154D119C7107AF09D6287",
+            password: ""
+        };
+
+        var headers = {
+            version: "2018-07-01"
+        };
+
+        var config = { auth, headers };
+
+        var _amount = '1.0';
+
+        var params = new URLSearchParams();
+        params.append('order_id', order_id);
+        params.append('amount', _amount);
+        params.append('customer_id', '9438317998a');
+        params.append('customer_phone', '9438317998');
+        params.append('options.get_client_auth_token', 'true');
+        axios.post('https://sandbox.juspay.in/order/create', params, config).then(({data, status}) => {
+          if (status != 200) {
+            return console.error("Order create failed");
+          }
+          console.warn('order created ', data, status);
+          var orderData = data
+
+          params = {
+            client_auth_token: data.juspay.client_auth_token,
+            offers: "",
+            refresh: ""
+          }
+          axios.get('http://euler-ec-beta.ap-southeast-1.elasticbeanstalk.com/sdk/v1/savedPaymentMethods', {params}).then(({data, status}) => {
+            if (status != 200) {
+              return console.error("paymentSource failed");
+            }
+            console.warn('paymentSource created ', data, status);
+            JP.init({
+              entry_point: 'content',
+              order_id,
+              amount: _amount,
+              merchant_id: 'Ashutosh',
+              customer_phone_number: '9438317998',
+              customer_id: '9438317998a',
+              session_token: orderData.juspay.client_auth_token,
+              paymentSource: encodeURIComponent(JSON.stringify(data)),
+              environment: "sandbox",
+              integration: "redirect" // redirect, iframe
+            })
+          });
+        });
+    // }
+
+</script>
+    <!-- JP.init({ -->
+    <!--     entry_point: 'content', -->
+    <!--     order_id: 'my-irder1', -->
+    <!--     merchant_id: 'com.swiggy' -->
+    <!-- }); -->
+
+
+</html>

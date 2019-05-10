@@ -78,6 +78,12 @@ shimmerFrameLayout :: forall i p. Node (Prop i) p
 tabLayout :: forall i p. Node (Prop i) p
 ```
 
+#### `lottieAnimationView`
+
+``` purescript
+lottieAnimationView :: forall i p. Leaf (Prop i) p
+```
+
 #### `imageView`
 
 ``` purescript

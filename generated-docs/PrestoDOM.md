@@ -81,6 +81,12 @@ relativeLayout :: forall i p. Node (Prop i) p
 progressBar :: forall i p. Leaf (Prop i) p
 ```
 
+#### `lottieAnimationView`
+
+``` purescript
+lottieAnimationView :: forall i p. Leaf (Prop i) p
+```
+
 #### `listView`
 
 ``` purescript
@@ -189,6 +195,12 @@ onBackPressed :: forall a b. (a -> Effect Unit) -> (b -> a) -> Prop (Effect Unit
 
 ``` purescript
 attachBackPress :: forall a. (a -> Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
+```
+
+#### `afterRender`
+
+``` purescript
+afterRender :: forall a b. (a -> Effect Unit) -> (b -> a) -> Prop (Effect Unit)
 ```
 
 ### Re-exported from PrestoDOM.Properties:
@@ -715,6 +727,14 @@ gravity :: forall i. Gravity -> Prop i
 
 Gravity
 
+#### `gradient`
+
+``` purescript
+gradient :: forall i. Gradient -> Prop i
+```
+
+Gradient
+
 #### `foreground`
 
 ``` purescript
@@ -855,6 +875,22 @@ clickable :: forall i. Boolean -> Prop i
 
 Boolean
 
+#### `className`
+
+``` purescript
+className :: forall i. String -> Prop i
+```
+
+String
+
+#### `classList`
+
+``` purescript
+classList :: forall i. Array String -> Prop i
+```
+
+Array String
+
 #### `checked`
 
 ``` purescript
@@ -867,6 +903,12 @@ Boolean
 
 ``` purescript
 caretColor :: forall i. String -> Prop i
+```
+
+#### `cardWidth`
+
+``` purescript
+cardWidth :: forall i. Number -> Prop i
 ```
 
 #### `buttonTint`
@@ -1056,7 +1098,7 @@ data Shadow
 #### `Screen`
 
 ``` purescript
-type Screen action state returnType = { initialState :: state, view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit)), eval :: action -> state -> Eval action returnType state }
+type Screen action state returnType = { initialState :: state, view :: (action -> Effect Unit) -> state -> PrestoDOM, eval :: action -> state -> Eval action returnType state }
 ```
 
 #### `Props`
@@ -1106,7 +1148,7 @@ Newtype (PrestoWidget a) _
 #### `PrestoDOM`
 
 ``` purescript
-type PrestoDOM i w = VDom (Array (Prop i)) w
+type PrestoDOM = VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
 ```
 
 #### `Padding`
@@ -1186,9 +1228,18 @@ data Gravity
   | LEFT
   | RIGHT
   | CENTER
+  | BOTTOM
   | TOP_VERTICAL
   | START
   | END
+```
+
+#### `Gradient`
+
+``` purescript
+data Gradient
+  = Radial (Array String)
+  | Linear Number (Array String)
 ```
 
 #### `GenProp`
@@ -1250,12 +1301,14 @@ IsProp String
 IsProp Int
 IsProp Number
 IsProp Boolean
+IsProp (Array String)
 IsProp Length
 IsProp InputType
 IsProp Orientation
 IsProp Typeface
 IsProp Visibility
 IsProp Gravity
+IsProp Gradient
 IsProp Margin
 IsProp Padding
 IsProp Shadow
@@ -1329,6 +1382,12 @@ renderInputType :: InputType -> String
 
 ``` purescript
 renderGravity :: Gravity -> String
+```
+
+#### `renderGradient`
+
+``` purescript
+renderGradient :: Gradient -> String
 ```
 
 ### Re-exported from PrestoDOM.Utils:

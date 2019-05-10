@@ -36,4 +36,10 @@ onBackPressed :: forall a b. (a -> Effect Unit) -> (b -> a) -> Prop (Effect Unit
 onNetworkChanged :: forall a b. (a -> Effect Unit) -> (b -> a) -> Prop (Effect Unit)
 ```
 
+#### `afterRender`
+
+``` purescript
+afterRender :: forall a b. (a -> Effect Unit) -> (b -> a) -> Prop (Effect Unit)
+```
+
 

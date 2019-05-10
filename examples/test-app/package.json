@@ -1,0 +1,39 @@
+{
+	"name": "presto-sample",
+	"version": "0.1.0",
+	"private": false,
+	"scripts": {
+		"start": "webpack-dev-server --mode development --config webpack.config.js",
+		"pulp-watch": "pulp --then \"node splitter.js\" --watch build --to dist/bundle.js",
+		"android": "webpack-dev-server --mode development --config webpack.config.js",
+		"start-android": "concurrently -r \"npm run pulp-watch\" \"npm run android\" ",
+		"compile": "npm run pulp_compile && npm run wp_compile",
+		"wp_compile": "webpack -p --config webpack.config.js",
+		"pulp_compile": "pulp --then \"sed -i.bak 's/PS\\[\\\"Main\\\"\\]\\.main();/module.exports = PS;/' dist/pulp.js && rm -rf dist/pulp.js.bak\" build -O --to dist/pulp.js",
+		"ios": "webpack --watch --mode development --config webpack.config.js --entry ./index.js --colors --output ./dist/payments-in.hyper.pay-v1-index_bundle.js",
+		"start-ios": "concurrently -r \"npm run pulp-watch\" \"npm run ios\" ",
+		"start-both": "concurrently -r \"npm run pulp-watch\" \"npm run ios\" \"npm run android\""
+	},
+	"dependencies": {
+		"axios": "^0.16.2",
+		"presto-ui": "git+https://bitbucket.org/juspay/presto-ui#exp/prestoDomRewrite",
+		"ramda": "^0.23.0",
+		"s3-node-client": "^4.4.4",
+		"simple-card-validator": "git+https://bitbucket.org/juspay/simple-card-validator"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.1.2",
+		"@babel/preset-env": "^7.1.0",
+		"babel-loader": "^8.0.4",
+		"concurrently": "^3.6.1",
+		"pulp": "^12.3.0",
+		"purescript": "^0.12.1",
+		"purs-loader": "^3.2.0",
+		"purescript-psa": "^0.7.3",
+		"rimraf": "^2.5.4",
+		"source-map": "^0.5.6",
+		"webpack": "^4.20.2",
+		"webpack-cli": "^3.1.0",
+		"webpack-dev-server": "^3.1.5"
+	}
+}

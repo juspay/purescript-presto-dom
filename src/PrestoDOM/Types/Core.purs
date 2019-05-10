@@ -21,6 +21,7 @@ import Data.Either (Either)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Effect (Effect)
+import Global.Unsafe (unsafeStringify)
 
 import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean, propFromInt, propFromNumber, propFromString)
 import Halogen.VDom.DOM.Prop (Prop) as VDom
@@ -36,7 +37,8 @@ newtype PrestoWidget a = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget
 derive instance newtypePrestoWidget ∷ Newtype (PrestoWidget a) _
 
 newtype PropName value = PropName String
-type PrestoDOM i w = VDom (Array (Prop i)) w
+{-- type PrestoDOM i w = VDom (Array (Prop i)) w --}
+type PrestoDOM = VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
 type Cmd action = Array (Effect action)
 type Eval action returnType state = Either (Tuple (Maybe state) returnType) (Tuple state (Cmd action))
 
@@ -61,7 +63,7 @@ data GenProp
 
 type Screen action state returnType =
   { initialState :: state
-  , view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
+  , view :: (action -> Effect Unit) -> state -> PrestoDOM
   , eval :: action -> state -> Eval action returnType state
   }
 
@@ -81,6 +83,9 @@ instance numberIsProp :: IsProp Number where
 
 instance booleanIsProp :: IsProp Boolean where
   toPropValue = propFromBoolean
+
+instance stringArrayIsProp :: IsProp (Array String) where
+  toPropValue = propFromString <<< unsafeStringify
 
 instance lengthIsProp :: IsProp Length where
   toPropValue = propFromString <<< renderLength

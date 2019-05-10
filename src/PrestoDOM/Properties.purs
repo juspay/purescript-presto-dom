@@ -23,6 +23,8 @@ module PrestoDOM.Properties
 
     , cardWidth
     , checked
+    , classList
+    , className
     , clickable
     , clipChildren
     , color
@@ -210,6 +212,14 @@ cardWidth = prop (PropName "cardWidth")
 -- | Boolean
 checked :: forall i. Boolean -> Prop i
 checked = prop (PropName "checked")
+
+-- | Array String
+classList :: forall i. Array String -> Prop i
+classList = prop (PropName "classList")
+
+-- | String
+className :: forall i. String -> Prop i
+className = prop (PropName "className")
 
 -- | Boolean
 clickable :: forall i. Boolean -> Prop i
