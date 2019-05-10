@@ -15,7 +15,8 @@
     "purescript-behaviors": "^7.0.0",
     "purescript-event": "^1.2.4",
     "purescript-maybe": "^4.0.0",
-    "purescript-stack": "^1.0.0"
+    "purescript-stack": "^1.0.0",
+    "purescript-generics-rep": "^6.1.1"
   },
   "devDependencies": {
     "purescript-console": "^4.1.0",
