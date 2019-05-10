@@ -33,6 +33,7 @@ window.__PRESTO_ID = window.__ui_id_sequence = typeof Android.getNewID == "funct
 window.__screenSubs = {};
 
 
+
 exports.insertDom = PrestoUI.insertDom;
 
 
@@ -65,9 +66,9 @@ exports.setRootNode = function(nothing) {
   };
 
   if(window.__OS == "ANDROID" && typeof Android.getNewID == "function") {
-    Android.Render(PrestoUI.domAll(root), null, "false");
+    Android.Render(PrestoUI.getDomToRender(root), null, "false");
   } else {
-    Android.Render(PrestoUI.domAll(root), null);
+    Android.Render(PrestoUI.getDomToRender(root), null);
   }
 
   return root;
