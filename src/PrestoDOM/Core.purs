@@ -2,9 +2,12 @@ module PrestoDOM.Core
    ( ScreenData
    , runScreen
    , showScreen
+   , startScreen
+   , startOverlay
    , initUI
    , initUIWithScreen
    , mapDom
+   , mapDom_
    ) where
 
 import Prelude
@@ -333,6 +336,7 @@ runScreenImpl spec ref screen { initialState, view, eval } cb = do
         Just s -> patchAndRun ref screenName (view push  s) *> (cb $ Right ret)
         Nothing -> cb $ Right ret
 
+-- | Deprecated
 runScreen
   :: forall action state returnType screenName
    . Show screenName
@@ -344,6 +348,7 @@ runScreen
   -> Effect Canceler
 runScreen = runScreenImpl startScreenSpec
 
+-- | Deprecated
 showScreen
   :: forall action state returnType screenName
    . Show screenName
@@ -355,9 +360,38 @@ showScreen
   -> Effect Canceler
 showScreen = runScreenImpl startOverlaySpec
 
+startScreen
+  :: forall action state returnType screenName
+   . Show screenName
+  => Eq screenName
+  => Ref.Ref ScreenData
+  -> screenName
+  -> Screen action state returnType
+  -> (Either Error returnType -> Effect Unit)
+  -> Effect Canceler
+startScreen = runScreenImpl startScreenSpec
 
+startOverlay
+  :: forall action state returnType screenName
+   . Show screenName
+  => Eq screenName
+  => Ref.Ref ScreenData
+  -> screenName
+  -> Screen action state returnType
+  -> (Either Error returnType -> Effect Unit)
+  -> Effect Canceler
+startOverlay = runScreenImpl startOverlaySpec
 
 mapDom
+  :: forall a b state
+   . ((a -> Effect Unit) -> state -> PrestoDOM)
+  -> (b -> Effect Unit)
+  -> state
+  -> (a -> b)
+  -> PrestoDOM
+mapDom view push state actionMap = view (push <<< actionMap) state
+
+mapDom_
   :: forall i a b state
    . ((a -> Effect Unit) -> state -> Object.Object i -> PrestoDOM)
   -> (b -> Effect Unit)
@@ -365,5 +399,5 @@ mapDom
   -> (a -> b)
   -> Array (Tuple String i)
   -> PrestoDOM
-mapDom view push state actionMap = view (push <<< actionMap) state <<< Object.fromFoldable
+mapDom_ view push state actionMap = view (push <<< actionMap) state <<< Object.fromFoldable
 
