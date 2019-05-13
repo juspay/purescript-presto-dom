@@ -30,7 +30,7 @@ import Halogen.VDom (VDomSpec(VDomSpec), buildVDom)
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
 import Halogen.VDom.Machine (Step, step, extract)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
-import PrestoDOM.Screen (ScreenCache, ScreenStack, cacheInitialize, cacheInsert, cacheLookup, stackInitialize, stackLookup, stackPopTill, stackPush)
+import PrestoDOM.Screen (ScreenCache, ScreenStack, cacheInitialize, cacheInsert, stackInitialize, stackPopTill, stackPush)
 import PrestoDOM.Types.Core (ElemName(..), PrestoDOM, PrestoWidget(..), Screen, VDom(Elem))
 import PrestoDOM.Utils (continue)
 import Web.DOM.Document (Document) as DOM
@@ -80,7 +80,7 @@ type ScreenData =
   , screenCache :: ScreenCache Int
   , currentScreen :: Maybe (Tuple String Int)
   , currentOverlay :: Maybe (Tuple String Int)
-  , machines :: Object.Object (Step (VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))) DOM.Node)
+  , machines :: Object.Object (Tuple (Step (VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))) DOM.Node) Int)
   }
 
 initScreenData :: DOM.Document -> ScreenData
@@ -98,7 +98,6 @@ type ScreenSpec =
   { getCurrentOverlay :: ScreenData -> Maybe (Tuple String Int)
   , getCurrentScreen :: ScreenData -> Maybe (Tuple String Int)
   , setCurrentScreen :: String -> Int -> ScreenData -> ScreenData
-  , checkStoredScreens :: String -> ScreenData -> Maybe Int
   , updateStoredScreens :: String -> Int -> ScreenData -> ScreenData
   , cache :: Boolean
   , handleOldScreens :: String -> ScreenData -> Tuple (ScreenStack Int) (Array (Tuple String Int))
@@ -109,7 +108,6 @@ startScreenSpec =
   { getCurrentOverlay : \sData -> sData.currentOverlay
   , getCurrentScreen : \sData ->  sData.currentScreen
   , setCurrentScreen : \s i sData -> sData {currentOverlay = Nothing, currentScreen = Just $ Tuple s i}
-  , checkStoredScreens : \s sData -> stackLookup s sData.screenStack
   , updateStoredScreens : \s i sData -> sData { screenStack = stackPush s i sData.screenStack }
   , cache : false
   , handleOldScreens : fn
@@ -125,12 +123,14 @@ startOverlaySpec =
   { getCurrentOverlay : _.currentOverlay
   , getCurrentScreen : _.currentOverlay
   , setCurrentScreen : \s i sData -> sData {currentOverlay = Just $ Tuple s i}
-  , checkStoredScreens : \s sData -> cacheLookup s sData.screenCache
   , updateStoredScreens : \s i sData -> sData { screenCache = cacheInsert s i sData.screenCache }
   --- handleOldScreen not required for overlays
   , handleOldScreens : \_ sData -> Tuple sData.screenStack []
   , cache : true
   }
+
+checkStoredScreens :: String -> ScreenData -> Maybe Int
+checkStoredScreens s sData = snd <$> Object.lookup s sData.machines
 
 
 logger :: forall a. (a → Effect Unit)
@@ -147,9 +147,9 @@ patchAndRun
 patchAndRun ref screenName myDom = do
   sData <- Ref.read ref
   case Object.lookup screenName sData.machines of
-    Just machine -> do
+    Just (Tuple machine id) -> do
        newMachine <- EFn.runEffectFn2 step (machine) (myDom)
-       Ref.modify_ (\s -> s { machines = Object.insert screenName newMachine s.machines}) ref
+       Ref.modify_ (\s -> s { machines = Object.insert screenName (Tuple newMachine id) s.machines}) ref
     Nothing ->
       pure unit
 
@@ -208,7 +208,7 @@ getScreenMode spec overlay currentScreen incomingSName screenData =
 
    in case isSame of
         false ->
-          case spec.checkStoredScreens incomingSName screenData of
+          case checkStoredScreens incomingSName screenData of
             Nothing -> NewScreen
             Just i -> OldScreen i
         true -> do
@@ -259,7 +259,7 @@ runScreenImpl spec ref screen { initialState, view, eval } cb = do
       _ <- Ref.modify_
                 (\s -> spec.setCurrentScreen screenName elemId
                         >>> spec.updateStoredScreens screenName elemId
-                        $ s { machines = Object.insert screenName machine s.machines }
+                        $ s { machines = Object.insert screenName (Tuple machine elemId) s.machines }
                 )
                 ref
       -- animate

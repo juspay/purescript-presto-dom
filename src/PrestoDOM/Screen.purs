@@ -2,7 +2,7 @@ module PrestoDOM.Screen
   ( ScreenStack(..)
   , ScreenCache(..)
   , stackInitialize
-  , stackLookup
+  {-- , stackLookup --}
   , stackPush
   , stackPopTill
   , cacheInitialize
@@ -19,39 +19,34 @@ import Data.Stack (Stack, stackNew, stackPush, stackPop) as Stack
 import Data.Tuple (Tuple(..))
 import Foreign.Object as Object
 
-data ScreenStack a = ScreenStack (Stack.Stack (Tuple String a)) (Object.Object a)
+type ScreenStack a = Stack.Stack (Tuple String a)
 
 
 stackInitialize :: forall a. ScreenStack a
 stackInitialize =
-  ScreenStack Stack.stackNew Object.empty
+  Stack.stackNew
 
-stackLookup :: forall a. String -> ScreenStack a -> Maybe a
-stackLookup screenName (ScreenStack _ obj) = Object.lookup screenName obj
+{-- stackLookup :: forall a. String -> ScreenStack a -> Maybe a --}
+{-- stackLookup screenName (ScreenStack _ obj) = Object.lookup screenName obj --}
 
 stackPush :: forall a. String -> a -> ScreenStack a -> ScreenStack a
-stackPush screenName screen (ScreenStack stack obj) =
-  ScreenStack
-    (Stack.stackPush stack $ Tuple screenName screen)
-    (Object.insert screenName screen obj)
+stackPush screenName screen stack =
+  Stack.stackPush stack $ Tuple screenName screen
 
 
 -- returns updated stack, and Array of (key, value)  poped elems.
 stackPopTill :: forall a. String -> ScreenStack a -> Tuple (ScreenStack a) (Array (Tuple String a))
-stackPopTill screenName s@(ScreenStack stack obj) =
-  case Object.lookup screenName obj of
-    Just a -> pop s []
-    Nothing -> Tuple s []
-
+stackPopTill screenName stack =
+  pop stack []
   where
-    pop ss@(ScreenStack sStack sObj) acc =
+    pop sStack acc =
       case Stack.stackPop sStack of
         Just (Tuple rStack i@(Tuple name item)) ->
           if name == screenName
             -- halt condition, return same val without modify.
-            then Tuple ss acc
-            else pop (ScreenStack rStack (Object.delete name sObj)) $ snoc acc i
-        Nothing -> Tuple ss acc
+            then Tuple sStack acc
+            else pop rStack $ snoc acc i
+        Nothing -> Tuple sStack acc
 
 type ScreenCache a = Object.Object a
 
