@@ -91,3 +91,6 @@ textSizeHolder = prop (PropName "holder_textSize")
 
 fontStyleHolder :: String -> Prop (Effect Unit)
 fontStyleHolder = prop (PropName "holder_fontStyle")
+
+packageIconHolder :: String -> Prop (Effect Unit)
+packageIconHolder = prop (PropName "holder_packageIcon")
