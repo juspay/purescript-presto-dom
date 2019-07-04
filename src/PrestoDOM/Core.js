@@ -151,8 +151,11 @@ function applyProp(element, attribute, set) {
   }
 
   if (window.__OS == "ANDROID") {
-    var cmd = cmdForAndroid(prop, set, element.type);
-    Android.runInUI(cmd.runInUI, null);
+       if (Android.updateProperties) {
+        Android.updateProperties(JSON.stringify(cmd));
+      } else {
+        Android.runInUI(cmd.runInUI, null);
+      }
   } else if (window.__OS == "IOS"){
     Android.runInUI(prop);
   } else {
