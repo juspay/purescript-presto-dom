@@ -151,6 +151,7 @@ function applyProp(element, attribute, set) {
   }
 
   if (window.__OS == "ANDROID") {
+       var cmd = cmdForAndroid(prop, set, element.type);
        if (Android.updateProperties) {
         Android.updateProperties(JSON.stringify(cmd));
       } else {
