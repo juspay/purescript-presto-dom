@@ -14,6 +14,7 @@ module PrestoDOM.List
   , fontStyleHolder
   , backgroundHolder
   , visibilityHolder
+  , alphaHolder
   ) where
 
 import Prelude
@@ -41,7 +42,7 @@ createListData :: forall i. Array i -> ListData
 createListData vals = ListData (unsafeStringify vals)
 
 -- | Encodes and constructs item view container
-createListItem :: forall i p a b. VDom (Array (Prop i)) p -> ListItem
+createListItem :: forall i p. VDom (Array (Prop i)) p -> ListItem
 createListItem elem = ListItem (_createListItem elem _domAll)
 
 -- | Elememt
@@ -52,7 +53,7 @@ list props = element (ElemName "listView") props []
 
 -- | Events
 -- | Events supported by list item
-onItemClick :: forall a eff. (a -> Effect Unit ) -> (Int -> a) -> Prop (Effect Unit)
+onItemClick :: forall a. (a -> Effect Unit ) -> (Int -> a) -> Prop (Effect Unit)
 onItemClick push f = Handler (DOM.EventType "onItemClick") (Just <<< (makeEvent (push <<< f)))
 
 -- | Properties
@@ -61,7 +62,7 @@ listData :: forall i. ListData -> Prop i
 listData (ListData val) = prop (PropName "listData") val
 
 -- | List template item property
-listItem :: forall i p. ListItem -> Prop i
+listItem :: forall i. ListItem -> Prop i
 listItem (ListItem val) = prop (PropName "listItem") val
 
 -- | Following properties create a property holder value which is referenced from item data
@@ -85,4 +86,7 @@ textSizeHolder = prop (PropName "holder_textSize")
 
 fontStyleHolder :: forall i. String -> Prop i
 fontStyleHolder = prop (PropName "holder_fontStyle")
+
+alphaHolder :: forall i. String -> Prop i
+alphaHolder = prop (PropName "holder_alpha")
 
