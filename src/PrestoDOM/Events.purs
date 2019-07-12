@@ -5,6 +5,7 @@ module PrestoDOM.Events
     , onMenuItemClick
     , onBackPressed
     , onNetworkChanged
+    , makeEvent
     , afterRender
     , onAnimationEnd
     ) where
