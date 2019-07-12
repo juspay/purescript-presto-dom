@@ -119,21 +119,25 @@ function domAll(elem) {
 function cmdForAndroid(config, set, type) {
   if (set) {
     if (config.id) {
-      var cmd = parseParams(type, config, "set").runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
+      var obj = parseParams(type, config, "set");
+      var cmd = obj.runInUI.replace("this->setId", "set_view=ctx->findViewById").replace(/this->/g, "get_view->");
       cmd = cmd.replace(/PARAM_CTR_HOLDER[^;]*/g, "get_view->getLayoutParams;");
+      obj.runInUI = cmd;
+      return obj;
     } else {
       console.error("ID null, this is not supposed to happen. Debug this or/and raise a issue in bitbucket.");
     }
-    return cmd;
+    return {};
   }
 
-  var cmd = "set_view=ctx->findViewById:i_" + config.id + ";";
-  var runInUI;
+  const id = config.id;
+  var cmd = "set_view=ctx->findViewById:i_" + id + ";";
   delete config.id;
   config.root = "true";
-  runInUI = parseParams(type, config, "get").runInUI;
-  cmd += runInUI + ';';
-  return cmd;
+  var obj = parseParams(type, config, "get");
+  obj.runInUI = cmd + obj.runInUI + ';';
+  obj.id = id;
+  return obj;
 }
 
 function applyProp(element, attribute, set) {
@@ -147,8 +151,12 @@ function applyProp(element, attribute, set) {
   }
 
   if (window.__OS == "ANDROID") {
-    var cmd = cmdForAndroid(prop, set, element.type);
-    Android.runInUI(cmd, null);
+       var cmd = cmdForAndroid(prop, set, element.type);
+       if (Android.updateProperties) {
+        Android.updateProperties(JSON.stringify(cmd));
+      } else {
+        Android.runInUI(cmd.runInUI, null);
+      }
   } else if (window.__OS == "IOS"){
     Android.runInUI(prop);
   } else {
@@ -329,7 +337,7 @@ function makeVisible (cache, _id) {
   // console.log("SCREEN", " makeVisible", prop);
   if (window.__OS == "ANDROID") {
     var cmd = cmdForAndroid(prop, true, "linearLayout");
-    Android.runInUI(cmd, null);
+    Android.runInUI(cmd.runInUI, null);
   } else if (window.__OS == "IOS"){
     Android.runInUI(prop);
   } else {
@@ -415,7 +423,7 @@ function screenIsCached(screen) {
         // console.log("SCREEN", " screenIsCached", screen, prop);
         if (window.__OS == "ANDROID") {
           var cmd = cmdForAndroid(prop, true, "relativeLayout");
-          Android.runInUI(cmd, null);
+          Android.runInUI(cmd.runInUI, null);
         } else if (window.__OS == "IOS"){
           Android.runInUI(prop);
         } else {
@@ -497,7 +505,7 @@ function hideCachedScreen() {
 
     if (window.__OS == "ANDROID") {
       var cmd = cmdForAndroid(prop, true, "relativeLayout");
-      Android.runInUI(cmd, null);
+      Android.runInUI(cmd.runInUI, null);
     } else if (window.__OS == "IOS") {
       Android.runInUI(prop);
     } else {
@@ -548,7 +556,7 @@ function insertDom(root, dom) {
       setTimeout(function() {
         if (window.__OS == "ANDROID" && length > 1) {
           var cmd = cmdForAndroid(prop, true, "relativeLayout");
-          Android.runInUI(cmd, null);
+          Android.runInUI(cmd.runInUI, null);
         } else if (window.__OS == "IOS"  && length > 1){
           Android.runInUI(prop);
         } else if (length > 1) {
@@ -595,7 +603,7 @@ exports.updateDom = function (root, dom) {
       }
       if (window.__OS == "ANDROID") {
         var cmd = cmdForAndroid(prop, true, "relativeLayout");
-        Android.runInUI(cmd, null);
+        Android.runInUI(cmd.runInUI, null);
       } else if (window.__OS == "IOS"){
         Android.runInUI(prop);
       } else {
