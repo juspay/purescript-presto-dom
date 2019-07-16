@@ -10,6 +10,7 @@ module PrestoDOM.List
   , textHolder
   , colorHolder
   , imageUrlHolder
+  , packageIconHolder
   , textSizeHolder
   , fontStyleHolder
   , backgroundHolder
@@ -71,6 +72,9 @@ textHolder = prop (PropName "holder_text")
 
 imageUrlHolder :: forall i. String -> Prop i
 imageUrlHolder = prop (PropName "holder_imageUrl")
+
+packageIconHolder :: forall i. String -> Prop i
+packageIconHolder = prop (PropName "holder_packageIcon")
 
 backgroundHolder :: forall i. String -> Prop i
 backgroundHolder = prop (PropName "holder_background")
