@@ -48,6 +48,8 @@ exports.insertDom = insertDom;
 
 window.__PRESTO_ID = window.__ui_id_sequence = typeof Android.getNewID == "function" ? parseInt(Android.getNewID()) * 1000000 : 1;
 
+exports._domAll = domAll
+
 function domAll(elem) {
   if (!elem.__ref) {
     elem.__ref = window.createPrestoElement();
@@ -71,39 +73,39 @@ function domAll(elem) {
   }
 
   // android specific code
-  if (type == "viewPager" && window.__OS === "ANDROID") {
-    const pages = children.splice(0);
-    const id  = elem.__ref.__id;
-    const cardWidth = elem.props.cardWidth || 1.0;
-    props.afterRender = function () {
-      var plusButtonWidth = 0.2;
-      if (pages.length == 1) {
-        plusButtonWidth = 0.8;
-      }
-      JBridge.viewPagerAdapter(id, JSON.stringify(pages), cardWidth, plusButtonWidth);
-    }
-    delete elem.props.cardWidth;
-  }
+  // if (type == "viewPager" && window.__OS === "ANDROID") {
+  //   const pages = children.splice(0);
+  //   const id  = elem.__ref.__id;
+  //   const cardWidth = elem.props.cardWidth || 1.0;
+  //   props.afterRender = function () {
+  //     var plusButtonWidth = 0.2;
+  //     if (pages.length == 1) {
+  //       plusButtonWidth = 0.8;
+  //     }
+  //     JBridge.viewPagerAdapter(id, JSON.stringify(pages), cardWidth, plusButtonWidth);
+  //   }
+  //   delete elem.props.cardWidth;
+  // }
 
-  if (type == "listView" && props.text) {
-    const id  = elem.__ref.__id;
-    const text = props.text;
-    const cb = props.onChange;
-    delete props.text;
-    props.afterRender = function () {
-      const callbackName = 'listview' + id;
-      window.top.__BOOT_LOADER[callbackName] = function () {
-        JBridge.bankListRefresh(id);
-      }
-      const fn = function(i) {
-        if (typeof cb === "function") {
-          cb(i);
-        }
+  // if (type == "listView" && props.text) {
+  //   const id  = elem.__ref.__id;
+  //   const text = props.text;
+  //   const cb = props.onChange;
+  //   delete props.text;
+  //   props.afterRender = function () {
+  //     const callbackName = 'listview' + id;
+  //     window.top.__BOOT_LOADER[callbackName] = function () {
+  //       JBridge.bankListRefresh(id);
+  //     }
+  //     const fn = function(i) {
+  //       if (typeof cb === "function") {
+  //         cb(i);
+  //       }
 
-      }
-      JBridge.bankList(id, text, callbackName, window.callbackMapper(fn));
-    }
-  }
+  //     }
+  //     JBridge.bankList(id, text, callbackName, window.callbackMapper(fn));
+  //   }
+  // }
 
   if (__OS == "WEB" && props.onResize) {
     window.__resizeEvent = props.onResize;

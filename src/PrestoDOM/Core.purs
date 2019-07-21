@@ -4,6 +4,7 @@ module PrestoDOM.Core
    , initUI
    , initUIWithScreen
    , mapDom
+   , _domAll
    ) where
 
 import Prelude
@@ -60,6 +61,8 @@ foreign import insertDom :: forall a b. EFn.EffectFn2 a b Unit
 foreign import updateDom :: forall a b. EFn.EffectFn2 a b Unit
 
 foreign import processWidget :: Effect Unit
+
+foreign import _domAll :: forall a b. a -> b
 
 foreign import saveScreenNameImpl
     :: EFn.EffectFn1
