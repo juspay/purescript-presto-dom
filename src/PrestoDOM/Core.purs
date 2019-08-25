@@ -68,6 +68,8 @@ foreign import setScreenImpl :: EFn.EffectFn1
         String
         Unit
 
+foreign import callAnimation :: Effect Unit
+
 foreign import saveScreenNameImpl
     :: EFn.EffectFn1
         (Maybe Namespace)
@@ -142,15 +144,16 @@ runScreenImpl cache { initialState, view, eval, name } cb = do
 
   case patch of
     false -> do
-        root <- getRootNode                                       -- window.N
-        machine <- EFn.runEffectFn1 (buildVDom (spec root)) myDom -- HalogenVDom Cycle
-        EFn.runEffectFn2 storeMachine machine screenName          -- Cache Dom to window
-        if cache                                                  -- Show/Run
-            then EFn.runEffectFn2 updateDom root (extract machine)-- Add to screen cache
-            else EFn.runEffectFn2 insertDom root (extract machine)-- Add to screen stack
-        processWidget                                             -- run widgets added by halogen-vdom to window.widgets
-    true ->
-        patchAndRun screenName myDom
+      root <- getRootNode                                       -- window.N
+      machine <- EFn.runEffectFn1 (buildVDom (spec root)) myDom -- HalogenVDom Cycle
+      EFn.runEffectFn2 storeMachine machine screenName          -- Cache Dom to window
+      if cache                                                  -- Show/Run
+          then EFn.runEffectFn2 updateDom root (extract machine)-- Add to screen cache
+          else EFn.runEffectFn2 insertDom root (extract machine)-- Add to screen stack
+      processWidget                                             -- run widgets added by halogen-vdom to window.widgets
+    true -> do
+      _ <- callAnimation
+      patchAndRun screenName myDom
 
   let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
   _ <- sample_ stateBeh event `subscribe` (either (onExit push) $ onStateChange push)

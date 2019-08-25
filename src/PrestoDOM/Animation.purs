@@ -27,6 +27,8 @@ module PrestoDOM.Animation
   , interpolator
   , tag
   , animationSet
+  , entryAnimationSet
+  , exitAnimationSet
   ) where
 
 import Prelude
@@ -216,16 +218,25 @@ interpolator = animProp "interpolator"
 tag :: String -> AnimProp
 tag = AnimProp "tag"
 
+entryAnimationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+entryAnimationSet = animationSetImpl "entryAnimation"
+
+exitAnimationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+exitAnimationSet = animationSetImpl "exitAnimation"
+
+animationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+animationSet = animationSetImpl "inlineAnimation"
+
 -- | Animation set is a composible animation view
 -- | It applies the set of animations on the provided view
-animationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
-animationSet animations view =
+animationSetImpl :: forall w. String -> Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+animationSetImpl propName animations view =
   case (length filterAnimations) == 0, view of
     false, Elem ns eName props child ->
-      let newProps = props <> [prop (PropName "inlineAnimation") $ _mergeAnimation filterAnimations]
+      let newProps = props <> [prop (PropName propName) $ _mergeAnimation filterAnimations]
        in Elem ns eName newProps child
     false, Keyed ns eName props child ->
-      let newProps = props <> [prop (PropName "inlineAnimation") $ _mergeAnimation filterAnimations]
+      let newProps = props <> [prop (PropName propName) $ _mergeAnimation filterAnimations]
        in Keyed ns eName newProps child
     _ , _ -> view
 

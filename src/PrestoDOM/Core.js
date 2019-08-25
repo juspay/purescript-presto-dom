@@ -10,28 +10,12 @@ const callbackMapper = require("presto-ui").helpers.android.callbackMapper;
 
 window.callbackMapper = callbackMapper.map;
 
-exports.callAnimation = function(name){
-  return function(start){
-    return function(){
-      var config = start ? window.startAnimations[name] : window.endAnimations[name]
-      if (window.__OS == "ANDROID") {
-        var cmd = cmdForAndroid(config, true, "linearLayout");
-        if (Android.updateProperties) {
-         Android.updateProperties(JSON.stringify(cmd));
-        } else {
-         Android.runInUI(cmd.runInUI, null);
-        }
-      } else if (window.__OS == "IOS"){
-        Android.runInUI(config);
-      } else {
-        // Will have to figure this part out
-        // Android.runInUI(webParseParams("linearLayout", config, "set"));
-      }
-    }
-  }
-}
+exports.callAnimation = callAnimation;
 
 exports.setScreenImpl = function(screen){
+    if(window.__dui_screen && window.__dui_screen != screen){
+      window.__dui_old_screen = window.__dui_screen;
+    }
     window.__dui_screen = screen
     if (typeof window.pageId == "undefined") {
       window.pageid = -1;
@@ -87,13 +71,46 @@ function domAll(elem) {
   if (elem.props.id) {
     elem.__ref.__id = parseInt(elem.props.id, 10) || elem.__ref.__id;
   }
+  window.entryAnimation = window.entryAnimation || {};
+  window.entryAnimation[window.__dui_screen] = window.entryAnimation[window.__dui_screen] || {};
+  
+  window.exitAnimation = window.exitAnimation || {};
+  window.exitAnimation[window.__dui_screen] = window.exitAnimation[window.__dui_screen] || {};
 
   const type = R.clone(elem.type);
   const props = R.clone(elem.props);
+  if (props.entryAnimation){
+    if (props.onAnimationEnd){
+      var callbackFunction = props.onAnimationEnd;
+      var updatedCallback = function(event){
+        hideOldScreenNow(event);
+        callbackFunction(event);
+      }
+      props.onAnimationEnd = updatedCallback;
+    }
+    else {
+      props.onAnimationEnd = hideOldScreenNow;
+    }
+    window.entryAnimation[window.__dui_screen][elem.__ref.__id] = {
+      visibility : props.visibility?props.visibility:"visible",
+      inlineAnimation : props.entryAnimation,
+      onAnimationEnd : props.onAnimationEnd,
+      type : type
+    }
+    props.visibility = "gone"
+  }
+  
+  if (props.exitAnimation){
+    window.exitAnimation[window.__dui_screen][elem.__ref.__id] = {
+      inlineAnimation : props.exitAnimation,
+      type : type
+    }
+  }
 
   if (props.focus == false &&  window.__OS === "ANDROID") {
     delete props.focus;
   }
+
 
   const children = [];
 
@@ -145,6 +162,18 @@ function domAll(elem) {
     return prestoDayum({elemType: type, parentType: elem.parentType}, props, children);
 
   return prestoDayum(type, props, children);
+}
+
+function hideOldScreenNow(tag){
+  console.log("I got called with tag" , tag); 
+  for(var key in window.viewsTobeRemoved){
+    Android.removeView(window.viewsTobeRemoved[key]);
+  }
+  window.viewsTobeRemoved = [];
+  if(window.cacheClearCache){
+    window.cacheClearCache();
+  }
+  window.cacheClearCache = undefined;
 }
 
 function cmdForAndroid(config, set, type) {
@@ -378,6 +407,7 @@ function makeVisible (cache, _id) {
 
 function screenIsInStack(screen) {
   var ar = window.__ROOTSCREEN.idSet.child;
+  window.viewsTobeRemoved = [];
   for (var i = 0,l=ar.length; i < l; i++) {
     if (ar[i].name.value0 == screen.value0) {
       var rem = window.__ROOTSCREEN.idSet.child.splice(i+1);
@@ -388,12 +418,13 @@ function screenIsInStack(screen) {
           window.__prevScreenName = window.__ROOTSCREEN.idSet.child[i-1].name;
         window.__currScreenName = screen;
 
-        setTimeout(function() {
+        // setTimeout(function() {
           for (var j = 0,k=rem.length; j < k; j++) {
-            Android.removeView(rem[j].id);
+            window.viewsTobeRemoved.push(rem[j].id);
+            // Android.removeView(rem[j].id);
             delete window.MACHINE_MAP[rem[j].name.value0];
           }
-        }, 1000);
+        // }, 1000);
 
         makeVisible(false);
       }
@@ -534,13 +565,15 @@ function hideCachedScreen() {
 
     window.__lastCachedScreen.name = "";
 
-    if (window.__OS == "ANDROID") {
-      var cmd = cmdForAndroid(prop, true, "relativeLayout");
-      Android.runInUI(cmd.runInUI, null);
-    } else if (window.__OS == "IOS") {
-      Android.runInUI(prop);
-    } else {
-      Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+    window.cacheClearCache = function(){
+      if (window.__OS == "ANDROID") {
+        var cmd = cmdForAndroid(prop, true, "relativeLayout");
+        Android.runInUI(cmd.runInUI, null);
+      } else if (window.__OS == "IOS") {
+        Android.runInUI(prop);
+      } else {
+        Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+      }
     }
 
   }
@@ -660,8 +693,40 @@ exports.updateDom = function (root, dom) {
 
 }
 
-function executePostProcess() {
+function callAnimation(){
+  if(window.__dui_screen && window.entryAnimation && window.entryAnimation[window.__dui_screen]){
+    for(var key in window.entryAnimation[window.__dui_screen]) {
+      var config = {
+        id : key
+      , inlineAnimation : window.entryAnimation[window.__dui_screen][key].inlineAnimation
+      , onAnimationEnd : window.entryAnimation[window.__dui_screen][key].onAnimationEnd
+      , visibility : window.entryAnimation[window.__dui_screen][key].visibility
+      }
+      var cmd = cmdForAndroid(config, true, window.entryAnimation[window.__dui_screen][key].type);
+      if (Android.updateProperties) {
+         Android.updateProperties(JSON.stringify(cmd));
+      }
+    }
+  }
 
+  if(window.__dui_old_screen && window.exitAnimation && window.exitAnimation[window.__dui_old_screen]){
+    for(var key in window.exitAnimation[window.__dui_old_screen]) {
+      var config2 = {
+        id : key
+      , inlineAnimation : window.exitAnimation[window.__dui_old_screen][key].inlineAnimation
+      }
+      var cmd2 = cmdForAndroid(config2, true, window.exitAnimation[window.__dui_old_screen][key].type);
+      if (Android.updateProperties) {
+        Android.updateProperties(JSON.stringify(cmd2));
+      }
+    }
+  }
+}
+
+
+
+function executePostProcess() {
+  callAnimation();
   if(window.__dui_screen && window["afterRender"]) {
     for (var tag in window["afterRender"][window.__dui_screen]) {
       try {
