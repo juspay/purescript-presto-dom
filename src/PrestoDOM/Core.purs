@@ -9,25 +9,25 @@ module PrestoDOM.Core
 
 import Prelude
 
-import Effect (Effect)
-import Effect.Aff (Canceler, Error, nonCanceler)
-import Data.Newtype (un)
-import Effect.Uncurried as EFn
-import Web.DOM.Document (Document) as DOM
 import Data.Either (Either(..), either)
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
+import Data.Newtype (un)
 import Data.Tuple (Tuple(..), fst)
-import Foreign.Object as Object
+import Effect (Effect)
+import Effect.Aff (Canceler, Error, nonCanceler)
+import Effect.Uncurried as EFn
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
 import FRP.Event as E
-import Halogen.VDom (VDomSpec(VDomSpec), buildVDom)
+import Foreign.Object as Object
+import Halogen.VDom (Namespace(..), VDomSpec(VDomSpec), buildVDom)
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
 import Halogen.VDom.Machine (Step, step, extract)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
 import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..))
 import PrestoDOM.Utils (continue)
+import Web.DOM.Document (Document) as DOM
 
 foreign import emitter
     :: forall a
@@ -64,6 +64,10 @@ foreign import processWidget :: Effect Unit
 
 foreign import _domAll :: forall a b. a -> b
 
+foreign import setScreenImpl :: EFn.EffectFn1
+        String
+        Unit
+
 foreign import saveScreenNameImpl
     :: EFn.EffectFn1
         (Maybe Namespace)
@@ -88,9 +92,8 @@ logger a = do
     pure unit
 
 
-patchAndRun :: forall w i. VDom (Array (Prop i)) w -> Effect Unit
-patchAndRun myDom = do
-  screenName <- getScreenName myDom
+patchAndRun :: forall w i. Maybe Namespace -> VDom (Array (Prop i)) w -> Effect Unit
+patchAndRun screenName myDom = do
   machine <- EFn.runEffectFn1 getLatestMachine screenName
   newMachine <- EFn.runEffectFn2 step (machine) (myDom)
   EFn.runEffectFn2 storeMachine newMachine screenName
@@ -129,37 +132,38 @@ runScreenImpl
     -> Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
-runScreenImpl cache { initialState, view, eval } cb = do
+runScreenImpl cache { initialState, view, eval, name } cb = do
   { event, push } <- E.create
+  _ <- setScreen name
   let myDom = view push initialState
-  screenName <- getScreenName myDom
   patch <- if cache
                then checkCachedScreen screenName
                else compareScreen screenName
 
   case patch of
     false -> do
-        root <- getRootNode
-        machine <- EFn.runEffectFn1 (buildVDom (spec root)) myDom
-        EFn.runEffectFn2 storeMachine machine screenName
-        if cache
-            then EFn.runEffectFn2 updateDom root (extract machine)
-            else EFn.runEffectFn2 insertDom root (extract machine)
-        processWidget
+        root <- getRootNode                                       -- window.N
+        machine <- EFn.runEffectFn1 (buildVDom (spec root)) myDom -- HalogenVDom Cycle
+        EFn.runEffectFn2 storeMachine machine screenName          -- Cache Dom to window
+        if cache                                                  -- Show/Run
+            then EFn.runEffectFn2 updateDom root (extract machine)-- Add to screen cache
+            else EFn.runEffectFn2 insertDom root (extract machine)-- Add to screen stack
+        processWidget                                             -- run widgets added by halogen-vdom to window.widgets
     true ->
-        patchAndRun myDom
+        patchAndRun screenName myDom
 
   let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
   _ <- sample_ stateBeh event `subscribe` (either (onExit push) $ onStateChange push)
   pure nonCanceler
     where
+          screenName = Just $ Namespace name
           onStateChange push (Tuple state cmds) =
-              patchAndRun (view push state)
+              patchAndRun screenName (view push state)
               *> for_ cmds (\effAction -> effAction >>= push)
 
           onExit push (Tuple st ret) =
               case st of
-                   Just s -> patchAndRun (view push  s) *> (cb $ Right ret)
+                   Just s -> patchAndRun screenName (view push s) *> (cb $ Right ret)
                    Nothing -> cb $ Right ret
 
 runScreen
@@ -176,10 +180,8 @@ showScreen
     -> Effect Canceler
 showScreen = runScreenImpl true
 
-
-getScreenName :: forall a w. VDom a w -> Effect (Maybe Namespace)
-getScreenName (Elem screen _ _ _) = pure screen
-getScreenName _ = pure Nothing
+setScreen :: String -> Effect Unit
+setScreen = EFn.runEffectFn1 setScreenImpl
 
 compareScreen :: Maybe Namespace -> Effect Boolean
 compareScreen screen = do

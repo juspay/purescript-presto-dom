@@ -10,6 +10,35 @@ const callbackMapper = require("presto-ui").helpers.android.callbackMapper;
 
 window.callbackMapper = callbackMapper.map;
 
+exports.callAnimation = function(name){
+  return function(start){
+    return function(){
+      var config = start ? window.startAnimations[name] : window.endAnimations[name]
+      if (window.__OS == "ANDROID") {
+        var cmd = cmdForAndroid(config, true, "linearLayout");
+        if (Android.updateProperties) {
+         Android.updateProperties(JSON.stringify(cmd));
+        } else {
+         Android.runInUI(cmd.runInUI, null);
+        }
+      } else if (window.__OS == "IOS"){
+        Android.runInUI(config);
+      } else {
+        // Will have to figure this part out
+        // Android.runInUI(webParseParams("linearLayout", config, "set"));
+      }
+    }
+  }
+}
+
+exports.setScreenImpl = function(screen){
+    window.__dui_screen = screen
+    if (typeof window.pageId == "undefined") {
+      window.pageid = -1;
+    }
+    ++window.pageId
+}
+
 function debounce(func, delay) {
   var inDebounce = void 0;
   return function () {
