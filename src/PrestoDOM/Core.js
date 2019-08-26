@@ -693,7 +693,7 @@ function insertDom(root, dom) {
     }
   }
 
-  var callback = window.callbackMapper(executePostProcess);
+  var callback = window.callbackMapper(executePostProcess("F"));
   if (window.__OS == "ANDROID") {
     Android.addViewToParent(rootId + "", JSON.stringify(domAll(dom)), length - 1, callback, null);
   }
@@ -746,7 +746,7 @@ exports.updateDom = function (root, dom) {
   }
 
   if (window.__OS == "ANDROID") {
-    var callback = window.callbackMapper(executePostProcess);
+    var callback = window.callbackMapper(executePostProcess(""));
     Android.addViewToParent(rootId, JSON.stringify(domAll(dom)), length, callback, null);
   }
   else {
@@ -788,33 +788,36 @@ function callAnimation(tag){
 
 
 
-function executePostProcess() {
-  callAnimation("F");
-  if(window.__dui_screen && window["afterRender"]) {
-    for (var tag in window["afterRender"][window.__dui_screen]) {
-      try {
-        window["afterRender"][window.__dui_screen][tag]()();
-        window["afterRender"][window.__dui_screen]["executed"] = true;
-      }
-      catch (err) {
-        console.warn(err);
+function executePostProcess(cache) {
+  return function(){
+    callAnimation(cache);
+    if(window.__dui_screen && window["afterRender"]) {
+      for (var tag in window["afterRender"][window.__dui_screen]) {
+        try {
+          window["afterRender"][window.__dui_screen][tag]()();
+          window["afterRender"][window.__dui_screen]["executed"] = true;
+        }
+        catch (err) {
+          console.warn(err);
+        }
       }
     }
-  }
+  
+    if (JBridge && JBridge.setShadow) {
+      for (var tag in window.shadowObject) {
+        JBridge.setShadow(window.shadowObject[tag]["level"],
+                          JSON.stringify(window.shadowObject[tag]["viewId"]),
+                          JSON.stringify(window.shadowObject[tag]["backgroundColor"]),
+                          JSON.stringify(window.shadowObject[tag]["blurValue"]),
+                          JSON.stringify(window.shadowObject[tag]["shadowColor"]),
+                          JSON.stringify(window.shadowObject[tag]["dx"]),
+                          JSON.stringify(window.shadowObject[tag]["dy"]),
+                          JSON.stringify(window.shadowObject[tag]["spread"]),
+                          JSON.stringify(window.shadowObject[tag]["factor"]));
+      }
+    } else {
+      console.warn("experimental feature: JBridge is not available in native");
+    }
 
-  if (JBridge && JBridge.setShadow) {
-    for (var tag in window.shadowObject) {
-      JBridge.setShadow(window.shadowObject[tag]["level"],
-                        JSON.stringify(window.shadowObject[tag]["viewId"]),
-                        JSON.stringify(window.shadowObject[tag]["backgroundColor"]),
-                        JSON.stringify(window.shadowObject[tag]["blurValue"]),
-                        JSON.stringify(window.shadowObject[tag]["shadowColor"]),
-                        JSON.stringify(window.shadowObject[tag]["dx"]),
-                        JSON.stringify(window.shadowObject[tag]["dy"]),
-                        JSON.stringify(window.shadowObject[tag]["spread"]),
-                        JSON.stringify(window.shadowObject[tag]["factor"]));
-    }
-  } else {
-    console.warn("experimental feature: JBridge is not available in native");
   }
 }
