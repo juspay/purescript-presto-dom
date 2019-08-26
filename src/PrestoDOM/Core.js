@@ -10,6 +10,23 @@ const callbackMapper = require("presto-ui").helpers.android.callbackMapper;
 
 window.callbackMapper = callbackMapper.map;
 
+exports.getScreenNumber = function(){
+   if (window.scc){
+     window.scc += 1;
+     return window.scc;
+   }
+   window.scc = 1;
+   return 1;
+  }
+  
+exports.cacheCanceller = function(screenNumber) {
+  return function(canceller){
+    return function(){
+      window["currentCancellor" + screenNumber] = canceller;
+    }
+  }
+}
+
 exports.callAnimation = callAnimation;
 
 exports.setScreenImpl = function(screen){
@@ -819,5 +836,13 @@ function executePostProcess(cache) {
       console.warn("experimental feature: JBridge is not available in native");
     }
 
+  }
+}
+
+exports.exitUI = function (tag) {
+  return function(){
+    window.__dui_last_patch_screen = "";
+    window["currentCancellor" + tag]();
+    delete window["currentCancellor" + tag];
   }
 }

@@ -83,6 +83,10 @@ foreign import cacheScreenImpl
         (Maybe Namespace)
         Boolean
 
+foreign import exitUI :: Int -> Effect Unit
+foreign import getScreenNumber :: Effect Int
+foreign import cacheCanceller :: Int -> Effect Unit -> Effect Unit
+
 spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
 spec document =  VDomSpec {
       buildWidget : buildThunk (un PrestoWidget)
@@ -138,6 +142,7 @@ runScreenImpl
     -> Effect Canceler
 runScreenImpl cache { initialState, view, eval, name } cb = do
   { event, push } <- E.create
+  screenNumber <- getScreenNumber
   _ <- setScreen name
   let myDom = view push initialState
   patch <- if cache
@@ -158,7 +163,8 @@ runScreenImpl cache { initialState, view, eval, name } cb = do
       patchAndRun screenName myDom
 
   let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
-  _ <- sample_ stateBeh event `subscribe` (either (onExit push) $ onStateChange push)
+  canceller <- sample_ stateBeh event `subscribe` (either (onExit screenNumber push) $ onStateChange push)
+  _ <- cacheCanceller screenNumber canceller
   pure nonCanceler
     where
           screenName = Just $ Namespace name
@@ -166,10 +172,10 @@ runScreenImpl cache { initialState, view, eval, name } cb = do
               patchAndRun screenName (view push state)
               *> for_ cmds (\effAction -> effAction >>= push)
 
-          onExit push (Tuple st ret) =
+          onExit scn push (Tuple st ret) =
               case st of
-                   Just s -> patchAndRun screenName (view push s) *> (cb $ Right ret)
-                   Nothing -> cb $ Right ret
+                   Just s -> patchAndRun screenName (view push s) *> (exitUI scn >>= \_ -> cb $ Right ret)
+                   Nothing -> exitUI scn >>= \_ -> cb $ Right ret
 
 runScreen
     :: forall action state returnType
