@@ -71,15 +71,29 @@ function domAll(elem) {
   if (elem.props.id) {
     elem.__ref.__id = parseInt(elem.props.id, 10) || elem.__ref.__id;
   }
+
   window.entryAnimation = window.entryAnimation || {};
   window.entryAnimation[window.__dui_screen] = window.entryAnimation[window.__dui_screen] || {};
+
+  window.entryAnimationF = window.entryAnimationF || {};
+  window.entryAnimationF[window.__dui_screen] = window.entryAnimationF[window.__dui_screen] || {};
+
+  window.entryAnimationB = window.entryAnimationB || {};
+  window.entryAnimationB[window.__dui_screen] = window.entryAnimationB[window.__dui_screen] || {};
   
   window.exitAnimation = window.exitAnimation || {};
   window.exitAnimation[window.__dui_screen] = window.exitAnimation[window.__dui_screen] || {};
-
+  
+  window.exitAnimationF = window.exitAnimation || {};
+  window.exitAnimationF[window.__dui_screen] = window.exitAnimationF[window.__dui_screen] || {};
+  
+  window.exitAnimationB = window.exitAnimationB || {};
+  window.exitAnimationB[window.__dui_screen] = window.exitAnimationB[window.__dui_screen] || {};
+  
   const type = R.clone(elem.type);
   const props = R.clone(elem.props);
-  if (props.entryAnimation){
+  
+  if (props.entryAnimation || props.entryAnimationF || props.entryAnimationB || props.exitAnimation || props.exitAnimationF || props.exitAnimationB){
     if (props.onAnimationEnd){
       var callbackFunction = props.onAnimationEnd;
       var updatedCallback = function(event){
@@ -91,21 +105,62 @@ function domAll(elem) {
     else {
       props.onAnimationEnd = hideOldScreenNow;
     }
+  }
+  if (props.entryAnimation){
     window.entryAnimation[window.__dui_screen][elem.__ref.__id] = {
       visibility : props.visibility?props.visibility:"visible",
       inlineAnimation : props.entryAnimation,
       onAnimationEnd : props.onAnimationEnd,
       type : type
     }
-    props.visibility = "gone"
   }
-  
-  if (props.exitAnimation){
-    window.exitAnimation[window.__dui_screen][elem.__ref.__id] = {
-      inlineAnimation : props.exitAnimation,
+
+  if (props.entryAnimationF){
+    window.entryAnimationF[window.__dui_screen][elem.__ref.__id] = {
+      visibility : props.visibility?props.visibility:"visible",
+      inlineAnimation : props.entryAnimationF,
+      onAnimationEnd : props.onAnimationEnd,
       type : type
     }
   }
+
+  if (props.entryAnimationB){
+    window.entryAnimationB[window.__dui_screen][elem.__ref.__id] = {
+      visibility : props.visibility?props.visibility:"visible",
+      inlineAnimation : props.entryAnimationB,
+      onAnimationEnd : props.onAnimationEnd,
+      type : type
+    }
+  }
+  
+  if (props.entryAnimation || props.entryAnimationB || props.entryAnimationF){
+    props.visibility = "gone";
+  }
+
+  if (props.exitAnimation){
+    window.exitAnimation[window.__dui_screen][elem.__ref.__id] = {
+      inlineAnimation : props.exitAnimation,
+      onAnimationEnd : props.onAnimationEnd,
+      type : type
+    }
+  }
+
+  if (props.exitAnimationF){
+    window.exitAnimationF[window.__dui_screen][elem.__ref.__id] = {
+      inlineAnimation : props.exitAnimationF,
+      onAnimationEnd : props.onAnimationEnd,
+      type : type
+    }
+  }
+
+  if (props.exitAnimationB){
+    window.exitAnimationB[window.__dui_screen][elem.__ref.__id] = {
+      inlineAnimation : props.exitAnimationB,
+      onAnimationEnd : props.onAnimationEnd,
+      type : type
+    }
+  }
+
 
   if (props.focus == false &&  window.__OS === "ANDROID") {
     delete props.focus;
@@ -693,29 +748,29 @@ exports.updateDom = function (root, dom) {
 
 }
 
-function callAnimation(){
-  if(window.__dui_screen && window.entryAnimation && window.entryAnimation[window.__dui_screen]){
-    for(var key in window.entryAnimation[window.__dui_screen]) {
+function callAnimation(tag){
+  if(window.__dui_screen && window["entryAnimation"+tag] && window["entryAnimation"+tag][window.__dui_screen]){
+    for(var key in window["entryAnimation"+tag][window.__dui_screen]) {
       var config = {
         id : key
-      , inlineAnimation : window.entryAnimation[window.__dui_screen][key].inlineAnimation
-      , onAnimationEnd : window.entryAnimation[window.__dui_screen][key].onAnimationEnd
-      , visibility : window.entryAnimation[window.__dui_screen][key].visibility
+      , inlineAnimation : window["entryAnimation"+tag][window.__dui_screen][key].inlineAnimation
+      , onAnimationEnd : window["entryAnimation"+tag][window.__dui_screen][key].onAnimationEnd
+      , visibility : window["entryAnimation"+tag][window.__dui_screen][key].visibility
       }
-      var cmd = cmdForAndroid(config, true, window.entryAnimation[window.__dui_screen][key].type);
+      var cmd = cmdForAndroid(config, true, window["entryAnimation"+tag][window.__dui_screen][key].type);
       if (Android.updateProperties) {
          Android.updateProperties(JSON.stringify(cmd));
       }
     }
   }
 
-  if(window.__dui_old_screen && window.exitAnimation && window.exitAnimation[window.__dui_old_screen]){
-    for(var key in window.exitAnimation[window.__dui_old_screen]) {
+  if(window.__dui_old_screen && window["exitAnimation"+tag] && window["exitAnimation"+tag][window.__dui_old_screen]){
+    for(var key in window["exitAnimation"+tag][window.__dui_old_screen]) {
       var config2 = {
         id : key
-      , inlineAnimation : window.exitAnimation[window.__dui_old_screen][key].inlineAnimation
+      , inlineAnimation : window["exitAnimation"+tag][window.__dui_old_screen][key].inlineAnimation
       }
-      var cmd2 = cmdForAndroid(config2, true, window.exitAnimation[window.__dui_old_screen][key].type);
+      var cmd2 = cmdForAndroid(config2, true, window["exitAnimation"+tag][window.__dui_old_screen][key].type);
       if (Android.updateProperties) {
         Android.updateProperties(JSON.stringify(cmd2));
       }
@@ -726,7 +781,7 @@ function callAnimation(){
 
 
 function executePostProcess() {
-  callAnimation();
+  callAnimation("F");
   if(window.__dui_screen && window["afterRender"]) {
     for (var tag in window["afterRender"][window.__dui_screen]) {
       try {

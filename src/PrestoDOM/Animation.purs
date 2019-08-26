@@ -28,7 +28,11 @@ module PrestoDOM.Animation
   , tag
   , animationSet
   , entryAnimationSet
+  , entryAnimationSetForward
+  , entryAnimationSetBackward
   , exitAnimationSet
+  , exitAnimationSetForward
+  , exitAnimationSetBackward
   ) where
 
 import Prelude
@@ -223,6 +227,18 @@ entryAnimationSet = animationSetImpl "entryAnimation"
 
 exitAnimationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
 exitAnimationSet = animationSetImpl "exitAnimation"
+
+entryAnimationSetForward :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+entryAnimationSetForward = animationSetImpl "entryAnimationF"
+
+exitAnimationSetForward :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+exitAnimationSetForward = animationSetImpl "exitAnimationF"
+
+entryAnimationSetBackward :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+entryAnimationSetBackward = animationSetImpl "entryAnimationB"
+
+exitAnimationSetBackward :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+exitAnimationSetBackward = animationSetImpl "exitAnimationB"
 
 animationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
 animationSet = animationSetImpl "inlineAnimation"
