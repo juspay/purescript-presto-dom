@@ -220,15 +220,22 @@ function domAll(elem) {
 }
 
 function hideOldScreenNow(tag){
-  console.log("I got called with tag" , tag); 
-  for(var key in window.viewsTobeRemoved){
-    Android.removeView(window.viewsTobeRemoved[key]);
-  }
+  var holdArray = window.viewsTobeRemoved;
+  var tohide = window.hideold;
+  window.hideold = undefined;
   window.viewsTobeRemoved = [];
-  if(window.cacheClearCache){
-    window.cacheClearCache();
-  }
+  var clearCache = window.cacheClearCache;
   window.cacheClearCache = undefined;
+  holdArray.forEach(function(obj) {
+    Android.removeView(obj);
+  });
+  if(clearCache){
+    clearCache();
+  }
+  if (tohide){
+    tohide();
+  }
+  window.enableBackpress = true;
 }
 
 function cmdForAndroid(config, set, type) {
@@ -672,7 +679,7 @@ function insertDom(root, dom) {
           visibility: __visibility
       }
 
-      setTimeout(function() {
+      window.hideold = function(){
         if (window.__OS == "ANDROID" && length > 1) {
           var cmd = cmdForAndroid(prop, true, "relativeLayout");
           Android.runInUI(cmd.runInUI, null);
@@ -681,7 +688,7 @@ function insertDom(root, dom) {
         } else if (length > 1) {
           Android.runInUI(webParseParams("relativeLayout", prop, "set"));
         }
-      }, 1000);
+      }
 
     }
   }
@@ -749,6 +756,7 @@ exports.updateDom = function (root, dom) {
 }
 
 function callAnimation(tag){
+  window.enableBackpress = false;
   if(window.__dui_screen && window["entryAnimation"+tag] && window["entryAnimation"+tag][window.__dui_screen]){
     for(var key in window["entryAnimation"+tag][window.__dui_screen]) {
       var config = {
