@@ -180,7 +180,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
                    Just s -> patchAndRun screenName (view push s) *> (exitUI scn >>= \_ -> cb $ Right ret)
                    Nothing -> exitUI scn >>= \_ -> cb $ Right ret
           registerEvents push = 
-            (\(Tuple f action) -> f push action)
+            (\f -> f push)
 
 runScreen
     :: forall action state returnType
