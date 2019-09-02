@@ -140,7 +140,7 @@ runScreenImpl
     -> Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
-runScreenImpl cache { initialState, view, eval, name } cb = do
+runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
   { event, push } <- E.create
   screenNumber <- getScreenNumber
   _ <- setScreen name
@@ -164,7 +164,10 @@ runScreenImpl cache { initialState, view, eval, name } cb = do
 
   let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
   canceller <- sample_ stateBeh event `subscribe` (either (onExit screenNumber push) $ onStateChange push)
+  -- TODO Make globalEvents return canceller
+  _ <- for_ globalEvents $ registerEvents push
   _ <- cacheCanceller screenNumber canceller
+  -- and pass to cache canceller
   pure nonCanceler
     where
           screenName = Just $ Namespace name
@@ -176,6 +179,8 @@ runScreenImpl cache { initialState, view, eval, name } cb = do
               case st of
                    Just s -> patchAndRun screenName (view push s) *> (exitUI scn >>= \_ -> cb $ Right ret)
                    Nothing -> exitUI scn >>= \_ -> cb $ Right ret
+          registerEvents push = 
+            (\(Tuple f action) -> f push action)
 
 runScreen
     :: forall action state returnType

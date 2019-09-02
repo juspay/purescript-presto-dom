@@ -63,6 +63,7 @@ data GenProp
 type Screen action state returnType =
   { initialState :: state
   , name :: String
+  , globalEvents :: Array (Tuple ((action -> Effect Unit) -> action -> Effect Unit) action)
   , view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
   , eval :: action -> state -> Eval action returnType state
   }
