@@ -11,20 +11,20 @@ const callbackMapper = require("presto-ui").helpers.android.callbackMapper;
 window.callbackMapper = callbackMapper.map;
 
 exports.getScreenNumber = function(){
-   if (window.scc){
-     window.scc += 1;
-     return window.scc;
-   }
-   window.scc = 1;
-   return 1;
+  if (window.scc){
+    window.scc += 1;
+    return window.scc;
   }
-  
+  window.scc = 1;
+  return 1;
+ }
+ 
 exports.cacheCanceller = function(screenNumber) {
-  return function(canceller){
-    return function(){
-      window["currentCancellor" + screenNumber] = canceller;
-    }
-  }
+ return function(canceller){
+   return function(){
+     window["currentCancellor" + screenNumber] = canceller;
+   }
+ }
 }
 
 exports.callAnimation = callAnimation;
@@ -110,7 +110,7 @@ function domAll(elem) {
   const type = R.clone(elem.type);
   const props = R.clone(elem.props);
   
-  if (props.entryAnimation || props.entryAnimationF || props.entryAnimationB || props.exitAnimation || props.exitAnimationF || props.exitAnimationB){
+  if (props.entryAnimation || props.entryAnimationF || props.entryAnimationB){
     if (props.onAnimationEnd){
       var callbackFunction = props.onAnimationEnd;
       var updatedCallback = function(event){
@@ -124,21 +124,11 @@ function domAll(elem) {
     }
   }
   if (props.entryAnimation){
-    window.entryAnimation[window.__dui_screen][elem.__ref.__id] = {
-      visibility : props.visibility?props.visibility:"visible",
-      inlineAnimation : props.entryAnimation,
-      onAnimationEnd : props.onAnimationEnd,
-      type : type
-    }
+    props.inlineAnimation = props.entryAnimation;
   }
 
   if (props.entryAnimationF){
-    window.entryAnimationF[window.__dui_screen][elem.__ref.__id] = {
-      visibility : props.visibility?props.visibility:"visible",
-      inlineAnimation : props.entryAnimationF,
-      onAnimationEnd : props.onAnimationEnd,
-      type : type
-    }
+    props.inlineAnimation = props.entryAnimationF;
   }
 
   if (props.entryAnimationB){
@@ -148,10 +138,6 @@ function domAll(elem) {
       onAnimationEnd : props.onAnimationEnd,
       type : type
     }
-  }
-  
-  if (props.entryAnimation || props.entryAnimationB || props.entryAnimationF){
-    props.visibility = "gone";
   }
 
   if (props.exitAnimation){
@@ -773,34 +759,37 @@ exports.updateDom = function (root, dom) {
 }
 
 function callAnimation(tag){
-  window.enableBackpress = false;
-  if(window.__dui_screen && window["entryAnimation"+tag] && window["entryAnimation"+tag][window.__dui_screen]){
-    for(var key in window["entryAnimation"+tag][window.__dui_screen]) {
-      var config = {
-        id : key
-      , inlineAnimation : window["entryAnimation"+tag][window.__dui_screen][key].inlineAnimation
-      , onAnimationEnd : window["entryAnimation"+tag][window.__dui_screen][key].onAnimationEnd
-      , visibility : window["entryAnimation"+tag][window.__dui_screen][key].visibility
+  if (window.__dui_old_screen != window.__dui_screen){
+    window.enableBackpress = false;
+    if(window.__dui_screen && window["entryAnimation"+tag] && window["entryAnimation"+tag][window.__dui_screen]){
+      for(var key in window["entryAnimation"+tag][window.__dui_screen]) {
+        var config = {
+          id : key
+        , inlineAnimation : window["entryAnimation"+tag][window.__dui_screen][key].inlineAnimation
+        , onAnimationEnd : window["entryAnimation"+tag][window.__dui_screen][key].onAnimationEnd
+        , visibility : window["entryAnimation"+tag][window.__dui_screen][key].visibility
+        }
+        var cmd = cmdForAndroid(config, true, window["entryAnimation"+tag][window.__dui_screen][key].type);
+        if (Android.updateProperties) {
+           Android.updateProperties(JSON.stringify(cmd));
+        }
       }
-      var cmd = cmdForAndroid(config, true, window["entryAnimation"+tag][window.__dui_screen][key].type);
-      if (Android.updateProperties) {
-         Android.updateProperties(JSON.stringify(cmd));
+    }
+  
+    if(window.__dui_old_screen && window["exitAnimation"+tag] && window["exitAnimation"+tag][window.__dui_old_screen]){
+      for(var key in window["exitAnimation"+tag][window.__dui_old_screen]) {
+        var config2 = {
+          id : key
+        , inlineAnimation : window["exitAnimation"+tag][window.__dui_old_screen][key].inlineAnimation
+        }
+        var cmd2 = cmdForAndroid(config2, true, window["exitAnimation"+tag][window.__dui_old_screen][key].type);
+        if (Android.updateProperties) {
+          Android.updateProperties(JSON.stringify(cmd2));
+        }
       }
     }
   }
-
-  if(window.__dui_old_screen && window["exitAnimation"+tag] && window["exitAnimation"+tag][window.__dui_old_screen]){
-    for(var key in window["exitAnimation"+tag][window.__dui_old_screen]) {
-      var config2 = {
-        id : key
-      , inlineAnimation : window["exitAnimation"+tag][window.__dui_old_screen][key].inlineAnimation
-      }
-      var cmd2 = cmdForAndroid(config2, true, window["exitAnimation"+tag][window.__dui_old_screen][key].type);
-      if (Android.updateProperties) {
-        Android.updateProperties(JSON.stringify(cmd2));
-      }
-    }
-  }
+  window.__dui_old_screen = window.__dui_screen;
 }
 
 
@@ -809,32 +798,32 @@ function executePostProcess(cache) {
   return function(){
     callAnimation(cache);
     if(window.__dui_screen && window["afterRender"]) {
-      for (var tag in window["afterRender"][window.__dui_screen]) {
-        try {
-          window["afterRender"][window.__dui_screen][tag]()();
-          window["afterRender"][window.__dui_screen]["executed"] = true;
-        }
-        catch (err) {
-          console.warn(err);
-        }
+    for (var tag in window["afterRender"][window.__dui_screen]) {
+      try {
+        window["afterRender"][window.__dui_screen][tag]()();
+        window["afterRender"][window.__dui_screen]["executed"] = true;
+      }
+      catch (err) {
+        console.warn(err);
       }
     }
-  
-    if (JBridge && JBridge.setShadow) {
-      for (var tag in window.shadowObject) {
-        JBridge.setShadow(window.shadowObject[tag]["level"],
-                          JSON.stringify(window.shadowObject[tag]["viewId"]),
-                          JSON.stringify(window.shadowObject[tag]["backgroundColor"]),
-                          JSON.stringify(window.shadowObject[tag]["blurValue"]),
-                          JSON.stringify(window.shadowObject[tag]["shadowColor"]),
-                          JSON.stringify(window.shadowObject[tag]["dx"]),
-                          JSON.stringify(window.shadowObject[tag]["dy"]),
-                          JSON.stringify(window.shadowObject[tag]["spread"]),
-                          JSON.stringify(window.shadowObject[tag]["factor"]));
-      }
-    } else {
-      console.warn("experimental feature: JBridge is not available in native");
+  }
+
+  if (JBridge && JBridge.setShadow) {
+    for (var tag in window.shadowObject) {
+      JBridge.setShadow(window.shadowObject[tag]["level"],
+                        JSON.stringify(window.shadowObject[tag]["viewId"]),
+                        JSON.stringify(window.shadowObject[tag]["backgroundColor"]),
+                        JSON.stringify(window.shadowObject[tag]["blurValue"]),
+                        JSON.stringify(window.shadowObject[tag]["shadowColor"]),
+                        JSON.stringify(window.shadowObject[tag]["dx"]),
+                        JSON.stringify(window.shadowObject[tag]["dy"]),
+                        JSON.stringify(window.shadowObject[tag]["spread"]),
+                        JSON.stringify(window.shadowObject[tag]["factor"]));
     }
+  } else {
+    console.warn("experimental feature: JBridge is not available in native");
+  }
 
   }
 }

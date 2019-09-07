@@ -126,7 +126,6 @@ initUI
 initUI cb = do
   root <- EFn.runEffectFn1 setRootNode Nothing
   machine <- EFn.runEffectFn1 (buildVDom (spec root)) view
-  EFn.runEffectFn2 insertDom root (extract machine)
   cb $ Right unit
   pure nonCanceler
     where
