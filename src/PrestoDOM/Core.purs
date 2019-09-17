@@ -15,7 +15,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (un)
 import Data.Tuple (Tuple(..), fst)
 import Effect (Effect)
-import Effect.Aff (Canceler, Error, nonCanceler)
+import Effect.Aff (Canceler, Error, effectCanceler, nonCanceler)
 import Effect.Uncurried as EFn
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
