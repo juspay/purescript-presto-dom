@@ -15,7 +15,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (un)
 import Data.Tuple (Tuple(..), fst)
 import Effect (Effect)
-import Effect.Aff (Canceler, Error, nonCanceler)
+import Effect.Aff (Canceler, Error, effectCanceler, nonCanceler)
 import Effect.Uncurried as EFn
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
@@ -165,7 +165,7 @@ runScreenImpl cache { initialState, view, eval, name } cb = do
   let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
   canceller <- sample_ stateBeh event `subscribe` (either (onExit screenNumber push) $ onStateChange push)
   _ <- cacheCanceller screenNumber canceller
-  pure nonCanceler
+  pure $ effectCanceler (exitUI screenNumber)
     where
           screenName = Just $ Namespace name
           onStateChange push (Tuple state cmds) =
