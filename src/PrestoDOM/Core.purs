@@ -15,7 +15,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (un)
 import Data.Tuple (Tuple(..), fst)
 import Effect (Effect)
-import Effect.Aff (Canceler, Error, nonCanceler)
+import Effect.Aff (Canceler, Error, effectCanceler, nonCanceler)
 import Effect.Uncurried as EFn
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
@@ -167,8 +167,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
   -- TODO Make globalEvents return canceller
   _ <- for_ globalEvents $ registerEvents push
   _ <- cacheCanceller screenNumber canceller
-  -- and pass to cache canceller
-  pure nonCanceler
+  pure $ effectCanceler (exitUI screenNumber)
     where
           screenName = Just $ Namespace name
           onStateChange push (Tuple state cmds) =
