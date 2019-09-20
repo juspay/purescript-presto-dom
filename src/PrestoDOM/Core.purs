@@ -13,6 +13,7 @@ import Data.Either (Either(..), either)
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (un)
+import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst)
 import Effect (Effect)
 import Effect.Aff (Canceler, Error, effectCanceler, nonCanceler)
@@ -165,8 +166,8 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
   let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
   canceller <- sample_ stateBeh event `subscribe` (either (onExit screenNumber push) $ onStateChange push)
   -- TODO Make globalEvents return canceller
-  _ <- for_ globalEvents $ registerEvents push
-  _ <- cacheCanceller screenNumber canceller
+  cancellers <- traverse (registerEvents push)  globalEvents
+  _ <- cacheCanceller screenNumber $ joinCancellers cancellers canceller
   pure $ effectCanceler (exitUI screenNumber)
     where
           screenName = Just $ Namespace name
@@ -180,6 +181,11 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
                    Nothing -> exitUI scn >>= \_ -> cb $ Right ret
           registerEvents push = 
             (\f -> f push)
+
+joinCancellers :: Array (Effect Unit) -> Effect Unit -> Effect Unit
+joinCancellers cancellers canceller = do
+  _ <- traverse identity cancellers
+  canceller
 
 runScreen
     :: forall action state returnType
