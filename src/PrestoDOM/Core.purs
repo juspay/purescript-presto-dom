@@ -165,7 +165,6 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
 
   let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
   canceller <- sample_ stateBeh event `subscribe` (either (onExit screenNumber push) $ onStateChange push)
-  -- TODO Make globalEvents return canceller
   cancellers <- traverse (registerEvents push)  globalEvents
   _ <- cacheCanceller screenNumber $ joinCancellers cancellers canceller
   pure $ effectCanceler (exitUI screenNumber)
