@@ -610,4 +610,6 @@ pattern = prop (PropName "pattern")
 popupMenu :: forall i. String -> Prop i
 popupMenu = prop (PropName "popupMenu")
 
-
+-- | Int -- ime option for edittext
+imeOptions :: forall i. Int -> Prop i
+imeOptions = prop (PropName "imeOptions")
