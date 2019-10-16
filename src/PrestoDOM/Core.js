@@ -110,56 +110,58 @@ function domAll(elem) {
   const type = R.clone(elem.type);
   const props = R.clone(elem.props);
 
-  if (props.entryAnimation || props.entryAnimationF || props.entryAnimationB) {
-    if (props.onAnimationEnd) {
-      var callbackFunction = props.onAnimationEnd;
-      var updatedCallback = function (event) {
-        hideOldScreenNow(event);
-        callbackFunction(event);
+  if (window.__OS !== "WEB"){
+    if (props.entryAnimation || props.entryAnimationF || props.entryAnimationB) {
+      if (props.onAnimationEnd) {
+        var callbackFunction = props.onAnimationEnd;
+        var updatedCallback = function (event) {
+          hideOldScreenNow(event);
+          callbackFunction(event);
+        }
+        props.onAnimationEnd = updatedCallback;
+      } else {
+        props.onAnimationEnd = hideOldScreenNow;
       }
-      props.onAnimationEnd = updatedCallback;
-    } else {
-      props.onAnimationEnd = hideOldScreenNow;
     }
-  }
-  if (props.entryAnimation) {
-    props.inlineAnimation = props.entryAnimation;
-  }
-
-  if (props.entryAnimationF) {
-    props.inlineAnimation = props.entryAnimationF;
-  }
-
-  if (props.entryAnimationB) {
-    window.entryAnimationB[window.__dui_screen][elem.__ref.__id] = {
-      visibility: props.visibility ? props.visibility : "visible",
-      inlineAnimation: props.entryAnimationB,
-      onAnimationEnd: props.onAnimationEnd,
-      type: type
+    if (props.entryAnimation) {
+      props.inlineAnimation = props.entryAnimation;
     }
-  }
-
-  if (props.exitAnimation) {
-    window.exitAnimation[window.__dui_screen][elem.__ref.__id] = {
-      inlineAnimation: props.exitAnimation,
-      onAnimationEnd: props.onAnimationEnd,
-      type: type
+  
+    if (props.entryAnimationF) {
+      props.inlineAnimation = props.entryAnimationF;
     }
-  }
-
-  if (props.exitAnimationF) {
-    window.exitAnimationF[window.__dui_screen][elem.__ref.__id] = {
-      inlineAnimation: props.exitAnimationF,
-      onAnimationEnd: props.onAnimationEnd,
-      type: type
+  
+    if (props.entryAnimationB) {
+      window.entryAnimationB[window.__dui_screen][elem.__ref.__id] = {
+        visibility: props.visibility ? props.visibility : "visible",
+        inlineAnimation: props.entryAnimationB,
+        onAnimationEnd: props.onAnimationEnd,
+        type: type
+      }
     }
-  }
-
-  if (props.exitAnimationB) {
-    window.exitAnimationB[window.__dui_screen][elem.__ref.__id] = {
-      inlineAnimation: props.exitAnimationB,
-      onAnimationEnd: props.onAnimationEnd,
-      type: type
+  
+    if (props.exitAnimation) {
+      window.exitAnimation[window.__dui_screen][elem.__ref.__id] = {
+        inlineAnimation: props.exitAnimation,
+        onAnimationEnd: props.onAnimationEnd,
+        type: type
+      }
+    }
+  
+    if (props.exitAnimationF) {
+      window.exitAnimationF[window.__dui_screen][elem.__ref.__id] = {
+        inlineAnimation: props.exitAnimationF,
+        onAnimationEnd: props.onAnimationEnd,
+        type: type
+      }
+    }
+  
+    if (props.exitAnimationB) {
+      window.exitAnimationB[window.__dui_screen][elem.__ref.__id] = {
+        inlineAnimation: props.exitAnimationB,
+        onAnimationEnd: props.onAnimationEnd,
+        type: type
+      }
     }
   }
 
@@ -777,6 +779,11 @@ exports.updateDom = function (root, dom) {
 function callAnimation(tag) {
   if (window.__dui_old_screen != window.__dui_screen) {
     window.enableBackpress = false;
+    if (window.__OS == "WEB"){
+      hideOldScreenNow();
+      window.__dui_old_screen = window.__dui_screen;
+      return;
+    }
     if (window.__dui_screen && window["entryAnimation" + tag] && window["entryAnimation" + tag][window.__dui_screen]) {
       for (var key in window["entryAnimation" + tag][window.__dui_screen]) {
         var config = {
