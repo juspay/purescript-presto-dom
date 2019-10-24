@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "pulp -w build",
-    "compile": "pulp build"
+    "compile": "npx pulp build"
   },
   "dependencies": {
     "babel": "^6.23.0",
