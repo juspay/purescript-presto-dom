@@ -656,7 +656,10 @@ function hideCachedScreen() {
         Android.runInUI(webParseParams("relativeLayout", prop, "set"));
       }
     }
-
+    if(window.__OS == "WEB"){
+      // Remove this when animation end hooks are added in WEB
+      window.cacheClearCache();
+    }
   }
 }
 
