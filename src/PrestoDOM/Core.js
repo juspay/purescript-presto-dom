@@ -85,12 +85,20 @@ window.__PRESTO_ID = window.__ui_id_sequence =
 exports._domAll = domAll;
 
 function domAll(elem) {
+  /*
   if (!elem.__ref) {
     elem.__ref = window.createPrestoElement();
   }
 
   if (elem.props.id) {
     elem.__ref.__id = parseInt(elem.props.id, 10) || elem.__ref.__id;
+  }
+  */
+
+  if (elem.props.hasOwnProperty('id') && elem.props.id != '' && (elem.props.id).toString().trim() != '') {
+    elem.__ref = {__id: (elem.props.id).toString().trim()}
+  } else if(!elem.__ref) {
+    elem.__ref = window.createPrestoElement()
   }
 
   window.entryAnimation = window.entryAnimation || {};
@@ -723,7 +731,14 @@ exports.processWidget = function() {
 function insertDom(root, dom) {
   root.children.push(dom);
   dom.parentNode = root;
-  dom.__ref = window.createPrestoElement();
+  //dom.__ref = window.createPrestoElement();
+  
+  if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()){
+    dom.__ref = {__id: (dom.props.id).toString().trim()};
+  }else{
+    dom.__ref = window.createPrestoElement();
+  }
+
   window.N = root;
 
   var rootId = window.__ROOTSCREEN.idSet.root;
@@ -783,8 +798,14 @@ function insertDom(root, dom) {
 exports.updateDom = function(root, dom) {
   root.children.push(dom);
   dom.parentNode = root;
-  dom.__ref = window.createPrestoElement();
+  //dom.__ref = window.createPrestoElement();
   window.N = root;
+  
+  if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()) {
+    dom.__ref = {__id: (dom.props.id).toString().trim()};
+  }else{
+    dom.__ref = window.createPrestoElement();
+  }
 
   var rootId = window.__ROOTSCREEN.idSet.root;
 
