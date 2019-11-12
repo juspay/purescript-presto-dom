@@ -132,6 +132,7 @@ import Prelude
 
 -- import Data.Tuple (Tuple(..))
 import Halogen.VDom.DOM.Prop (Prop(..))
+import PrestoDOM.Types.DomAttributes (Corners)
 import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Padding, Gravity, Gradient, InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
 
 
@@ -246,6 +247,8 @@ cornerRadius = prop (PropName "cornerRadius")
 curve :: forall i. String -> Prop i
 curve = prop (PropName "curve")
 
+cornerRadii :: forall i. Corners -> Prop i
+cornerRadii =  prop (PropName "cornerRadii")
 
 
 -- | L, // long
