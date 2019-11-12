@@ -32,6 +32,7 @@ module PrestoDOM.Properties
     , cornerRadius
     , curve
     , caretColor
+    , cornerRadii
 
     , delay
     , dividerDrawable
