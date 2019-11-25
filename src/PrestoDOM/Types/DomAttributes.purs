@@ -9,6 +9,7 @@ module PrestoDOM.Types.DomAttributes
     , Padding(..)
     , Margin(..)
     , Shadow(..)
+    , Corners(..)
     , renderMargin
     , renderPadding
     , renderGravity
@@ -19,6 +20,7 @@ module PrestoDOM.Types.DomAttributes
     , renderTypeface
     , renderVisibility
     , renderShadow
+    , renderCorners
     ) where
 
 import Prelude (show, (<>))
@@ -223,3 +225,15 @@ data Shadow = Shadow Number Number Number Number String Number
 
 renderShadow :: Shadow -> String
 renderShadow (Shadow x y blur spread color opacity) = show x <> "," <> show y <> "," <> show blur <> "," <> show spread <> "," <> color <> "," <> show opacity
+
+data Corners
+ = Corners Number Boolean Boolean Boolean Boolean
+ | Corner Number
+
+renderCorners :: Corners -> String
+renderCorners (Corners r tl tr br bl) = show r <> "," <> boolString tl <> "," <> boolString tr <> "," <> boolString br <> "," <> boolString bl
+renderCorners (Corner r) = show r
+
+boolString :: Boolean -> String
+boolString true = "1"
+boolString _ = "0"

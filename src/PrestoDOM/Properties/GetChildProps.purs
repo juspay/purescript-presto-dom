@@ -144,6 +144,7 @@ fromGenProp key default strMap = let value = lookup key strMap
                                   Just (StringP v) -> Property key $ toPropValue v
                                   Just (ShadowP v) -> Property key $ toPropValue v
                                   Just (TextP v) -> Property "text" $ toPropValue v
+                                  Just (CornersP v) -> Property key $ toPropValue v
                                   Nothing -> Property key $ toPropValue default
 
 

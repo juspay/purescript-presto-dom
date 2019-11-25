@@ -28,7 +28,7 @@ import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Thunk (Thunk)
 import Halogen.VDom.Types (VDom(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
-import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, Shadow, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility, renderShadow,  renderGradient)
+import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, Shadow, Corners, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility, renderShadow,  renderGradient, renderCorners)
 import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), Length(..), Margin(..), Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility,  renderGradient) as Types
 {-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
 
@@ -58,6 +58,7 @@ data GenProp
     | StringP String
     | TextP String
     | ShadowP Shadow
+    | CornersP Corners
 
 
 type Screen action state returnType =
@@ -117,3 +118,6 @@ instance paddingIsProp :: IsProp Padding where
 
 instance shadowIsProp :: IsProp Shadow where
   toPropValue = propFromString <<< renderShadow
+
+instance cornersIsProp :: IsProp Corners where
+  toPropValue = propFromString <<< renderCorners
