@@ -45,6 +45,7 @@ import PrestoDOM.Properties (prop)
 import PrestoDOM.Types.Core (PropName(PropName), VDom(Keyed, Elem), PrestoDOM)
 
 foreign import _mergeAnimation :: forall a. a -> String
+foreign import consoleLog :: forall a. a -> a
 
 -- | Animation data constructor
 -- | Boolean indicates if the animation must be appplied on the view
@@ -246,14 +247,14 @@ animationSet = animationSetImpl "inlineAnimation"
 -- | Animation set is a composible animation view
 -- | It applies the set of animations on the provided view
 animationSetImpl :: forall w. String -> Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
-animationSetImpl propName animations view =
+animationSetImpl propName animations view = do
   case (length filterAnimations) == 0, view of
-    false, Elem ns eName props child ->
-      let newProps = props <> [prop (PropName propName) $ _mergeAnimation filterAnimations]
-       in Elem ns eName newProps child
-    false, Keyed ns eName props child ->
-      let newProps = props <> [prop (PropName propName) $ _mergeAnimation filterAnimations]
-       in Keyed ns eName newProps child
+    false, Elem ns eName props child -> do
+      let newProps = props <> [prop (PropName propName) $ _mergeAnimation filterAnimations] <> [prop (PropName "hasAnimation") "true"]
+      Elem ns eName newProps child
+    false, Keyed ns eName props child -> do
+      let newProps = props <> [prop (PropName propName) $ _mergeAnimation filterAnimations] <> [prop (PropName "hasAnimation") "true"]
+      Keyed ns eName newProps child
     _ , _ -> view
 
   where
