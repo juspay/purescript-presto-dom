@@ -1,12 +1,20 @@
 "use strict";
 
-const prestoDayum = require("presto-ui").doms;
-const webParseParams = require("presto-ui").helpers.web.parseParams;
-const iOSParseParams = require("presto-ui").helpers.ios.parseParams;
-const parseParams = require("presto-ui").helpers.android.parseParams;
-const R = require("ramda");
+import clone from "ramda/src/clone";
+const prestoUI = require("presto-ui")
+const prestoDayum = prestoUI.doms;
+var webParseParams, iOSParseParams, parseParams;
 
-const callbackMapper = require("presto-ui").helpers.android.callbackMapper;
+const callbackMapper = prestoUI.helpers.android.callbackMapper;
+
+if (window.__OS === "WEB") {
+  webParseParams = prestoUI.helpers.web.parseParams;
+} else if (window.__OS == "IOS") {
+  iOSParseParams = prestoUI.helpers.ios.parseParams;
+} else {
+  parseParams = prestoUI.helpers.android.parseParams;
+}
+
 
 window.callbackMapper = callbackMapper.map;
 
@@ -125,8 +133,8 @@ function domAll(elem) {
   window.exitAnimationB[window.__dui_screen] =
     window.exitAnimationB[window.__dui_screen] || {};
 
-  const type = R.clone(elem.type);
-  const props = R.clone(elem.props);
+  const type = clone(elem.type);
+  const props = clone(elem.props);
 
   if (window.__OS !== "WEB") {
     if (
@@ -328,7 +336,7 @@ function applyProp(element, attribute, set) {
 
 function replaceView(element, attribute, removeProp) {
   // console.log("REPLACE VIEW", element.__ref.__id, element.props);
-  const props = R.clone(element.props);
+  const props = clone(element.props);
   props.id = element.__ref.__id;
   var rep;
   const viewGroups = [
