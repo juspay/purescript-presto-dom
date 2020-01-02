@@ -1,6 +1,6 @@
 "use strict";
 
-import clone from "ramda/src/clone";
+const clone = require("ramda/src/clone");
 const prestoUI = require("presto-ui")
 const prestoDayum = prestoUI.doms;
 var webParseParams, iOSParseParams, parseParams;
