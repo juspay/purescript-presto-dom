@@ -68,7 +68,7 @@ module PrestoDOM.Properties.SetChildProps
     , minWidth_c
 
     , orientation_c
-
+    , position_c
     , padding_c
     , pivotX_c
     , pivotY_c
@@ -122,7 +122,7 @@ module PrestoDOM.Properties.SetChildProps
 import Prelude
 
 import Data.Tuple (Tuple(..))
-import PrestoDOM.Types.Core (Gravity, InputType, Length, Margin, Orientation, Padding, Shadow, Typeface, Visibility, GenProp(..))
+import PrestoDOM.Types.Core (Gravity, InputType, Length, Margin, Orientation, Padding, Position, Shadow, Typeface, Visibility, GenProp(..))
 
 
 override_c :: String -> String -> Tuple String GenProp
@@ -397,6 +397,9 @@ orientation_c = Tuple "orientation" <<< OrientationP
 -- | PaddingVertical : top and bottom
 padding_c :: Padding -> Tuple String GenProp
 padding_c = Tuple "padding" <<< PaddingP
+
+position_c :: Position -> Tuple String GenProp
+position_c = Tuple "position" <<< PositionP
 
 -- | Number
 pivotX_c :: Number -> Tuple String GenProp

@@ -28,8 +28,8 @@ import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Thunk (Thunk)
 import Halogen.VDom.Types (VDom(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
-import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, Shadow, Corners, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility, renderShadow,  renderGradient, renderCorners)
-import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), Length(..), Margin(..), Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility,  renderGradient) as Types
+import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, Shadow, Corners, Position, renderPosition, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility, renderShadow,  renderGradient, renderCorners)
+import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), Length(..), Margin(..), Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), Position(..), renderPosition, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility,  renderGradient) as Types
 {-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
 
 newtype PrestoWidget a = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget a))
@@ -45,6 +45,7 @@ type Props i = Array (Prop i)
 
 data GenProp
     = LengthP Length
+    | PositionP Position
     | MarginP Margin
     | PaddingP Padding
     | InputTypeP InputType
@@ -91,6 +92,9 @@ instance stringArrayIsProp :: IsProp (Array String) where
 
 instance lengthIsProp :: IsProp Length where
   toPropValue = propFromString <<< renderLength
+
+instance positionIsProp :: IsProp Position where
+  toPropValue = propFromString <<< renderPosition
 
 instance inputTypeIsProp :: IsProp InputType where
   toPropValue = propFromString <<< renderInputType

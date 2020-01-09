@@ -123,6 +123,7 @@ module PrestoDOM.Properties
 
     , weight
     , width
+    , position
     , alignParentBottom
     , alignParentLeft
     , popupMenu
@@ -134,7 +135,7 @@ import Prelude
 -- import Data.Tuple (Tuple(..))
 import Halogen.VDom.DOM.Prop (Prop(..))
 import PrestoDOM.Types.DomAttributes (Corners)
-import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Padding, Gravity, Gradient, InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
+import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Position, Padding, Gravity, Gradient, InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
@@ -597,6 +598,10 @@ weight = prop (PropName "weight")
 
 width :: forall i. Length -> Prop i
 width = prop (PropName "width")
+
+position :: forall i. Position -> Prop i
+position = prop (PropName "position")
+
 
 -- | Unknown
 alignParentBottom :: forall i. String -> Prop i
