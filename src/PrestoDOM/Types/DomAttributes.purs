@@ -45,11 +45,18 @@ renderLength = case _ of
 data Position
     = ABSOLUTE
     | RELATIVE
+    | FIXED
+    | STATIC
+    | STICKY
 
 renderPosition :: Position -> String
 renderPosition = case _ of
     ABSOLUTE -> "absolute"
     RELATIVE -> "relative"
+    FIXED -> "fixed"
+    STATIC -> "static"
+    STICKY -> "sticky"
+
 
 data Margin
     = Margin Int Int Int Int
