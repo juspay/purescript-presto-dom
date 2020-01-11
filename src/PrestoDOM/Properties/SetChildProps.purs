@@ -53,6 +53,8 @@ module PrestoDOM.Properties.SetChildProps
 
     , layoutGravity_c
     , layoutTransition_c
+    , bottomFixed_c
+    , autofocus_c
     , letterSpacing_c
     , lineHeight_c
 
@@ -324,6 +326,14 @@ layoutGravity_c = Tuple "layout_gravity" <<< StringP
 -- | Boolean
 layoutTransition_c :: Boolean -> Tuple String GenProp
 layoutTransition_c = Tuple "layoutTransition" <<< BooleanP
+
+-- | Boolean
+autofocus_c :: Boolean -> Tuple String GenProp
+autofocus_c = Tuple "autofocus" <<< BooleanP
+
+-- | Number
+bottomFixed_c :: Number -> Tuple String GenProp
+bottomFixed_c = Tuple "bottomFixed" <<< NumberP
 
 -- | Number
 letterSpacing_c :: Number -> Tuple String GenProp

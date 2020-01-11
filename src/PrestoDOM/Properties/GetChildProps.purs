@@ -53,6 +53,8 @@ module PrestoDOM.Properties.GetChildProps
 
     , layoutGravity_p
     , layoutTransition_p
+    , bottomFixed_p
+    , autofocus_p
     , letterSpacing_p
     , lineHeight_p
 
@@ -347,6 +349,15 @@ layoutGravity_p = fromGenProp "layout_gravity"
 -- | Boolean
 layoutTransition_p :: forall i. Boolean -> Object GenProp -> Prop i
 layoutTransition_p = fromGenProp "layoutTransition"
+
+-- | Boolean
+autofocus_p :: forall i. Boolean -> Object GenProp -> Prop i
+autofocus_p = fromGenProp "autofocus"
+
+-- | Number
+bottomFixed_p :: forall i. Number -> Object GenProp -> Prop i
+bottomFixed_p = fromGenProp "bottomFixed"
+
 
 -- | Number
 letterSpacing_p :: forall i. Number -> Object GenProp -> Prop i

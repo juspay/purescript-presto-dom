@@ -63,6 +63,8 @@ module PrestoDOM.Properties
 
     , layoutGravity
     , layoutTransition
+    , bottomFixed
+    , autofocus
     , letterSpacing
     , lineHeight
 
@@ -364,6 +366,14 @@ layoutGravity = prop (PropName "layout_gravity")
 -- | Boolean
 layoutTransition :: forall i. Boolean -> Prop i
 layoutTransition = prop (PropName "layoutTransition")
+
+-- | Boolean
+autofocus :: forall i. Boolean -> Prop i
+autofocus = prop (PropName "autofocus")
+
+-- | Number
+bottomFixed :: forall i. Number -> Prop i
+bottomFixed = prop (PropName "bottomFixed")
 
 -- | Number
 letterSpacing :: forall i. Number -> Prop i
