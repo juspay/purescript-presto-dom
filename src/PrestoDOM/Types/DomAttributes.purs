@@ -3,6 +3,7 @@ module PrestoDOM.Types.DomAttributes
     , Gradient(..)
     , InputType(..)
     , Length(..)
+    , Position(..)
     , Orientation(..)
     , Typeface(..)
     , Visibility(..)
@@ -16,6 +17,7 @@ module PrestoDOM.Types.DomAttributes
     , renderGradient
     , renderInputType
     , renderLength
+    , renderPosition
     , renderOrientation
     , renderTypeface
     , renderVisibility
@@ -39,6 +41,21 @@ renderLength = case _ of
     MATCH_PARENT -> "match_parent"
     WRAP_CONTENT -> "wrap_content"
     V n -> show n
+
+data Position
+    = ABSOLUTE
+    | RELATIVE
+    | FIXED
+    | STATIC
+    | STICKY
+
+renderPosition :: Position -> String
+renderPosition = case _ of
+    ABSOLUTE -> "absolute"
+    RELATIVE -> "relative"
+    FIXED -> "fixed"
+    STATIC -> "static"
+    STICKY -> "sticky"
 
 
 data Margin
