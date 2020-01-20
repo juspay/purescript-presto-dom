@@ -29,13 +29,13 @@ if (process.env.NODE_ENV === "development") {
         if (arr.length > 0) {
           return arr.join(", ");
         } else {
-          console.error("caller nothing found", stacks);
+          // console.error("caller nothing found", stacks);
         }
       } else {
-        console.error("caller no last index", stacks);
+        // console.error("caller no last index", stacks);
       }
     } catch (err2) {
-      console.error("caller error 2", err2);
+      // console.error("caller error 2", err2);
     }
   }
 
