@@ -4,7 +4,7 @@ var PrestoDOM_Types_DomAttributes = require("../PrestoDOM.Types.DomAttributes/in
 var getLoggerComponent;
 
 if (process.env.NODE_ENV === "development") {
-  let hasLoggedStackWarning = false;
+  var hasLoggedStackWarning = false;
 
   function logStackWarning(stacks) {
     if (!hasLoggedStackWarning) {
