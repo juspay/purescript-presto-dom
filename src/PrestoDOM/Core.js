@@ -1,6 +1,5 @@
 "use strict";
 
-const clone = require("ramda/src/clone");
 const prestoUI = require("presto-ui")
 const prestoDayum = prestoUI.doms;
 var webParseParams, iOSParseParams, parseParams;
@@ -133,8 +132,8 @@ function domAll(elem) {
   window.exitAnimationB[window.__dui_screen] =
     window.exitAnimationB[window.__dui_screen] || {};
 
-  const type = clone(elem.type);
-  const props = clone(elem.props);
+  const type = prestoUI.prestoClone(elem.type);
+  const props = prestoUI.prestoClone(elem.props);
 
   if (window.__OS !== "WEB") {
     if (
@@ -336,7 +335,7 @@ function applyProp(element, attribute, set) {
 
 function replaceView(element, attribute, removeProp) {
   // console.log("REPLACE VIEW", element.__ref.__id, element.props);
-  const props = clone(element.props);
+  const props = prestoUI.prestoClone(element.props);
   props.id = element.__ref.__id;
   var rep;
   const viewGroups = [
