@@ -1,7 +1,7 @@
 "use strict";
 const prestoDayum = require("presto-ui").doms;
 const parseParams = require("presto-ui").helpers.web.parseParams;
-const R = require("ramda");
+const R = require("presto-ui");
 
 
 function attachAttributeList(element, attrList) {
@@ -138,8 +138,8 @@ function domAll(elem) {
     elem.__ref.__id = elem.props.id;
   }
 
-  const type = R.clone(elem.type);
-  const props = R.clone(elem.props);
+  const type = R.prestoClone(elem.type);
+  const props = R.prestoClone(elem.props);
   const children = [];
 
   for (var i = 0; i < elem.children.length; i++) {
