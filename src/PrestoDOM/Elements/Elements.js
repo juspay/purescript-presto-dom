@@ -4,6 +4,18 @@ var PrestoDOM_Types_DomAttributes = require("../PrestoDOM.Types.DomAttributes/in
 var getLoggerComponent;
 
 if (process.env.NODE_ENV === "development") {
+  var hasLoggedStackWarning = false;
+
+  function logStackWarning(stacks) {
+    if (!hasLoggedStackWarning) {
+      hasLoggedStackWarning = true;
+      console.warn(
+        "Unable to find PrestoDOM.Elements.Elements in stack trace. Presto Chrome plugin will not work. Please check webpack config `devtool` option to fix this.",
+        stacks
+      );
+    }
+  }
+
   function detectFileFromError(err) {
     try {
       const stacks = err.stack.split("\n");
@@ -29,10 +41,10 @@ if (process.env.NODE_ENV === "development") {
         if (arr.length > 0) {
           return arr.join(", ");
         } else {
-          // console.error("caller nothing found", stacks);
+          console.warn("Unable to find module from stack", stacks);
         }
       } else {
-        // console.error("caller no last index", stacks);
+        logStackWarning(stacks);
       }
     } catch (err2) {
       // console.error("caller error 2", err2);
@@ -75,4 +87,4 @@ if (process.env.NODE_ENV === "development") {
   };
 }
 
-exports["getLoggerComponent"] = getLoggerComponent
+exports["getLoggerComponent"] = getLoggerComponent;
