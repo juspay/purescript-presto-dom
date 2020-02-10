@@ -53,6 +53,8 @@ module PrestoDOM.Properties.SetChildProps
 
     , layoutGravity_c
     , layoutTransition_c
+    , bottomFixed_c
+    , autofocus_c
     , letterSpacing_c
     , lineHeight_c
 
@@ -68,7 +70,7 @@ module PrestoDOM.Properties.SetChildProps
     , minWidth_c
 
     , orientation_c
-
+    , position_c
     , padding_c
     , pivotX_c
     , pivotY_c
@@ -122,7 +124,7 @@ module PrestoDOM.Properties.SetChildProps
 import Prelude
 
 import Data.Tuple (Tuple(..))
-import PrestoDOM.Types.Core (Gravity, InputType, Length, Margin, Orientation, Padding, Shadow, Typeface, Visibility, GenProp(..))
+import PrestoDOM.Types.Core (Gravity, InputType, Length, Margin, Orientation, Padding, Position, Shadow, Typeface, Visibility, GenProp(..))
 
 
 override_c :: String -> String -> Tuple String GenProp
@@ -325,6 +327,14 @@ layoutGravity_c = Tuple "layout_gravity" <<< StringP
 layoutTransition_c :: Boolean -> Tuple String GenProp
 layoutTransition_c = Tuple "layoutTransition" <<< BooleanP
 
+-- | Boolean
+autofocus_c :: Boolean -> Tuple String GenProp
+autofocus_c = Tuple "autofocus" <<< BooleanP
+
+-- | Number
+bottomFixed_c :: Number -> Tuple String GenProp
+bottomFixed_c = Tuple "bottomFixed" <<< NumberP
+
 -- | Number
 letterSpacing_c :: Number -> Tuple String GenProp
 letterSpacing_c = Tuple "letterSpacing" <<< NumberP
@@ -397,6 +407,9 @@ orientation_c = Tuple "orientation" <<< OrientationP
 -- | PaddingVertical : top and bottom
 padding_c :: Padding -> Tuple String GenProp
 padding_c = Tuple "padding" <<< PaddingP
+
+position_c :: Position -> Tuple String GenProp
+position_c = Tuple "position" <<< PositionP
 
 -- | Number
 pivotX_c :: Number -> Tuple String GenProp

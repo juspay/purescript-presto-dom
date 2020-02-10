@@ -1,5 +1,7 @@
 bower_components/
 node_modules/
 output/
+.DS_Store
+src/.DS_Store
 dist/
 .psc-ide-port

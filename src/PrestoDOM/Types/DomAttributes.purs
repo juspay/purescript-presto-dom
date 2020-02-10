@@ -3,22 +3,26 @@ module PrestoDOM.Types.DomAttributes
     , Gradient(..)
     , InputType(..)
     , Length(..)
+    , Position(..)
     , Orientation(..)
     , Typeface(..)
     , Visibility(..)
     , Padding(..)
     , Margin(..)
     , Shadow(..)
+    , Corners(..)
     , renderMargin
     , renderPadding
     , renderGravity
     , renderGradient
     , renderInputType
     , renderLength
+    , renderPosition
     , renderOrientation
     , renderTypeface
     , renderVisibility
     , renderShadow
+    , renderCorners
     ) where
 
 import Prelude (show, (<>))
@@ -37,6 +41,21 @@ renderLength = case _ of
     MATCH_PARENT -> "match_parent"
     WRAP_CONTENT -> "wrap_content"
     V n -> show n
+
+data Position
+    = ABSOLUTE
+    | RELATIVE
+    | FIXED
+    | STATIC
+    | STICKY
+
+renderPosition :: Position -> String
+renderPosition = case _ of
+    ABSOLUTE -> "absolute"
+    RELATIVE -> "relative"
+    FIXED -> "fixed"
+    STATIC -> "static"
+    STICKY -> "sticky"
 
 
 data Margin
@@ -223,3 +242,15 @@ data Shadow = Shadow Number Number Number Number String Number
 
 renderShadow :: Shadow -> String
 renderShadow (Shadow x y blur spread color opacity) = show x <> "," <> show y <> "," <> show blur <> "," <> show spread <> "," <> color <> "," <> show opacity
+
+data Corners
+ = Corners Number Boolean Boolean Boolean Boolean
+ | Corner Number
+
+renderCorners :: Corners -> String
+renderCorners (Corners r tl tr br bl) = show r <> "," <> boolString tl <> "," <> boolString tr <> "," <> boolString br <> "," <> boolString bl
+renderCorners (Corner r) = show r
+
+boolString :: Boolean -> String
+boolString true = "1"
+boolString _ = "0"

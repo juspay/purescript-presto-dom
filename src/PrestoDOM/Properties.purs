@@ -32,6 +32,7 @@ module PrestoDOM.Properties
     , cornerRadius
     , curve
     , caretColor
+    , cornerRadii
 
     , delay
     , dividerDrawable
@@ -62,6 +63,8 @@ module PrestoDOM.Properties
 
     , layoutGravity
     , layoutTransition
+    , bottomFixed
+    , autofocus
     , letterSpacing
     , lineHeight
 
@@ -122,6 +125,7 @@ module PrestoDOM.Properties
 
     , weight
     , width
+    , position
     , alignParentBottom
     , alignParentLeft
     , popupMenu
@@ -132,7 +136,8 @@ import Prelude
 
 -- import Data.Tuple (Tuple(..))
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Padding, Gravity, Gradient, InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
+import PrestoDOM.Types.DomAttributes (Corners)
+import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Position, Padding, Gravity, Gradient, InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
@@ -246,6 +251,8 @@ cornerRadius = prop (PropName "cornerRadius")
 curve :: forall i. String -> Prop i
 curve = prop (PropName "curve")
 
+cornerRadii :: forall i. Corners -> Prop i
+cornerRadii =  prop (PropName "cornerRadii")
 
 
 -- | L, // long
@@ -359,6 +366,14 @@ layoutGravity = prop (PropName "layout_gravity")
 -- | Boolean
 layoutTransition :: forall i. Boolean -> Prop i
 layoutTransition = prop (PropName "layoutTransition")
+
+-- | Boolean
+autofocus :: forall i. Boolean -> Prop i
+autofocus = prop (PropName "autofocus")
+
+-- | Number
+bottomFixed :: forall i. Number -> Prop i
+bottomFixed = prop (PropName "bottomFixed")
 
 -- | Number
 letterSpacing :: forall i. Number -> Prop i
@@ -594,6 +609,10 @@ weight = prop (PropName "weight")
 width :: forall i. Length -> Prop i
 width = prop (PropName "width")
 
+position :: forall i. Position -> Prop i
+position = prop (PropName "position")
+
+
 -- | Unknown
 alignParentBottom :: forall i. String -> Prop i
 alignParentBottom = prop (PropName "alignParentBottom")
@@ -610,4 +629,6 @@ pattern = prop (PropName "pattern")
 popupMenu :: forall i. String -> Prop i
 popupMenu = prop (PropName "popupMenu")
 
-
+-- | Int -- ime option for edittext
+imeOptions :: forall i. Int -> Prop i
+imeOptions = prop (PropName "imeOptions")

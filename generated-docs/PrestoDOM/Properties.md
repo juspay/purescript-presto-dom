@@ -136,12 +136,6 @@ buttonTint :: forall i. String -> Prop i
 
 String
 
-#### `cardWidth`
-
-``` purescript
-cardWidth :: forall i. Number -> Prop i
-```
-
 #### `checked`
 
 ``` purescript
@@ -149,22 +143,6 @@ checked :: forall i. Boolean -> Prop i
 ```
 
 Boolean
-
-#### `classList`
-
-``` purescript
-classList :: forall i. Array String -> Prop i
-```
-
-Array String
-
-#### `className`
-
-``` purescript
-className :: forall i. String -> Prop i
-```
-
-String
 
 #### `clickable`
 
@@ -319,14 +297,6 @@ gravity :: forall i. Gravity -> Prop i
 ```
 
 Gravity
-
-#### `gradient`
-
-``` purescript
-gradient :: forall i. Gradient -> Prop i
-```
-
-Gradient
 
 #### `hardware`
 

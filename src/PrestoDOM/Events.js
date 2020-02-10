@@ -23,7 +23,9 @@ var isUndefined = function(val){
   return (typeof val == "undefined");
 }
 
-window.manualEventsName = ["onBackPressedEvent","onNetworkChange"];
+window.manualEventsName = window.manualEventsName || [];
+window.manualEventsName.push("onBackPressedEvent");
+window.manualEventsName.push("onNetworkChange");
 
 function setManualEvents(eventName,callbackFunction){
   window[eventName] = (!isUndefined(window[eventName])) ? window[eventName] : {};

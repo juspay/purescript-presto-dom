@@ -53,6 +53,8 @@ module PrestoDOM.Properties.GetChildProps
 
     , layoutGravity_p
     , layoutTransition_p
+    , bottomFixed_p
+    , autofocus_p
     , letterSpacing_p
     , lineHeight_p
 
@@ -125,12 +127,13 @@ import Data.Maybe (Maybe(..))
 import Foreign.Object (Object, lookup)
 
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.Core (class IsProp, Gravity, InputType, Length, Margin, Orientation, Padding, Shadow, Typeface, Visibility, toPropValue, GenProp(..))
+import PrestoDOM.Types.Core (class IsProp, Gravity, InputType, Length, Margin, Orientation, Padding, Position, Shadow, Typeface, Visibility, toPropValue, GenProp(..))
 
 fromGenProp :: forall a i. IsProp a => String -> a -> Object GenProp -> Prop i
 fromGenProp key default strMap = let value = lookup key strMap
                           in case value of
                                   Just (LengthP v) -> Property key $ toPropValue v
+                                  Just (PositionP v) -> Property key $ toPropValue v
                                   Just (MarginP v) -> Property key $ toPropValue v
                                   Just (PaddingP v) -> Property key $ toPropValue v
                                   Just (InputTypeP v) -> Property key $ toPropValue v
@@ -144,6 +147,7 @@ fromGenProp key default strMap = let value = lookup key strMap
                                   Just (StringP v) -> Property key $ toPropValue v
                                   Just (ShadowP v) -> Property key $ toPropValue v
                                   Just (TextP v) -> Property "text" $ toPropValue v
+                                  Just (CornersP v) -> Property key $ toPropValue v
                                   Nothing -> Property key $ toPropValue default
 
 
@@ -346,6 +350,15 @@ layoutGravity_p = fromGenProp "layout_gravity"
 layoutTransition_p :: forall i. Boolean -> Object GenProp -> Prop i
 layoutTransition_p = fromGenProp "layoutTransition"
 
+-- | Boolean
+autofocus_p :: forall i. Boolean -> Object GenProp -> Prop i
+autofocus_p = fromGenProp "autofocus"
+
+-- | Number
+bottomFixed_p :: forall i. Number -> Object GenProp -> Prop i
+bottomFixed_p = fromGenProp "bottomFixed"
+
+
 -- | Number
 letterSpacing_p :: forall i. Number -> Object GenProp -> Prop i
 letterSpacing_p = fromGenProp "letterSpacing"
@@ -418,6 +431,10 @@ orientation_p = fromGenProp "orientation"
 -- | PaddingVertical : top and bottom
 padding_p :: forall i. Padding -> Object GenProp -> Prop i
 padding_p = fromGenProp "padding"
+
+
+position_p :: forall i. Position -> Object GenProp -> Prop i
+position_p = fromGenProp "position"
 
 -- | Number
 pivotX_p :: forall i. Number -> Object GenProp -> Prop i

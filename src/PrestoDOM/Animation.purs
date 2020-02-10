@@ -27,6 +27,12 @@ module PrestoDOM.Animation
   , interpolator
   , tag
   , animationSet
+  , entryAnimationSet
+  , entryAnimationSetForward
+  , entryAnimationSetBackward
+  , exitAnimationSet
+  , exitAnimationSetForward
+  , exitAnimationSetBackward
   ) where
 
 import Prelude
@@ -34,6 +40,7 @@ import Prelude
 import Data.Array (length)
 import Data.Foldable (foldr)
 import Data.Generic.Rep (class Generic)
+import Effect (Effect)
 import PrestoDOM.Properties (prop)
 import PrestoDOM.Types.Core (PropName(PropName), VDom(Keyed, Elem), PrestoDOM)
 
@@ -215,17 +222,38 @@ interpolator = animProp "interpolator"
 tag :: String -> AnimProp
 tag = AnimProp "tag"
 
+entryAnimationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+entryAnimationSet = animationSetImpl "entryAnimation"
+
+exitAnimationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+exitAnimationSet = animationSetImpl "exitAnimation"
+
+entryAnimationSetForward :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+entryAnimationSetForward = animationSetImpl "entryAnimationF"
+
+exitAnimationSetForward :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+exitAnimationSetForward = animationSetImpl "exitAnimationF"
+
+entryAnimationSetBackward :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+entryAnimationSetBackward = animationSetImpl "entryAnimationB"
+
+exitAnimationSetBackward :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+exitAnimationSetBackward = animationSetImpl "exitAnimationB"
+
+animationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+animationSet = animationSetImpl "inlineAnimation"
+
 -- | Animation set is a composible animation view
 -- | It applies the set of animations on the provided view
-animationSet :: Array Animation -> PrestoDOM -> PrestoDOM
-animationSet animations view =
+animationSetImpl :: forall w. String -> Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+animationSetImpl propName animations view = do
   case (length filterAnimations) == 0, view of
-    false, Elem ns eName props child ->
-      let newProps = props <> [prop (PropName "inlineAnimation") $ _mergeAnimation filterAnimations]
-       in Elem ns eName newProps child
-    false, Keyed ns eName props child ->
-      let newProps = props <> [prop (PropName "inlineAnimation") $ _mergeAnimation filterAnimations]
-       in Keyed ns eName newProps child
+    false, Elem ns eName props child -> do
+      let newProps = props <> [prop (PropName propName) $ _mergeAnimation filterAnimations] <> [prop (PropName "hasAnimation") "true"]
+      Elem ns eName newProps child
+    false, Keyed ns eName props child -> do
+      let newProps = props <> [prop (PropName propName) $ _mergeAnimation filterAnimations] <> [prop (PropName "hasAnimation") "true"]
+      Keyed ns eName newProps child
     _ , _ -> view
 
   where

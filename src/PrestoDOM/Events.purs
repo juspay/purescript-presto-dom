@@ -5,6 +5,7 @@ module PrestoDOM.Events
     , onMenuItemClick
     , onBackPressed
     , onNetworkChanged
+    , makeEvent
     , afterRender
     , onAnimationEnd
     ) where
@@ -50,13 +51,11 @@ onClick push f = event (DOM.EventType "onClick") (Just <<< (makeEvent (push <<< 
 onChange :: forall a. (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
 onChange push f = event (DOM.EventType "onChange") (Just <<< (makeEvent (push <<< f)))
 
-onAnimationEnd :: forall a. (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
-onAnimationEnd push f = event (DOM.EventType "onAnimationEnd") (Just <<< (makeEvent (push <<< f)))
-
 attachBackPress :: forall a. (a ->  Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
 attachBackPress push f = event (DOM.EventType "onClick") (Just <<< backPressHandler)
 
-
+onAnimationEnd :: forall a. (a ->  Effect Unit) -> (String -> a) -> Prop (Effect Unit)
+onAnimationEnd push f = event (DOM.EventType "onAnimationEnd") (Just <<< (makeEvent (push <<< f)))
 
 {-- attachTimerHandler --}
 {--     :: forall eff a --}

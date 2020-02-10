@@ -36,6 +36,7 @@ import Data.Tuple (Tuple)
 import Halogen.VDom.DOM.Prop (Prop)
 import PrestoDOM.Types.Core (ElemName(..), VDom(..), Namespace)
 
+
 type Node i p
    = Array i
   -> Array (VDom (Array i) p)
@@ -64,7 +65,7 @@ node :: forall i p. String -> Node (Prop i) p
 node elem = element (ElemName elem)
 
 leaf :: forall i p. String -> Leaf (Prop i) p
-leaf elem props = element (ElemName elem) props []
+leaf elem props = node elem props []
 
 
 

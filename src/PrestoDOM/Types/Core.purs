@@ -28,8 +28,8 @@ import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Thunk (Thunk)
 import Halogen.VDom.Types (VDom(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
-import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, Shadow, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility, renderShadow,  renderGradient)
-import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), Length(..), Margin(..), Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility,  renderGradient) as Types
+import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, Shadow, Corners, Position, renderPosition, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility, renderShadow,  renderGradient, renderCorners)
+import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), Length(..), Margin(..), Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), Position(..), renderPosition, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility,  renderGradient) as Types
 {-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
 
 newtype PrestoWidget a = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget a))
@@ -37,8 +37,7 @@ newtype PrestoWidget a = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget
 derive instance newtypePrestoWidget ∷ Newtype (PrestoWidget a) _
 
 newtype PropName value = PropName String
-{-- type PrestoDOM i w = VDom (Array (Prop i)) w --}
-type PrestoDOM = VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
+type PrestoDOM i w = VDom (Array (Prop i)) w
 type Cmd action = Array (Effect action)
 type Eval action returnType state = Either (Tuple (Maybe state) returnType) (Tuple state (Cmd action))
 
@@ -46,6 +45,7 @@ type Props i = Array (Prop i)
 
 data GenProp
     = LengthP Length
+    | PositionP Position
     | MarginP Margin
     | PaddingP Padding
     | InputTypeP InputType
@@ -59,11 +59,14 @@ data GenProp
     | StringP String
     | TextP String
     | ShadowP Shadow
+    | CornersP Corners
 
 
 type Screen action state returnType =
   { initialState :: state
-  , view :: (action -> Effect Unit) -> state -> PrestoDOM
+  , name :: String
+  , globalEvents :: Array ((action -> Effect Unit) -> Effect (Effect Unit))
+  , view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
   , eval :: action -> state -> Eval action returnType state
   }
 
@@ -89,6 +92,9 @@ instance stringArrayIsProp :: IsProp (Array String) where
 
 instance lengthIsProp :: IsProp Length where
   toPropValue = propFromString <<< renderLength
+
+instance positionIsProp :: IsProp Position where
+  toPropValue = propFromString <<< renderPosition
 
 instance inputTypeIsProp :: IsProp InputType where
   toPropValue = propFromString <<< renderInputType
@@ -116,3 +122,6 @@ instance paddingIsProp :: IsProp Padding where
 
 instance shadowIsProp :: IsProp Shadow where
   toPropValue = propFromString <<< renderShadow
+
+instance cornersIsProp :: IsProp Corners where
+  toPropValue = propFromString <<< renderCorners

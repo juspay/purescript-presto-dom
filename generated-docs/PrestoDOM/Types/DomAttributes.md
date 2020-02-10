@@ -9,18 +9,9 @@ data Gravity
   | LEFT
   | RIGHT
   | CENTER
-  | BOTTOM
   | TOP_VERTICAL
   | START
   | END
-```
-
-#### `Gradient`
-
-``` purescript
-data Gradient
-  = Radial (Array String)
-  | Linear Number (Array String)
 ```
 
 #### `InputType`
@@ -135,12 +126,6 @@ PaddingVertical : top and bottom
 
 ``` purescript
 renderGravity :: Gravity -> String
-```
-
-#### `renderGradient`
-
-``` purescript
-renderGradient :: Gradient -> String
 ```
 
 #### `renderInputType`
