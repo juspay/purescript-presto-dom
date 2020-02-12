@@ -4,7 +4,7 @@ const prestoUI = require("presto-ui")
 const prestoDayum = prestoUI.doms;
 var webParseParams, iOSParseParams, parseParams;
 
-const callbackMapper = prestoUI.helpers.android.callbackMapper;
+const callbackMapper = prestoUI.callbackMapper;
 
 if (window.__OS === "WEB") {
   webParseParams = prestoUI.helpers.web.parseParams;
