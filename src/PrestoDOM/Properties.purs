@@ -85,6 +85,7 @@ module PrestoDOM.Properties
     , pivotX
     , pivotY
     , progressColor
+    , packageIcon
 
     , rotation
     , rotationX
@@ -447,6 +448,10 @@ orientation = prop (PropName "orientation")
 -- | PaddingVertical : top and bottom
 padding :: forall i. Padding -> Prop i
 padding = prop (PropName "padding")
+
+-- | String
+packageIcon :: forall i. String -> Prop i
+packageIcon = prop (PropName "packageIcon")
 
 -- | Number
 pivotX :: forall i. Number -> Prop i
