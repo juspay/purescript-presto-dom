@@ -1,0 +1,29 @@
+.input-label {
+  position: absolute;
+  color: #999;
+  background-color: #fff;
+  padding: 0 5px;
+  z-index: 10;
+  transition: transform 150ms ease-out, font-size 150ms ease-out;
+}
+
+.focused .input-label {
+  transform: translateY(-160%);
+  font-size: .72em;
+}
+
+
+
+
+.loading {
+		-webkit-animation: rotation 2s infinite linear;
+}
+
+@-webkit-keyframes rotation {
+		from {
+				-webkit-transform: rotate(0deg);
+		}
+		to {
+				-webkit-transform: rotate(359deg);
+		}
+    }
