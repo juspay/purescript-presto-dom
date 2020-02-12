@@ -36,7 +36,6 @@ import Data.Tuple (Tuple)
 import Halogen.VDom.DOM.Prop (Prop)
 import PrestoDOM.Types.Core (ElemName(..), VDom(..), Namespace)
 
-foreign import getLoggerComponent :: forall i p. Node (Prop i) p -> Node (Prop i) p
 
 type Node i p
    = Array i
@@ -63,7 +62,7 @@ keyed :: forall i p. ElemName -> Array (Prop i) -> Array (Tuple String (VDom (Ar
 keyed elemName = Keyed Nothing elemName
 
 node :: forall i p. String -> Node (Prop i) p
-node elem = getLoggerComponent (element (ElemName elem))
+node elem = element (ElemName elem)
 
 leaf :: forall i p. String -> Leaf (Prop i) p
 leaf elem props = node elem props []

@@ -35,7 +35,3 @@ exports._mergeAnimation = function (animations) {
 	return JSON.stringify(animations.map(createAnimationObject));
 }
 
-exports.consoleLog = function(x) {
-  console.log(x);
-  return x;
-}

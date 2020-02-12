@@ -45,7 +45,6 @@ import PrestoDOM.Properties (prop)
 import PrestoDOM.Types.Core (PropName(PropName), VDom(Keyed, Elem), PrestoDOM)
 
 foreign import _mergeAnimation :: forall a. a -> String
-foreign import consoleLog :: forall a. a -> a
 
 -- | Animation data constructor
 -- | Boolean indicates if the animation must be appplied on the view
