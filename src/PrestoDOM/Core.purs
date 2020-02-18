@@ -30,6 +30,8 @@ import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namesp
 import PrestoDOM.Utils (continue)
 import Web.DOM.Document (Document) as DOM
 
+foreign import terminateUI :: Effect Unit
+
 foreign import emitter
     :: forall a
      . EFn.EffectFn1

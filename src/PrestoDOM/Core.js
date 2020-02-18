@@ -17,6 +17,16 @@ if (window.__OS === "WEB") {
 
 window.callbackMapper = callbackMapper.map;
 
+exports.terminateUI = function (){
+  if(window.__OS == "ANDROID" && Android.runInUI) {
+    Android.runInUI(";set_v=ctx->findViewById:i_" + window.__ROOTSCREEN.idSet.root + ";set_p=get_v->getParent;get_p->removeView:get_v;", null);
+  } else if(JOS && JOS.parent && JOS.parent != "java") {
+    Android.removeView(window.__ROOTSCREEN.idSet.root);
+  } else {
+    Android.runInUI(["removeAllUI"], null);
+  }
+}
+
 exports.getScreenNumber = function() {
   if (window.scc) {
     window.scc += 1;
