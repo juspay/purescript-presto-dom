@@ -1,10 +1,10 @@
 "use strict";
 
-const prestoUI = require("presto-ui")
-const prestoDayum = prestoUI.doms;
+var prestoUI = require("presto-ui")
+var prestoDayum = prestoUI.doms;
 var webParseParams, iOSParseParams, parseParams;
 
-const callbackMapper = prestoUI.callbackMapper;
+var callbackMapper = prestoUI.callbackMapper;
 
 if (window.__OS === "WEB") {
   webParseParams = prestoUI.helpers.web.parseParams;
@@ -132,8 +132,8 @@ function domAll(elem) {
   window.exitAnimationB[window.__dui_screen] =
     window.exitAnimationB[window.__dui_screen] || {};
 
-  const type = prestoUI.prestoClone(elem.type);
-  const props = prestoUI.prestoClone(elem.props);
+  var type = prestoUI.prestoClone(elem.type);
+  var props = prestoUI.prestoClone(elem.props);
 
   if (window.__OS !== "WEB") {
     if (
@@ -198,7 +198,7 @@ function domAll(elem) {
     delete props.focus;
   }
 
-  const children = [];
+  var children = [];
 
   for (var i = 0; i < elem.children.length; i++) {
     children.push(domAll(elem.children[i]));
@@ -206,9 +206,9 @@ function domAll(elem) {
 
   // android specific code
   // if (type == "viewPager" && window.__OS === "ANDROID") {
-  //   const pages = children.splice(0);
-  //   const id  = elem.__ref.__id;
-  //   const cardWidth = elem.props.cardWidth || 1.0;
+  //   var pages = children.splice(0);
+  //   var id  = elem.__ref.__id;
+  //   var cardWidth = elem.props.cardWidth || 1.0;
   //   props.afterRender = function () {
   //     var plusButtonWidth = 0.2;
   //     if (pages.length == 1) {
@@ -220,16 +220,16 @@ function domAll(elem) {
   // }
 
   // if (type == "listView" && props.text) {
-  //   const id  = elem.__ref.__id;
-  //   const text = props.text;
-  //   const cb = props.onChange;
+  //   var id  = elem.__ref.__id;
+  //   var text = props.text;
+  //   var cb = props.onChange;
   //   delete props.text;
   //   props.afterRender = function () {
-  //     const callbackName = 'listview' + id;
+  //     var callbackName = 'listview' + id;
   //     window.top.__BOOT_LOADER[callbackName] = function () {
   //       JBridge.bankListRefresh(id);
   //     }
-  //     const fn = function(i) {
+  //     var fn = function(i) {
   //       if (typeof cb === "function") {
   //         cb(i);
   //       }
@@ -294,7 +294,7 @@ function cmdForAndroid(config, set, type) {
     return {};
   }
 
-  const id = config.id;
+  var id = config.id;
   var cmd = "set_view=ctx->findViewById:i_" + id + ";";
   delete config.id;
   config.root = "true";
@@ -335,10 +335,10 @@ function applyProp(element, attribute, set) {
 
 function replaceView(element, attribute, removeProp) {
   // console.log("REPLACE VIEW", element.__ref.__id, element.props);
-  const props = prestoUI.prestoClone(element.props);
+  var props = prestoUI.prestoClone(element.props);
   props.id = element.__ref.__id;
   var rep;
-  const viewGroups = [
+  var viewGroups = [
     "linearLayout",
     "relativeLayout",
     "scrollView",
@@ -412,7 +412,7 @@ function addChild(child, parent, index) {
     console.warn("child null");
   }
   // console.log("Add child :", child.__ref.__id, child.type);
-  const viewGroups = [
+  var viewGroups = [
     "linearLayout",
     "relativeLayout",
     "scrollView",
