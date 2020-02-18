@@ -1,4 +1,3 @@
-"use strict";
 
 var prestoUI = require("presto-ui")
 var prestoDayum = prestoUI.doms;
