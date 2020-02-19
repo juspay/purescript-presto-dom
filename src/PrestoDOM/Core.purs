@@ -4,6 +4,7 @@ module PrestoDOM.Core
    , initUI
    , initUIWithScreen
    , mapDom
+   , terminateUI
    , _domAll
    ) where
 
