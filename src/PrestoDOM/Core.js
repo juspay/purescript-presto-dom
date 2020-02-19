@@ -17,9 +17,9 @@ if (window.__OS === "WEB") {
 window.callbackMapper = callbackMapper.map;
 
 exports.terminateUI = function (){
-  if(window.__OS == "ANDROID" && Android.runInUI) {
+  if(window.__OS == "ANDROID" && Android.runInUI && window.__ROOTSCREEN && window.__ROOTSCREEN.idSet) {
     Android.runInUI(";set_v=ctx->findViewById:i_" + window.__ROOTSCREEN.idSet.root + ";set_p=get_v->getParent;get_p->removeView:get_v;", null);
-  } else if(JOS && JOS.parent && JOS.parent != "java") {
+  } else if(JOS && JOS.parent && JOS.parent != "java" && window.__ROOTSCREEN && window.__ROOTSCREEN.idSet) {
     Android.removeView(window.__ROOTSCREEN.idSet.root);
   } else {
     Android.runInUI(["removeAllUI"], null);
