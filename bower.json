@@ -16,7 +16,8 @@
     "purescript-behaviors": "^7.0.0",
     "purescript-event": "^1.2.4",
     "purescript-maybe": "^4.0.0",
-    "purescript-generics-rep": "^6.1.1"
+    "purescript-generics-rep": "^6.1.1",
+    "purescript-tracker" : "https://bitbucket.org/juspay/purescript-tracker.git#master"
   },
   "devDependencies": {
     "purescript-console": "^4.1.0",
