@@ -12,16 +12,12 @@ module PrestoDOM.Events
 
 import Prelude
 
--- import DOM.Event.Types (EventType(..), Event) as DOM
-import Effect (Effect)
-import Web.Event.Event (EventType(..), Event) as DOM
 import Data.Maybe (Maybe(..))
-{-- import FRP.Behavior as B --}
-{-- import FRP.Event as E --}
-{-- import FRP.Event.Time as TIME --}
-
+import Effect (Effect)
 import Halogen.VDom.DOM.Prop (Prop(..))
+import Tracker (trackEventInfo)
 import Unsafe.Coerce as U
+import Web.Event.Event (EventType(..), Event) as DOM
 
 {-- foreign import dummyEvent :: E.Event Int --}
 foreign import backPressHandlerImpl :: Effect Unit
@@ -47,6 +43,14 @@ backPressHandler = \ev -> do
 
 onClick :: forall a. (a ->  Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
 onClick push f = event (DOM.EventType "onClick") (Just <<< (makeEvent (push <<< f)))
+
+onClickWithLogger :: String -> String -> forall a. (a ->  Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
+onClickWithLogger label value push f = event (DOM.EventType "onClick") (Just <<< (makeEvent (pushAndLog label value push <<< f)))
+
+pushAndLog :: forall a. String -> String -> (a -> Effect Unit) -> a -> Effect Unit
+pushAndLog label value push a = do
+    push a
+    trackEventInfo label value
 
 onChange :: forall a. (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
 onChange push f = event (DOM.EventType "onChange") (Just <<< (makeEvent (push <<< f)))
