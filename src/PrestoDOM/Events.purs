@@ -8,6 +8,8 @@ module PrestoDOM.Events
     , makeEvent
     , afterRender
     , onAnimationEnd
+    , onClickWithLogger
+    , pushAndLog
     ) where
 
 import Prelude
