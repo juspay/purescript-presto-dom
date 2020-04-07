@@ -141,7 +141,7 @@ initUI cb = do
 
 runScreenImpl
     :: forall action state returnType
-     . Boolean
+     . Show action => Boolean
     -> Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
@@ -193,14 +193,14 @@ joinCancellers cancellers canceller = do
 
 runScreen
     :: forall action state returnType
-     . Screen action state returnType
+     . Show action => Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
 runScreen = runScreenImpl false
 
 showScreen
     :: forall action state returnType
-     . Screen action state returnType
+     . Show action => Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
 showScreen = runScreenImpl true
