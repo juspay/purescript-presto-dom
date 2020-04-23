@@ -9,6 +9,7 @@ module PrestoDOM.Core
    ) where
 
 import Prelude
+import Prelude
 
 import Data.Either (Either(..), either)
 import Data.Foldable (for_)
@@ -91,6 +92,7 @@ foreign import cacheScreenImpl
 foreign import exitUI :: Int -> Effect Unit
 foreign import getScreenNumber :: Effect Int
 foreign import cacheCanceller :: Int -> Effect Unit -> Effect Unit
+foreign import logAction :: String -> Unit
 
 spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
 spec document =  VDomSpec {
@@ -168,7 +170,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
       _ <- EFn.runEffectFn1 callAnimation $ if cache then "" else "B"
       patchAndRun screenName myDom
 
-  let stateBeh = unfold (\action eitherState -> eitherState >>= (eval action <<< fst)) event (continue initialState)
+  let stateBeh = unfold execEval event (continue initialState)
   canceller <- sample_ stateBeh event `subscribe` (either (onExit screenNumber push) $ onStateChange push)
   cancellers <- traverse (registerEvents push)  globalEvents
   _ <- cacheCanceller screenNumber $ joinCancellers cancellers canceller
@@ -185,6 +187,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
                    Nothing -> exitUI scn >>= \_ -> cb $ Right ret
           registerEvents push = 
             (\f -> f push)
+          execEval action eitherState = (pure $ logAction (show action)) *> eitherState >>= (eval action <<< fst)
 
 joinCancellers :: Array (Effect Unit) -> Effect Unit -> Effect Unit
 joinCancellers cancellers canceller = do

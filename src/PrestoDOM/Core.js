@@ -993,3 +993,28 @@ exports.exitUI = function(tag) {
     delete window["currentCancellor" + tag];
   };
 };
+
+exports.logAction = function (action) {
+  var last = window.lastLog;
+   if(action === last){
+     // action == last, if previous log is not already logged it will be cancelled, this one will be logged
+     clearTimeout(window.loggerTimeout); 
+     window.loggerTimeout = setTimeout(loggerFunction,1000,action);
+   } else {
+     if(window.loggerTimeout){
+        // action != last, timer running, log current and last log 
+       clearTimeout(window.loggerTimeout);
+       loggerFunction(last);
+       loggerFunction(action);      
+     }else{
+        // action != last, timer not running, log current log only 
+       loggerFunction(action);
+     }
+   }
+  window.lastLog = action;
+}
+
+function loggerFunction(action){
+    console.log(action); // replace with purescript tracker interface function
+    window.loggerTimeout = null; // this is important to check if timer is still running
+}
