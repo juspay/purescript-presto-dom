@@ -9,7 +9,6 @@ module PrestoDOM.Core
    ) where
 
 import Prelude
-import Prelude
 
 import Data.Either (Either(..), either)
 import Data.Foldable (for_)
