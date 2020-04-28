@@ -24,6 +24,14 @@ exports.terminateUI = function (){
   } else {
     Android.runInUI(["removeAllUI"], null);
   }
+  window.__VIEWS = [];
+  window.MACHINE = undefined;
+  window.MACHINE_MAP = undefined;
+  window.N = undefined;
+  window.__dui_last_patch_screen = undefined;
+  window.__dui_screen = undefined;
+  window.__dui_old_screen = undefined;
+  window.__usedIDS = undefined; 
 }
 
 exports.getScreenNumber = function() {
