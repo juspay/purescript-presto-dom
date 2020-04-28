@@ -17,7 +17,7 @@ import Prelude
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Halogen.VDom.DOM.Prop (Prop(..))
-import Tracker (trackEventInfo)
+-- import Tracker (trackEventInfo)
 import Unsafe.Coerce as U
 import Web.Event.Event (EventType(..), Event) as DOM
 
@@ -52,7 +52,7 @@ onClickWithLogger label value push f = event (DOM.EventType "onClick") (Just <<<
 pushAndLog :: forall a. String -> String -> (a -> Effect Unit) -> a -> Effect Unit
 pushAndLog label value push a = do
     push a
-    trackEventInfo label value
+    -- trackEventInfo label value
 
 onChange :: forall a. (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
 onChange push f = event (DOM.EventType "onChange") (Just <<< (makeEvent (push <<< f)))
