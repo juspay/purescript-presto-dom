@@ -18,6 +18,7 @@ import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst)
 import Effect (Effect)
 import Effect.Aff (Canceler, Error, effectCanceler, nonCanceler)
+import Effect.Unsafe(unsafePerformEffect)
 import Effect.Uncurried as EFn
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
@@ -91,7 +92,7 @@ foreign import cacheScreenImpl
 foreign import exitUI :: Int -> Effect Unit
 foreign import getScreenNumber :: Effect Int
 foreign import cacheCanceller :: Int -> Effect Unit -> Effect Unit
-foreign import logAction :: String -> Unit
+foreign import logAction :: String -> Effect Unit
 
 spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
 spec document =  VDomSpec {
@@ -186,7 +187,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
                    Nothing -> exitUI scn >>= \_ -> cb $ Right ret
           registerEvents push = 
             (\f -> f push)
-          execEval action eitherState = (pure $ logAction (show action)) *> eitherState >>= (eval action <<< fst)
+          execEval action eitherState = (pure $ unsafePerformEffect $ logAction (show action)) *> eitherState >>= (eval action <<< fst)
 
 joinCancellers :: Array (Effect Unit) -> Effect Unit -> Effect Unit
 joinCancellers cancellers canceller = do
