@@ -104,7 +104,7 @@ exports.insertDom = insertDom;
 window.__PRESTO_ID = window.__ui_id_sequence =
   typeof Android.getNewID == "function"
     ? parseInt(Android.getNewID()) * 1000000
-    : 1;
+    : ++top.__PRESTO_ID * 1000000;
 
 exports._domAll = domAll;
 
@@ -406,7 +406,7 @@ window.createPrestoElement = function() {
     window.__ui_id_sequence =
       typeof Android.getNewID == "function"
         ? parseInt(Android.getNewID()) * 1000000
-        : window.__PRESTO_ID;
+        : window.__PRESTO_ID || ++top.__PRESTO_ID * 1000000;
     return {
       __id: ++window.__ui_id_sequence
     };
