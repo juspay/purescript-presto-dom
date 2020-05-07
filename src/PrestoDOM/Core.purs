@@ -18,11 +18,13 @@ import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst)
 import Effect (Effect)
 import Effect.Aff (Canceler, Error, effectCanceler, nonCanceler)
-import Effect.Unsafe(unsafePerformEffect)
+import Effect.Ref as Ref
+import Effect.Timer as Timer
 import Effect.Uncurried as EFn
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
 import FRP.Event as E
+import Foreign.Class (encode)
 import Foreign.Object as Object
 import Halogen.VDom (Namespace(..), VDomSpec(VDomSpec), buildVDom)
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
@@ -30,7 +32,7 @@ import Halogen.VDom.Machine (Step, step, extract)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
 import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..))
 import PrestoDOM.Utils (continue)
-import Tracker (trackScreen)
+import Tracker (trackScreen, trackAction)
 import Tracker.Types (Level(..), Subcategory(..)) as T
 import Tracker.Labels (Label(..)) as L
 import Web.DOM.Document (Document) as DOM
@@ -94,7 +96,6 @@ foreign import cacheScreenImpl
 foreign import exitUI :: Int -> Effect Unit
 foreign import getScreenNumber :: Effect Int
 foreign import cacheCanceller :: Int -> Effect Unit -> Effect Unit
-foreign import logAction :: String -> Effect Unit
 
 spec :: DOM.Document -> VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
 spec document =  VDomSpec {
@@ -171,9 +172,12 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
     true -> do
       _ <- EFn.runEffectFn1 callAnimation $ if cache then "" else "B"
       patchAndRun screenName myDom
-
-  let stateBeh = unfold execEval event (continue initialState)
-  canceller <- sample_ stateBeh event `subscribe` (either (onExit screenNumber push) $ onStateChange push)
+  timerRef <- Ref.new Nothing
+  let stateBeh = unfold execEval event { previousAction : "", currentAction : "", eitherState : (continue initialState)}
+  canceller <- sample_ stateBeh event `subscribe` (\a -> do 
+        _ <- logAction timerRef a.previousAction a.currentAction
+        either (onExit screenNumber push) (onStateChange push) a.eitherState
+    )
   cancellers <- traverse (registerEvents push)  globalEvents
   _ <- cacheCanceller screenNumber $ joinCancellers cancellers canceller
   pure $ effectCanceler (exitUI screenNumber)
@@ -189,7 +193,35 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
                    Nothing -> exitUI scn >>= \_ -> cb $ Right ret
           registerEvents push = 
             (\f -> f push)
-          execEval action eitherState = (pure $ unsafePerformEffect $ logAction (show action)) *> eitherState >>= (eval action <<< fst)
+          execEval action st = { 
+                  previousAction : st.currentAction
+                , currentAction : (show action)
+                , eitherState : (st.eitherState >>= (eval action <<< fst))
+                }
+
+logAction :: Ref.Ref (Maybe Timer.TimeoutId) -> String -> String -> Effect Unit 
+logAction timerRef previousAction currentAction = do 
+  timer <- Ref.read timerRef
+  if(previousAction == currentAction) then do -- current == previous, if previous log isn't already logged cancell it and setTimeout for current one.
+      case timer of 
+        Just t -> Timer.clearTimeout t
+        Nothing -> pure unit   
+      tid <- Timer.setTimeout 5000 $ loggerFunction timerRef currentAction 
+      Ref.write (Just tid) timerRef
+    else
+      case timer of 
+        Just t -> do -- current != previous, timer running, log current and last log
+          Timer.clearTimeout t 
+          loggerFunction timerRef currentAction 
+          loggerFunction timerRef previousAction
+        Nothing -> do -- current != previous, timer NOT running, set timeout for current log
+          tid <- Timer.setTimeout 5000 $ loggerFunction timerRef currentAction
+          Ref.write (Just tid) timerRef 
+
+loggerFunction :: Ref.Ref (Maybe Timer.TimeoutId) -> String -> Effect Unit 
+loggerFunction ref action = do 
+  trackAction T.User T.Info L.EVAL "data" $ encode action
+  Ref.write Nothing ref -- set ref to nothing after done.
 
 joinCancellers :: Array (Effect Unit) -> Effect Unit -> Effect Unit
 joinCancellers cancellers canceller = do
