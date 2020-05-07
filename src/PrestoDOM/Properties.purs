@@ -86,6 +86,7 @@ module PrestoDOM.Properties
     , pivotY
     , progressColor
     , packageIcon
+    , placeHolder
 
     , rotation
     , rotationX
@@ -464,6 +465,10 @@ pivotY = prop (PropName "pivotY")
 -- | String
 progressColor :: forall i. String -> Prop i
 progressColor = prop (PropName "progressColor")
+
+-- | String
+placeHolder :: forall i. String -> Prop i
+placeHolder = prop (PropName "placeHolder")
 
 
 

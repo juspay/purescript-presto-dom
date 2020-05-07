@@ -16,8 +16,11 @@ import Prelude
 
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
+import Foreign.Class (encode)
 import Halogen.VDom.DOM.Prop (Prop(..))
-import Tracker (trackEventInfo)
+import Tracker.Labels (Label(..)) as L
+import Tracker (trackAction)
+import Tracker.Types (Level(..), Subcategory(..)) as T
 import Unsafe.Coerce as U
 import Web.Event.Event (EventType(..), Event) as DOM
 
@@ -52,7 +55,7 @@ onClickWithLogger label value push f = event (DOM.EventType "onClick") (Just <<<
 pushAndLog :: forall a. String -> String -> (a -> Effect Unit) -> a -> Effect Unit
 pushAndLog label value push a = do
     push a
-    trackEventInfo label value
+    trackAction T.User T.Info L.ON_CLICK label $ encode value
 
 onChange :: forall a. (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
 onChange push f = event (DOM.EventType "onChange") (Just <<< (makeEvent (push <<< f)))

@@ -30,7 +30,9 @@ import Halogen.VDom.Machine (Step, step, extract)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
 import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..))
 import PrestoDOM.Utils (continue)
-import Tracker (trackOverlay, trackScreen)
+import Tracker (trackScreen)
+import Tracker.Types (Level(..), Subcategory(..)) as T
+import Tracker.Labels (Label(..)) as L
 import Web.DOM.Document (Document) as DOM
 
 foreign import terminateUI :: Effect Unit
@@ -149,7 +151,7 @@ runScreenImpl
     -> Effect Canceler
 runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
   { event, push } <- E.create
-  _ <- name # if cache then trackOverlay else trackScreen
+  _ <- trackScreen T.Screen T.Info L.UPCOMING_SCREEN (if cache then "overlay" else "screen") name
   screenNumber <- getScreenNumber
   _ <- setScreen name
   let myDom = view push initialState
