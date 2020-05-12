@@ -25,6 +25,7 @@ exports.terminateUI = function (){
     Android.runInUI(["removeAllUI"], null);
   }
   window.__VIEWS = [];
+  window.__ROOTSCREEN = undefined;
   window.MACHINE = undefined;
   window.MACHINE_MAP = undefined;
   window.N = undefined;
