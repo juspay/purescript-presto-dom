@@ -29,7 +29,7 @@ import Halogen.VDom.Machine (Step, step, extract)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
 import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..))
 import PrestoDOM.Utils (continue, logAction)
-import Tracker (trackScreen, trackAction)
+import Tracker (trackScreen)
 import Tracker.Types (Level(..), Subcategory(..)) as T
 import Tracker.Labels (Label(..)) as L
 import Web.DOM.Document (Document) as DOM
