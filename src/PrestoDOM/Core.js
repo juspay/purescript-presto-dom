@@ -5,6 +5,7 @@ var webParseParams, iOSParseParams, parseParams;
 
 const callbackMapper = prestoUI.callbackMapper;
 
+
 if (window.__OS === "WEB") {
   webParseParams = prestoUI.helpers.web.parseParams;
 } else if (window.__OS == "IOS") {
