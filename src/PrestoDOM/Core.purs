@@ -173,12 +173,13 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
   timerRef <- Ref.new Nothing
   let stateBeh = unfold execEval event { previousAction : Nothing, currentAction : Nothing, eitherState : (continue initialState)}
   canceller <- sample_ stateBeh event `subscribe` (\a -> do
+        result <- either (onExit screenNumber push) (onStateChange push) a.eitherState
         _ <- performLog a.currentAction
         _ <- case a.previousAction, a.currentAction of 
             (Just previousAction), (Just currentAction) -> logAction timerRef (show previousAction) (show currentAction)
             Nothing, (Just currentAction) -> logAction timerRef "" (show currentAction)
             _ , _ -> pure unit 
-        either (onExit screenNumber push) (onStateChange push) a.eitherState
+        pure result
     )
   cancellers <- traverse (registerEvents push)  globalEvents
   _ <- cacheCanceller screenNumber $ joinCancellers cancellers canceller

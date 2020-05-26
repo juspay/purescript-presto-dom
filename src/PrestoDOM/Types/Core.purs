@@ -77,6 +77,9 @@ derive instance newtypePropName :: Newtype (PropName value) _
 class Loggable a where 
   performLog :: (Maybe a) -> Effect Unit
 
+defaultPerformLog :: forall a.(Maybe a) -> Effect Unit 
+defaultPerformLog _ = pure unit
+
 class IsProp a where
   toPropValue :: a -> PropValue
 
