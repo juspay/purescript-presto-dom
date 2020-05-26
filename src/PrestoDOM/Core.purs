@@ -27,7 +27,7 @@ import Halogen.VDom (Namespace(..), VDomSpec(VDomSpec), buildVDom)
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
 import Halogen.VDom.Machine (Step, step, extract)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
-import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..), class Loggable, performLog)
+import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..), class Loggable)
 import PrestoDOM.Utils (continue, logAction)
 import Tracker (trackScreen)
 import Tracker.Types (Level(..), Subcategory(..)) as T
@@ -174,11 +174,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
   let stateBeh = unfold execEval event { previousAction : Nothing, currentAction : Nothing, eitherState : (continue initialState)}
   canceller <- sample_ stateBeh event `subscribe` (\a -> do
         result <- either (onExit screenNumber push) (onStateChange push) a.eitherState
-        _ <- performLog a.currentAction
-        _ <- case a.previousAction, a.currentAction of 
-            (Just previousAction), (Just currentAction) -> logAction timerRef (show previousAction) (show currentAction)
-            Nothing, (Just currentAction) -> logAction timerRef "" (show currentAction)
-            _ , _ -> pure unit 
+        _ <- logAction timerRef a.previousAction a.currentAction
         pure result
     )
   cancellers <- traverse (registerEvents push)  globalEvents
@@ -197,7 +193,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
           registerEvents push = 
             (\f -> f push)
           execEval action st = { 
-                  previousAction : Just st.currentAction
+                  previousAction : st.currentAction
                 , currentAction : Just action
                 , eitherState : (st.eitherState >>= (eval action <<< fst))
                 }
