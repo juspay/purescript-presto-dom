@@ -13,6 +13,7 @@ module PrestoDOM.Types.Core
     , class IsProp
     , class Loggable
     , performLog
+    , defaultPerformLog
     ) where
 
 import Prelude
