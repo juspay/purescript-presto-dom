@@ -1,6 +1,7 @@
 module PrestoDOM.Core
    ( runScreen
    , showScreen
+   , prepareScreen
    , initUI
    , initUIWithScreen
    , mapDom
@@ -53,7 +54,26 @@ foreign import storeMachine
         (Maybe Namespace)
         Unit
 
+foreign import cacheMachine
+    :: forall a b
+     . EFn.EffectFn2
+        (Step a b)
+        (Maybe Namespace)
+        Unit
+
+foreign import getCachedMachineImpl
+    :: forall a b
+     . EFn.EffectFn3
+        ((Step a b) -> Maybe (Step a b))
+        (Maybe (Step a b))
+        (Maybe Namespace)
+        (Maybe (Step a b))
+
+foreign import isMachineCached :: (Maybe Namespace) -> Boolean
+
 foreign import getRootNode :: Effect DOM.Document
+
+foreign import getOrCreateRootNode :: Effect DOM.Document
 
 foreign import setRootNode
     :: forall a
@@ -62,6 +82,10 @@ foreign import setRootNode
         DOM.Document
 
 foreign import insertDom :: forall a b. EFn.EffectFn2 a b Unit
+
+foreign import prepareDom :: forall a b c. EFn.EffectFn3 a b c Unit
+
+foreign import addScreenImpl :: forall a b c. EFn.EffectFn3 a b c Unit
 
 foreign import updateDom :: forall a b. EFn.EffectFn2 a b Unit
 
@@ -104,6 +128,8 @@ logger a = do
     _ <- EFn.runEffectFn1 emitter a
     pure unit
 
+getCachedMachine :: ∀ a b. Maybe Namespace → Effect (Maybe (Step a b))
+getCachedMachine = EFn.runEffectFn3 getCachedMachineImpl Just Nothing
 
 patchAndRun :: forall w i. Maybe Namespace -> VDom (Array (Prop i)) w -> Effect Unit
 patchAndRun screenName myDom = do
@@ -156,14 +182,24 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
                else compareScreen screenName
 
   case patch of
-    false -> do
-      root <- getRootNode                                       -- window.N
-      machine <- EFn.runEffectFn1 (buildVDom (spec root)) myDom -- HalogenVDom Cycle
-      EFn.runEffectFn2 storeMachine machine screenName          -- Cache Dom to window
-      if cache                                                  -- Show/Run
-          then EFn.runEffectFn2 updateDom root (extract machine)-- Add to screen cache
-          else EFn.runEffectFn2 insertDom root (extract machine)-- Add to screen stack
-      processWidget                                             -- run widgets added by halogen-vdom to window.widgets
+    false ->
+      getCachedMachine screenName >>=
+        case _ of
+          Just machine -> do
+            root <- getRootNode
+            EFn.runEffectFn3 addScreenImpl root  (extract machine) screenName
+            processWidget
+            _ <- EFn.runEffectFn1 callAnimation "B"
+            newMachine <- EFn.runEffectFn2 step (machine) (myDom)
+            EFn.runEffectFn2 storeMachine newMachine screenName
+          Nothing -> do
+            root <- getRootNode                                       -- window.N
+            machine <- EFn.runEffectFn1 (buildVDom (spec root)) myDom -- HalogenVDom Cycle
+            EFn.runEffectFn2 storeMachine machine screenName          -- Cache Dom to window
+            if cache                                                  -- Show/Run
+                then EFn.runEffectFn2 updateDom root (extract machine)-- Add to screen cache
+                else EFn.runEffectFn2 insertDom root (extract machine)-- Add to screen stack
+            processWidget                                             -- run widgets added by halogen-vdom to window.widgets
     true -> do
       _ <- EFn.runEffectFn1 callAnimation $ if cache then "" else "B"
       patchAndRun screenName myDom
@@ -183,7 +219,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
               case st of
                    Just s -> patchAndRun screenName (view push s) *> (exitUI scn >>= \_ -> cb $ Right ret)
                    Nothing -> exitUI scn >>= \_ -> cb $ Right ret
-          registerEvents push = 
+          registerEvents push =
             (\f -> f push)
 
 joinCancellers :: Array (Effect Unit) -> Effect Unit -> Effect Unit
@@ -204,6 +240,23 @@ showScreen
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
 showScreen = runScreenImpl true
+
+prepareScreen
+    :: forall action state returnType
+     . Screen action state returnType
+    -> (Either Error Unit -> Effect Unit)
+    -> Effect Canceler
+prepareScreen { initialState, view, eval, name, globalEvents } cb = do
+  { event, push } <- E.create
+  let myDom = view push initialState
+  root <- getOrCreateRootNode                                       -- window.N
+  machine <- EFn.runEffectFn1 (buildVDom (spec root)) myDom -- HalogenVDom Cycle
+  EFn.runEffectFn2 cacheMachine machine screenName          -- Cache Dom to window
+  EFn.runEffectFn3 prepareDom root screenName (extract machine)-- Add to screen stack
+  cb $ Right unit
+  pure nonCanceler
+  where
+  screenName = Just $ Namespace name
 
 setScreen :: String -> Effect Unit
 setScreen = EFn.runEffectFn1 setScreenImpl
@@ -228,4 +281,3 @@ mapDom
   -> Array (Tuple String i)
   -> PrestoDOM (Effect Unit) w
 mapDom view push state actionMap = view (push <<< actionMap) state <<< Object.fromFoldable
-

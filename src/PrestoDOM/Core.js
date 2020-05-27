@@ -32,7 +32,7 @@ exports.terminateUI = function (){
   window.__dui_last_patch_screen = undefined;
   window.__dui_screen = undefined;
   window.__dui_old_screen = undefined;
-  window.__usedIDS = undefined; 
+  window.__usedIDS = undefined;
 }
 
 exports.getScreenNumber = function() {
@@ -99,6 +99,39 @@ exports.getLatestMachine = function(screen) {
   }
   return window.MACHINE;
 };
+
+exports.cacheMachine = function(machine, screen) {
+  if (! window.hasOwnProperty("__CACHED_MACHINE")){
+    window.__CACHED_MACHINE = {}
+  }
+  if (screen.value0)
+    window.__CACHED_MACHINE[screen.value0] = machine;
+};
+
+exports.getCachedMachineImpl = function(just,nothing,screen) {
+  if (screen.value0 && window.__OS === "ANDROID"){
+    machine = window.__CACHED_MACHINE[screen.value0];
+    if (machine != null){
+      return just(machine);
+    } else {
+      return nothing;
+    }
+  } else {
+    return nothing;
+  }
+}
+
+exports.isMachineCached = function (screen){
+  if (screen.value0){
+    machine = window.__CACHED_MACHINE[screen.value0];
+    if (machine != null){
+      return true;
+    } else {
+      return false;
+    }
+  }
+  return false;
+}
 
 exports.insertDom = insertDom;
 
@@ -478,21 +511,28 @@ function updateAttribute(element, attribute) {
   applyProp(element, attribute, false);
 }
 
+window.preRenderedRoot = null;
 exports.setRootNode = function(nothing) {
-  var root = {
-    type: "relativeLayout",
-    props: {
-      root: "true"
-    },
-    children: []
-  };
+  var root = null;
 
-  root.props.height = "match_parent";
-  root.props.width = "match_parent";
-  var elemRef = window.createPrestoElement();
-  root.props.id = elemRef.__id;
-  root.type = "relativeLayout";
-  root.__ref = elemRef;
+  // If prepare screen was called before InitUI, lets use the root node that it created.
+  if(typeof window.preRenderedRoot !== "undefined" && window.preRenderedRoot!==null){
+    root = window.preRenderedRoot;
+  }else{
+    root = {
+      type: "relativeLayout",
+      props: {
+        root: "true",
+        height: "match_parent",
+        width: "match_parent"
+      },
+      children: []
+    };
+
+    var elemRef = window.createPrestoElement();
+    root.props.id = elemRef.__id;
+    root.__ref = elemRef;
+  }
 
   window.N = root;
   window.__CACHELIMIT = 50;
@@ -515,7 +555,10 @@ exports.setRootNode = function(nothing) {
       child: []
     }
   };
-
+  // store pre-rendered dom
+  if (! window.hasOwnProperty("__CACHED_MACHINE")){
+    window.__CACHED_MACHINE = {}
+  }
   if (window.__OS == "ANDROID") {
     if (typeof Android.getNewID == "function") {
       Android.Render(JSON.stringify(domAll(root)), null, "false");
@@ -528,8 +571,32 @@ exports.setRootNode = function(nothing) {
     Android.Render(domAll(root), null);
   }
 
+  // Setting this null because InitUI or InitUIWithScreen is called
+  window.preRenderedRoot = null;
   return root;
 };
+
+exports.getOrCreateRootNode = function(){
+  if(typeof window.N == "undefined" || window.N === null){
+    root = {
+      type: "relativeLayout",
+      props: {
+        root: "true",
+        height: "match_parent",
+        width: "match_parent"
+      },
+      children: []
+    };
+
+    var elemRef = window.createPrestoElement();
+    root.props.id = elemRef.__id;
+    root.__ref = elemRef;
+    window.preRenderedRoot = root;
+    return root;
+  }else{
+    return window.N;
+  }
+}
 
 exports.getRootNode = function() {
   return window.N;
@@ -757,7 +824,6 @@ function insertDom(root, dom) {
   root.children.push(dom);
   dom.parentNode = root;
   //dom.__ref = window.createPrestoElement();
-  
   if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()){
     dom.__ref = {__id: (dom.props.id).toString().trim()};
   }else{
@@ -825,7 +891,6 @@ exports.updateDom = function(root, dom) {
   dom.parentNode = root;
   //dom.__ref = window.createPrestoElement();
   window.N = root;
-  
   if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()) {
     dom.__ref = {__id: (dom.props.id).toString().trim()};
   }else{
@@ -1002,3 +1067,99 @@ exports.exitUI = function(tag) {
     delete window["currentCancellor" + tag];
   };
 };
+
+
+/**
+ * Renders dom ahead of time it's actually to be seen.
+ * Note: Only for Android
+ * @param {object} root - root object, to maintain screen stack
+ * @param {object} screen - screenName, to store reference
+ * @param {object} dom - dom object to render
+ * @return {void}
+ *
+ * this function will create dom and send it to mystique in order
+ * to keep UI ready ahead of time
+ */
+exports.prepareDom = prepareDom;
+function prepareDom (root, screen, dom){
+  if (window.__OS == "ANDROID"){
+    dom.parentNode = root;
+    if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()){
+      dom.__ref = {__id: (dom.props.id).toString().trim()};
+    }else{
+      dom.__ref = window.createPrestoElement();
+    }
+    dom.props.root = true;
+    Android.prepareAndStoreView(screen.value0, JSON.stringify(domAll(dom)));
+  } else {
+    // This shouldn't be call for IOS device
+    // TODO: Add logic to warn developer
+  }
+}
+
+/**
+ * Inflates view depending on screeen name. Always call after prepareDom().
+ * Note: Only for Android
+ * @param {object} root - root object, to maintain screen stack
+ * @param {object} screen - screenName, to store reference
+ * @param {object} dom - dom object to render
+ * @return {void}
+ *
+ * This function will attach screen to root node. The screen is assumed to be cached
+ * at android side. Native side should handle the case where screen is not yet ready
+ * and is been processed
+ */
+exports.addScreenImpl = addScreen;
+function addScreen(root,dom, screen){
+  if (window.__OS == "ANDROID") {
+    root.children.push(dom);
+    window.N = root;
+    var rootId = window.__ROOTSCREEN.idSet.root;
+    if (window.__screenNothing) {
+      window.__stashScreen.push(dom.__ref.__id);
+      window.__screenNothing = false;
+    } else {
+      var screenName = window.__currScreenName;
+      // push() returns array length
+      var length = window.__ROOTSCREEN.idSet.child.push({
+        id: dom.__ref.__id,
+        name: screenName
+      });
+      if (length >= window.__CACHELIMIT) {
+        window.__ROOTSCREEN.idSet.child.shift();
+        length -= 1;
+      }
+      if (length >= 2) {
+        var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
+        var prop = {
+          id: window.__ROOTSCREEN.idSet.child[length - 2].id,
+          visibility: __visibility
+        };
+        window.hideold = function() {
+          if (window.__OS == "ANDROID" && length > 1) {
+            var cmd = cmdForAndroid(prop, true, "relativeLayout");
+            Android.runInUI(cmd.runInUI, null);
+          } else if (window.__OS == "IOS" && length > 1) {
+            Android.runInUI(prop);
+          } else if (length > 1) {
+            Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+          }
+        };
+      }
+    }
+    var callback = window.callbackMapper(executePostProcess("F"));
+    Android.addStoredViewToParent(
+      rootId + "",
+      screen.value0,
+      length - 1,
+      callback,
+      null
+    );
+    hideCachedScreen();
+  }else{
+    // This shouldn't be call for IOS device
+    // TODO: Add logic to warn developer
+  }
+}
+
+
