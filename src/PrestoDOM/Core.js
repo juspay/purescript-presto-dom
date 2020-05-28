@@ -1147,6 +1147,9 @@ function addScreen(root,dom, screen){
         };
       }
     }
+    // We used the prepared screen. So lets remove now.
+    delete window.__CACHED_MACHINE[screen.value0];
+    
     var callback = window.callbackMapper(executePostProcess("F"));
     Android.addStoredViewToParent(
       rootId + "",
