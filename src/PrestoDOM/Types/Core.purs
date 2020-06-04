@@ -11,6 +11,9 @@ module PrestoDOM.Types.Core
     , module VDom
     , module Types
     , class IsProp
+    , class Loggable
+    , performLog
+    , defaultPerformLog
     ) where
 
 import Prelude
@@ -71,6 +74,12 @@ type Screen action state returnType =
   }
 
 derive instance newtypePropName :: Newtype (PropName value) _
+
+class Loggable a where 
+  performLog :: (Maybe a) -> Effect Unit
+
+defaultPerformLog :: forall a.(Maybe a) -> Effect Unit 
+defaultPerformLog _ = pure unit
 
 class IsProp a where
   toPropValue :: a -> PropValue

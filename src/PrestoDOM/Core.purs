@@ -27,7 +27,7 @@ import Halogen.VDom (Namespace(..), VDomSpec(VDomSpec), buildVDom)
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
 import Halogen.VDom.Machine (Step, step, extract)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
-import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..))
+import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..), class Loggable)
 import PrestoDOM.Utils (continue, logAction)
 import Tracker (trackScreen)
 import Tracker.Types (Level(..), Subcategory(..)) as T
@@ -144,7 +144,7 @@ initUI cb = do
 
 runScreenImpl
     :: forall action state returnType
-     . Show action => Boolean
+     . Show action => Loggable action => Boolean
     -> Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
@@ -171,10 +171,11 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
       _ <- EFn.runEffectFn1 callAnimation $ if cache then "" else "B"
       patchAndRun screenName myDom
   timerRef <- Ref.new Nothing
-  let stateBeh = unfold execEval event { previousAction : "", currentAction : "", eitherState : (continue initialState)}
-  canceller <- sample_ stateBeh event `subscribe` (\a -> do 
+  let stateBeh = unfold execEval event { previousAction : Nothing, currentAction : Nothing, eitherState : (continue initialState)}
+  canceller <- sample_ stateBeh event `subscribe` (\a -> do
+        result <- either (onExit screenNumber push) (onStateChange push) a.eitherState
         _ <- logAction timerRef a.previousAction a.currentAction
-        either (onExit screenNumber push) (onStateChange push) a.eitherState
+        pure result
     )
   cancellers <- traverse (registerEvents push)  globalEvents
   _ <- cacheCanceller screenNumber $ joinCancellers cancellers canceller
@@ -193,7 +194,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
             (\f -> f push)
           execEval action st = { 
                   previousAction : st.currentAction
-                , currentAction : (show action)
+                , currentAction : Just action
                 , eitherState : (st.eitherState >>= (eval action <<< fst))
                 }
 
@@ -204,14 +205,14 @@ joinCancellers cancellers canceller = do
 
 runScreen
     :: forall action state returnType
-     . Show action => Screen action state returnType
+     . Show action => Loggable action => Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
 runScreen = runScreenImpl false
 
 showScreen
     :: forall action state returnType
-     . Show action => Screen action state returnType
+     . Show action => Loggable action => Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
 showScreen = runScreenImpl true

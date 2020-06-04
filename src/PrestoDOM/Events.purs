@@ -23,7 +23,7 @@ import Tracker (trackAction)
 import Tracker.Types (Level(..), Subcategory(..)) as T
 import Unsafe.Coerce as U
 import Web.Event.Event (EventType(..), Event) as DOM
-
+import PrestoDOM.Utils(debounce)
 {-- foreign import dummyEvent :: E.Event Int --}
 foreign import backPressHandlerImpl :: Effect Unit
 
@@ -55,7 +55,7 @@ onClickWithLogger label value push f = event (DOM.EventType "onClick") (Just <<<
 pushAndLog :: forall a. String -> String -> (a -> Effect Unit) -> a -> Effect Unit
 pushAndLog label value push a = do
     push a
-    trackAction T.User T.Info L.ON_CLICK label $ encode value
+    debounce (trackAction T.User T.Info L.ON_CLICK) label $ encode value
 
 onChange :: forall a. (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
 onChange push f = event (DOM.EventType "onChange") (Just <<< (makeEvent (push <<< f)))
