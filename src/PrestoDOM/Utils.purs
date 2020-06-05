@@ -56,6 +56,9 @@ infixr 5 concatPropsArrayRight as <>>
 
 infixr 5 concatPropsArrayLeft as <<>
 
+timeoutDelay :: Int 
+timeoutDelay = 300
+
 logAction :: forall a. Loggable a => Show a => Ref.Ref (Maybe Timer.TimeoutId) -> (Maybe a) -> (Maybe a) -> Effect Unit 
 logAction timerRef (Just prevAct) (Just currAct) = do
   let previousAction = show prevAct 
@@ -65,19 +68,19 @@ logAction timerRef (Just prevAct) (Just currAct) = do
       case timer of 
         Just t -> Timer.clearTimeout t
         Nothing -> pure unit   
-      tid <- Timer.setTimeout 5000 $ loggerFunction timerRef currAct 
+      tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct 
       Ref.write (Just tid) timerRef
     else
       case timer of 
         Just t -> do -- current != previous, timer running, log current and last log
           Timer.clearTimeout t 
-          loggerFunction timerRef currAct 
           loggerFunction timerRef prevAct
+          loggerFunction timerRef currAct 
         Nothing -> do -- current != previous, timer NOT running, set timeout for current log
-          tid <- Timer.setTimeout 5000 $ loggerFunction timerRef currAct
+          tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct
           Ref.write (Just tid) timerRef 
 logAction timerRef Nothing (Just currAct) = do
-  tid <- Timer.setTimeout 5000 $ loggerFunction timerRef currAct 
+  tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct 
   Ref.write (Just tid) timerRef 
 logAction _ _ _ = pure unit
 
