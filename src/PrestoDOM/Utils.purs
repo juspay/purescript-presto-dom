@@ -4,6 +4,7 @@ import Prelude
 
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
+import Data.String(contains, Pattern(..))
 import Data.Tuple (Tuple(..))
 import PrestoDOM.Types.Core (class Loggable, performLog, Eval, Cmd)
 import Effect(Effect)
@@ -59,8 +60,15 @@ infixr 5 concatPropsArrayLeft as <<>
 timeoutDelay :: Int 
 timeoutDelay = 300
 
-logAction :: forall a. Loggable a => Show a => Ref.Ref (Maybe Timer.TimeoutId) -> (Maybe a) -> (Maybe a) -> Effect Unit 
-logAction timerRef (Just prevAct) (Just currAct) = do
+logAction :: forall a. Loggable a => Show a => Ref.Ref (Maybe Timer.TimeoutId) -> (Maybe a) -> (Maybe a) -> Boolean -> Effect Unit 
+logAction timerRef (Just prevAct) (Just currAct) true = do -- logNow without waiting
+  timer <- Ref.read timerRef 
+  case timer of 
+    Just t -> Timer.clearTimeout t
+    Nothing -> pure unit  
+  loggerFunction timerRef prevAct 
+  loggerFunction timerRef currAct
+logAction timerRef (Just prevAct) (Just currAct) logNow = do
   let previousAction = show prevAct 
       currentAction = show currAct 
   timer <- Ref.read timerRef
@@ -68,24 +76,26 @@ logAction timerRef (Just prevAct) (Just currAct) = do
       case timer of 
         Just t -> Timer.clearTimeout t
         Nothing -> pure unit   
-      tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct 
+      tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct
       Ref.write (Just tid) timerRef
     else
       case timer of 
         Just t -> do -- current != previous, timer running, log current and last log
           Timer.clearTimeout t 
           loggerFunction timerRef prevAct
-          loggerFunction timerRef currAct 
+          loggerFunction timerRef currAct
         Nothing -> do -- current != previous, timer NOT running, set timeout for current log
           tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct
           Ref.write (Just tid) timerRef 
-logAction timerRef Nothing (Just currAct) = do
-  tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct 
+logAction timerRef Nothing (Just currAct) logNow = do
+  tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct
   Ref.write (Just tid) timerRef 
-logAction _ _ _ = pure unit
+logAction _ _ _ _ = pure unit
 
 loggerFunction :: forall a. Loggable a => Show a => Ref.Ref (Maybe Timer.TimeoutId) -> a -> Effect Unit 
 loggerFunction ref action = do 
-  trackAction T.User T.Info L.EVAL "data" $ encode (show action)
+  let value = show action 
+  if contains (Pattern "_SKIPLOG_") value then pure unit else
+    trackAction T.User T.Info L.EVAL "data" $ encode value
   performLog $ Just action
-  Ref.write Nothing ref -- set ref to nothing after done.
+  Ref.write Nothing ref-- set ref to nothing after done.

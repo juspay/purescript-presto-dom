@@ -172,24 +172,23 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
       patchAndRun screenName myDom
   timerRef <- Ref.new Nothing
   let stateBeh = unfold execEval event { previousAction : Nothing, currentAction : Nothing, eitherState : (continue initialState)}
-  canceller <- sample_ stateBeh event `subscribe` (\a -> do
-        result <- either (onExit screenNumber push) (onStateChange push) a.eitherState
-        _ <- logAction timerRef a.previousAction a.currentAction
-        pure result
-    )
+  canceller <- sample_ stateBeh event `subscribe` (\a -> either (onExit screenNumber push a.previousAction a.currentAction timerRef) (onStateChange push a.previousAction a.currentAction timerRef) a.eitherState)
   cancellers <- traverse (registerEvents push)  globalEvents
   _ <- cacheCanceller screenNumber $ joinCancellers cancellers canceller
   pure $ effectCanceler (exitUI screenNumber)
     where
           screenName = Just $ Namespace name
-          onStateChange push (Tuple state cmds) =
-              patchAndRun screenName (view push state)
-              *> for_ cmds (\effAction -> effAction >>= push)
-
-          onExit scn push (Tuple st ret) =
-              case st of
+          onStateChange push previousAction currentAction timerRef (Tuple state cmds) = do
+              result <- patchAndRun screenName (view push state)
+                *> for_ cmds (\effAction -> effAction >>= push)
+              _ <- logAction timerRef previousAction currentAction false -- debounce
+              pure result
+          onExit scn push previousAction currentAction timerRef (Tuple st ret) = do 
+              result <- case st of
                    Just s -> patchAndRun screenName (view push s) *> (exitUI scn >>= \_ -> cb $ Right ret)
                    Nothing -> exitUI scn >>= \_ -> cb $ Right ret
+              _ <- logAction timerRef previousAction currentAction true -- logNow
+              pure result 
           registerEvents push = 
             (\f -> f push)
           execEval action st = { 
