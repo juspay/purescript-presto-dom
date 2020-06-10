@@ -10,10 +10,6 @@ import PrestoDOM.Types.Core (class Loggable, performLog, Eval, Cmd)
 import Effect(Effect)
 import Effect.Ref as Ref
 import Effect.Timer as Timer
-import Tracker (trackAction)
-import Tracker.Types (Level(..), Subcategory(..)) as T
-import Tracker.Labels (Label(..)) as L
-import Foreign.Class (encode)
 import Foreign(Foreign)
 
 continue
@@ -94,8 +90,5 @@ logAction _ _ _ _ = pure unit
 
 loggerFunction :: forall a. Loggable a => Show a => Ref.Ref (Maybe Timer.TimeoutId) -> a -> Effect Unit 
 loggerFunction ref action = do 
-  let value = show action 
-  if contains (Pattern "_SKIPLOG_") value then pure unit else
-    trackAction T.User T.Info L.EVAL "data" $ encode value
-  performLog $ Just action
+  performLog action
   Ref.write Nothing ref-- set ref to nothing after done.

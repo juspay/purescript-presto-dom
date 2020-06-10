@@ -14,6 +14,7 @@ module PrestoDOM.Types.Core
     , class Loggable
     , performLog
     , defaultPerformLog
+    , defaultSkipLog
     ) where
 
 import Prelude
@@ -34,6 +35,10 @@ import Halogen.VDom.Types (VDom)
 import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, Shadow, Corners, Position, renderPosition, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility, renderShadow,  renderGradient, renderCorners)
 import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), Length(..), Margin(..), Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), Position(..), renderPosition, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility,  renderGradient) as Types
 {-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
+import Tracker (trackAction)
+import Tracker.Types (Level(..), Subcategory(..)) as T
+import Tracker.Labels (Label(..)) as L
+import Foreign.Class (encode)
 
 newtype PrestoWidget a = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget a))
 
@@ -76,10 +81,15 @@ type Screen action state returnType =
 derive instance newtypePropName :: Newtype (PropName value) _
 
 class Loggable a where 
-  performLog :: (Maybe a) -> Effect Unit
+  performLog :: a -> Effect Unit
 
-defaultPerformLog :: forall a.(Maybe a) -> Effect Unit 
-defaultPerformLog _ = pure unit
+defaultPerformLog :: forall a. Show a => a -> Effect Unit 
+defaultPerformLog action = do
+  let value = show action 
+  trackAction T.User T.Info L.EVAL "data" $ encode value
+
+defaultSkipLog :: forall a. Show a => a -> Effect Unit 
+defaultSkipLog _ = pure unit
 
 class IsProp a where
   toPropValue :: a -> PropValue
