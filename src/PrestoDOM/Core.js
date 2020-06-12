@@ -65,6 +65,17 @@ exports.setScreenImpl = function(screen) {
   ++window.pageId;
 };
 
+exports.unsetScreenImpl = function(){
+  // Whatever the value of __dui_old_screen is, we will put it in
+  // __dui_screen variable. Let it be undefined too.
+  window.__dui_screen = window.__dui_old_screen;
+
+  //Because set makes sure to increment the variable, we will decrement it.
+  if (typeof window.pageId !== "undefined") {
+    --window.pageId;
+  }
+}
+
 function debounce(func, delay) {
   var inDebounce = void 0;
   return function() {
@@ -91,6 +102,9 @@ exports.storeMachine = function(machine, screen) {
   window.MACHINE = machine;
   if (screen.value0) window.MACHINE_MAP[screen.value0] = machine;
   window.__dui_last_patch_screen = screen.value0;
+  if(window.__CACHED_MACHINE[screen.value0]) {
+    window.__CACHED_MACHINE[screen.value0] = machine;
+  }
 };
 
 exports.getLatestMachine = function(screen) {
@@ -107,7 +121,12 @@ exports.cacheMachine = function(machine, screen) {
   if (screen.value0)
     window.__CACHED_MACHINE[screen.value0] = machine;
 };
-
+/**
+ * returns Nothing if __CACHED_MACHINE don't have machine
+ * This function will make sure that addScreen logic don't get executed
+ * if machine not present.
+ *
+ */
 exports.getCachedMachineImpl = function(just,nothing,screen) {
   if (screen.value0 && window.__OS === "ANDROID"){
     machine = window.__CACHED_MACHINE[screen.value0];
@@ -142,7 +161,20 @@ window.__PRESTO_ID = window.__ui_id_sequence =
 
 exports._domAll = domAll;
 
-function domAll(elem) {
+function domAll(elem){
+  return domAllImpl(elem, window.__dui_screen);
+}
+
+/**
+ * Creates DUI element from machine element
+ * Note: Only for Android
+ * @param {object} elem - machine
+ * @param {object} screenName
+ * @return {DUIElement}
+ *
+ * Can be called in pre-rendering, doesn't depend on window.__dui_screen
+ */
+function domAllImpl(elem, screenName) {
   /*
   if (!elem.__ref) {
     elem.__ref = window.createPrestoElement();
@@ -160,33 +192,42 @@ function domAll(elem) {
   }
 
   window.entryAnimation = window.entryAnimation || {};
-  window.entryAnimation[window.__dui_screen] =
-    window.entryAnimation[window.__dui_screen] || {};
+  window.entryAnimation[screenName] =
+    window.entryAnimation[screenName] || {};
 
   window.entryAnimationF = window.entryAnimationF || {};
-  window.entryAnimationF[window.__dui_screen] =
-    window.entryAnimationF[window.__dui_screen] || {};
+  window.entryAnimationF[screenName] =
+    window.entryAnimationF[screenName] || {};
 
   window.entryAnimationB = window.entryAnimationB || {};
-  window.entryAnimationB[window.__dui_screen] =
-    window.entryAnimationB[window.__dui_screen] || {};
+  window.entryAnimationB[screenName] =
+    window.entryAnimationB[screenName] || {};
 
   window.exitAnimation = window.exitAnimation || {};
-  window.exitAnimation[window.__dui_screen] =
-    window.exitAnimation[window.__dui_screen] || {};
+  window.exitAnimation[screenName] =
+    window.exitAnimation[screenName] || {};
 
   window.exitAnimationF = window.exitAnimation || {};
-  window.exitAnimationF[window.__dui_screen] =
-    window.exitAnimationF[window.__dui_screen] || {};
+  window.exitAnimationF[screenName] =
+    window.exitAnimationF[screenName] || {};
 
   window.exitAnimationB = window.exitAnimationB || {};
-  window.exitAnimationB[window.__dui_screen] =
-    window.exitAnimationB[window.__dui_screen] || {};
+  window.exitAnimationB[screenName] =
+    window.exitAnimationB[screenName] || {};
 
   var type = prestoUI.prestoClone(elem.type);
   var props = prestoUI.prestoClone(elem.props);
 
   if (window.__OS !== "WEB") {
+    if(props.hasOwnProperty("afterRender")){
+      window.afterRender = window.afterRender || {}
+      window.afterRender[screenName] = window.afterRender[screenName] || {}
+      var x = props.afterRender;
+      window.afterRender[screenName][elem.__ref.__id] = function(){
+        return x;
+      }
+      delete props.afterRender
+    }
     if (
       props.entryAnimation ||
       props.entryAnimationF ||
@@ -204,15 +245,27 @@ function domAll(elem) {
       }
     }
     if (props.entryAnimation) {
-      props.inlineAnimation = props.entryAnimation;
+        window.entryAnimation[screenName][elem.__ref.__id] = {
+          visibility: props.visibility ? props.visibility : "visible",
+          inlineAnimation: props.entryAnimation,
+          onAnimationEnd: props.onAnimationEnd,
+          type: type
+        };
+        props.inlineAnimation = props.entryAnimation;
     }
 
     if (props.entryAnimationF) {
-      props.inlineAnimation = props.entryAnimationF;
+        window.entryAnimationF[screenName][elem.__ref.__id] = {
+          visibility: props.visibility ? props.visibility : "visible",
+          inlineAnimation: props.entryAnimationF,
+          onAnimationEnd: props.onAnimationEnd,
+          type: type
+        };
+        props.inlineAnimation = props.entryAnimationF;
     }
 
     if (props.entryAnimationB) {
-      window.entryAnimationB[window.__dui_screen][elem.__ref.__id] = {
+      window.entryAnimationB[screenName][elem.__ref.__id] = {
         visibility: props.visibility ? props.visibility : "visible",
         inlineAnimation: props.entryAnimationB,
         onAnimationEnd: props.onAnimationEnd,
@@ -221,7 +274,7 @@ function domAll(elem) {
     }
 
     if (props.exitAnimation) {
-      window.exitAnimation[window.__dui_screen][elem.__ref.__id] = {
+      window.exitAnimation[screenName][elem.__ref.__id] = {
         inlineAnimation: props.exitAnimation,
         onAnimationEnd: props.onAnimationEnd,
         type: type
@@ -229,7 +282,7 @@ function domAll(elem) {
     }
 
     if (props.exitAnimationF) {
-      window.exitAnimationF[window.__dui_screen][elem.__ref.__id] = {
+      window.exitAnimationF[screenName][elem.__ref.__id] = {
         inlineAnimation: props.exitAnimationF,
         onAnimationEnd: props.onAnimationEnd,
         type: type
@@ -237,7 +290,7 @@ function domAll(elem) {
     }
 
     if (props.exitAnimationB) {
-      window.exitAnimationB[window.__dui_screen][elem.__ref.__id] = {
+      window.exitAnimationB[screenName][elem.__ref.__id] = {
         inlineAnimation: props.exitAnimationB,
         onAnimationEnd: props.onAnimationEnd,
         type: type
@@ -252,7 +305,7 @@ function domAll(elem) {
   var children = [];
 
   for (var i = 0; i < elem.children.length; i++) {
-    children.push(domAll(elem.children[i]));
+    children.push(domAllImpl(elem.children[i], screenName));
   }
 
   // android specific code
@@ -384,7 +437,7 @@ function applyProp(element, attribute, set) {
   // Android.runInUI(parseParams("linearLayout", prop, "set"));
 }
 
-function replaceView(element, attribute, removeProp) {
+function replaceView(element) {
   // console.log("REPLACE VIEW", element.__ref.__id, element.props);
   var props = prestoUI.prestoClone(element.props);
   props.id = element.__ref.__id;
@@ -419,16 +472,18 @@ function replaceView(element, attribute, removeProp) {
   }
 }
 
-window.moveChild = moveChild;
-window.removeChild = removeChild;
-window.addChild = addChild;
-window.replaceView = replaceView;
-window.addProperty = addAttribute;
+// window.moveChild = moveChild;
+// window.removeChild = removeChild;
+// window.addChild = addChild;
+// window.replaceView = replaceView;
+// window.addProperty = addAttribute;
 // window.removeAttribute = removeAttribute;
-window.updateProperty = updateAttribute;
+// window.updateProperty = updateAttribute;
 window.addAttribute = addAttribute;
 window.insertDom = insertDom;
-window.createPrestoElement = function() {
+window.createPrestoElement = createPrestoElement;
+
+function createPrestoElement() {
   if (
     typeof window.__ui_id_sequence != "undefined" &&
     window.__ui_id_sequence != null
@@ -446,6 +501,23 @@ window.createPrestoElement = function() {
     };
   }
 };
+
+
+exports.replaceView = replaceView;
+exports.addChild = addChild;
+exports.moveChild = moveChild;
+exports.removeChild = removeChild;
+exports.createPrestoElement = createPrestoElement;
+exports.addProperty = function (key, val, obj) {
+  addAttribute(obj, {value0: key, value1: val})
+};
+exports.updateProperty = function (key, val, obj) {
+  updateAttribute(obj, {value0: key, value1: val});
+};
+exports.cancelBehavior = function (ty) {
+    var canceler = window.__CANCELER[ty];
+    canceler();
+}
 
 window.__screenSubs = {};
 
@@ -501,7 +573,8 @@ function addAttribute(element, attribute) {
 
 function removeAttribute(element, attribute) {
   // console.log("remove attr :", attribute);
-  replaceView(element, attribute, true);
+  // replaceView(element, attribute, true);
+  replaceView(element);
 }
 
 function updateAttribute(element, attribute) {
@@ -515,24 +588,19 @@ window.preRenderedRoot = null;
 exports.setRootNode = function(nothing) {
   var root = null;
 
-  // If prepare screen was called before InitUI, lets use the root node that it created.
-  if(typeof window.preRenderedRoot !== "undefined" && window.preRenderedRoot!==null){
-    root = window.preRenderedRoot;
-  }else{
-    root = {
-      type: "relativeLayout",
-      props: {
-        root: "true",
-        height: "match_parent",
-        width: "match_parent"
-      },
-      children: []
-    };
+  root = {
+    type: "relativeLayout",
+    props: {
+      root: "true",
+      height: "match_parent",
+      width: "match_parent"
+    },
+    children: []
+  };
 
-    var elemRef = window.createPrestoElement();
-    root.props.id = elemRef.__id;
-    root.__ref = elemRef;
-  }
+  var elemRef = window.createPrestoElement();
+  root.props.id = elemRef.__id;
+  root.__ref = elemRef;
 
   window.N = root;
   window.__CACHELIMIT = 50;
@@ -571,32 +639,8 @@ exports.setRootNode = function(nothing) {
     Android.Render(domAll(root), null);
   }
 
-  // Setting this null because InitUI or InitUIWithScreen is called
-  window.preRenderedRoot = null;
   return root;
 };
-
-exports.getOrCreateRootNode = function(){
-  if(typeof window.N == "undefined" || window.N === null){
-    root = {
-      type: "relativeLayout",
-      props: {
-        root: "true",
-        height: "match_parent",
-        width: "match_parent"
-      },
-      children: []
-    };
-
-    var elemRef = window.createPrestoElement();
-    root.props.id = elemRef.__id;
-    root.__ref = elemRef;
-    window.preRenderedRoot = root;
-    return root;
-  }else{
-    return window.N;
-  }
-}
 
 exports.getRootNode = function() {
   return window.N;
@@ -991,7 +1035,6 @@ function callAnimation(tag) {
         }
       }
     }
-
     if (
       window.__dui_old_screen &&
       window["exitAnimation" + tag] &&
@@ -1029,7 +1072,7 @@ function callAnimation(tag) {
 function executePostProcess(cache) {
   return function() {
     callAnimation(cache);
-    if (window.__dui_screen && window["afterRender"]) {
+    if (window.__dui_screen && window["afterRender"] && window["afterRender"][window.__dui_screen] && !window["afterRender"][window.__dui_screen].executed) {
       for (var tag in window["afterRender"][window.__dui_screen]) {
         try {
           window["afterRender"][window.__dui_screen][tag]()();
@@ -1081,16 +1124,15 @@ exports.exitUI = function(tag) {
  * to keep UI ready ahead of time
  */
 exports.prepareDom = prepareDom;
-function prepareDom (root, screen, dom){
+function prepareDom (screen, dom){
   if (window.__OS == "ANDROID"){
-    dom.parentNode = root;
     if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()){
       dom.__ref = {__id: (dom.props.id).toString().trim()};
     }else{
       dom.__ref = window.createPrestoElement();
     }
     dom.props.root = true;
-    Android.prepareAndStoreView(screen.value0, JSON.stringify(domAll(dom)));
+    Android.prepareAndStoreView(screen.value0, JSON.stringify(domAllImpl(dom, screen.value0)));
   } else {
     // This shouldn't be call for IOS device
     // TODO: Add logic to warn developer
@@ -1147,10 +1189,21 @@ function addScreen(root,dom, screen){
         };
       }
     }
-    // We used the prepared screen. So lets remove now.
-    delete window.__CACHED_MACHINE[screen.value0];
-    
-    var callback = window.callbackMapper(executePostProcess("F"));
+    /**
+     * If SDK exits form other screen which was on top of this screen,
+     * the cached screen's visibility is gone.
+     * Following function call is made to make the screen visible again after
+     * attaching.
+     */
+    var cmdMakeChildVisible = cmdForAndroid({
+      id: dom.__ref.__id,
+      visibility : "visible"
+    }, true, "relativeLayout");
+
+    var callback = window.callbackMapper(function (){
+      Android.runInUI(cmdMakeChildVisible.runInUI, null);
+      executePostProcess("F")();
+    });
     Android.addStoredViewToParent(
       rootId + "",
       screen.value0,
@@ -1158,10 +1211,51 @@ function addScreen(root,dom, screen){
       callback,
       null
     );
+    for (var key in window["entryAnimationF"][screen.value0]) {
+      var config2 = {
+        id: key,
+        inlineAnimation:
+          window["entryAnimationF"][screen.value0][key]
+            .inlineAnimation,
+        onAnimationEnd : window["entryAnimationF"][screen.value0][key].onAnimationEnd
+      };
+      var cmd2 = cmdForAndroid(
+        config2,
+        true,
+        window["entryAnimationF"][screen.value0][key].type
+      );
+      if (Android.updateProperties) {
+        Android.updateProperties(JSON.stringify(cmd2));
+      } else {
+        Android.runInUI(cmd2.runInUI, null);
+      }
+    }
     hideCachedScreen();
   }else{
     // This shouldn't be call for IOS device
     // TODO: Add logic to warn developer
+  }
+}
+
+/**
+ * This function is for maintaining backward compatibility between Mystique
+ * and purescript-presto-dom. It'll also make sure that prepareScreen
+ * only gets executed in Android.
+ *
+ */
+exports.canPreRender = function (){
+  if (window.__OS == "ANDROID"){
+    if ( typeof Android.addStoredViewToParent == "function" &&
+      typeof Android.prepareAndStoreView == "function"
+    ) {
+      return true;
+    } else{
+      console.warn("Mystique version not compatible. Skipping pre-rendering");
+      return false;
+    }
+  } else {
+    console.log("Skipping Pre-Rendering for " + window.__OS );
+    return false;
   }
 }
 

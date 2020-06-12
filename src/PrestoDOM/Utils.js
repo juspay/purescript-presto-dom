@@ -23,3 +23,20 @@ exports.concatPropsArrayImpl = function (xs) {
 
   };
 };
+
+exports.storeToWindow_ = function (key, value){
+  window[key] = value;
+}
+
+exports.getFromWindow_ = function (key){
+  return function (just){
+    return function (nothing){
+     if (window.hasOwnProperty(key)){
+        return just(window[key]);
+      } else {
+        return nothing;
+      }
+    }
+  }
+}
+

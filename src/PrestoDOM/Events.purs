@@ -1,5 +1,6 @@
 module PrestoDOM.Events
-    ( onClick
+    ( manualEventsName
+    , onClick
     , onChange
     , attachBackPress
     , onMenuItemClick
@@ -10,19 +11,25 @@ module PrestoDOM.Events
     , onAnimationEnd
     , onClickWithLogger
     , pushAndLog
+    , setManualEvents
+    , setManualEventsName
     ) where
 
 import Prelude
 
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Effect (Effect)
+import Effect.Uncurried as EFn
 import Halogen.VDom.DOM.Prop (Prop(..))
+import PrestoDOM.Utils (storeToWindow, getFromWindow)
 import Tracker (trackEventInfo)
 import Unsafe.Coerce as U
 import Web.Event.Event (EventType(..), Event) as DOM
 
 {-- foreign import dummyEvent :: E.Event Int --}
 foreign import backPressHandlerImpl :: Effect Unit
+
+foreign import setManualEvents :: forall a b. (Maybe String) -> a -> b -> Effect Unit
 
 {-- foreign import saveCanceler --}
 {--     :: forall eff --}
@@ -88,3 +95,15 @@ onNetworkChanged push f = event (DOM.EventType "onNetworkChange") (Just <<< (mak
 
 afterRender :: forall a b . (a -> Effect Unit) -> (b -> a) -> Prop (Effect Unit)
 afterRender push f = event (DOM.EventType "afterRender") (Just <<< (makeEvent (push <<< f)))
+
+-- TODO: Change String to a type
+manualEventsName :: Unit -> Array String
+manualEventsName _ =
+  let defaultEvents = [ "onBackPressedEvent" , "onNetworkChange" ]
+  in fromMaybe defaultEvents $ getFromWindow "manualEventsName"
+
+setManualEventsName :: Maybe (Array String) -> Effect Unit
+setManualEventsName (Just arr)  = storeToWindow "manualEventsName" arr
+setManualEventsName Nothing =
+  storeToWindow "manualEventsName" [ "onBackPressedEvent" , "onNetworkChange" ]
+
