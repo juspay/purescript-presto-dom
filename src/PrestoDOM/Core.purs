@@ -207,14 +207,22 @@ runScreen
      . Show action => Loggable action => Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
-runScreen = runScreenImpl false
+runScreen scr st = do
+  let { initialState, view, eval, name , globalEvents } = scr 
+  result <- runScreenImpl false scr st
+  trackScreen T.Screen T.Info L.CURRENT_SCREEN "screen" name
+  pure result
 
 showScreen
     :: forall action state returnType
      . Show action => Loggable action => Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
-showScreen = runScreenImpl true
+showScreen scr st = do
+  let { initialState, view, eval, name , globalEvents } = scr 
+  result <- runScreenImpl true scr st
+  trackScreen T.Screen T.Info L.CURRENT_SCREEN "overlay" name
+  pure result
 
 setScreen :: String -> Effect Unit
 setScreen = EFn.runEffectFn1 setScreenImpl
