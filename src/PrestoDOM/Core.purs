@@ -30,7 +30,7 @@ import Halogen.VDom.Thunk (Thunk, buildThunk)
 import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..), class Loggable)
 import PrestoDOM.Utils (continue, logAction)
 import Tracker (trackScreen)
-import Tracker.Types (Level(..), Subcategory(..)) as T
+import Tracker.Types (Level(..), Screen(..)) as T
 import Tracker.Labels (Label(..)) as L
 import Web.DOM.Document (Document) as DOM
 import Effect.Ref as Ref

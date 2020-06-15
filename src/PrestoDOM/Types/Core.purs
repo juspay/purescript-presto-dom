@@ -36,7 +36,7 @@ import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Mar
 import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), Length(..), Margin(..), Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), Position(..), renderPosition, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility,  renderGradient) as Types
 {-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
 import Tracker (trackAction)
-import Tracker.Types (Level(..), Subcategory(..)) as T
+import Tracker.Types (Level(..), Action(..)) as T
 import Tracker.Labels (Label(..)) as L
 import Foreign.Class (encode)
 

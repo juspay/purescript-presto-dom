@@ -20,7 +20,7 @@ import Foreign.Class (encode)
 import Halogen.VDom.DOM.Prop (Prop(..))
 import Tracker.Labels (Label(..)) as L
 import Tracker (trackAction)
-import Tracker.Types (Level(..), Subcategory(..)) as T
+import Tracker.Types (Level(..), Action(..)) as T
 import Unsafe.Coerce as U
 import Web.Event.Event (EventType(..), Event) as DOM
 import PrestoDOM.Utils(debounce)
