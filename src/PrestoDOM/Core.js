@@ -65,17 +65,6 @@ exports.setScreenImpl = function(screen) {
   ++window.pageId;
 };
 
-exports.unsetScreenImpl = function(){
-  // Whatever the value of __dui_old_screen is, we will put it in
-  // __dui_screen variable. Let it be undefined too.
-  window.__dui_screen = window.__dui_old_screen;
-
-  //Because set makes sure to increment the variable, we will decrement it.
-  if (typeof window.pageId !== "undefined") {
-    --window.pageId;
-  }
-}
-
 function debounce(func, delay) {
   var inDebounce = void 0;
   return function() {
@@ -121,6 +110,7 @@ exports.cacheMachine = function(machine, screen) {
   if (screen.value0)
     window.__CACHED_MACHINE[screen.value0] = machine;
 };
+
 /**
  * returns Nothing if __CACHED_MACHINE don't have machine
  * This function will make sure that addScreen logic don't get executed
@@ -129,8 +119,8 @@ exports.cacheMachine = function(machine, screen) {
  */
 exports.getCachedMachineImpl = function(just,nothing,screen) {
   if (screen.value0 && window.__OS === "ANDROID"){
-    machine = window.__CACHED_MACHINE[screen.value0];
-    if (machine != null){
+    var machine = window.__CACHED_MACHINE[screen.value0];
+    if (machine != null && (typeof machine == "object")){
       return just(machine);
     } else {
       return nothing;
@@ -142,8 +132,8 @@ exports.getCachedMachineImpl = function(just,nothing,screen) {
 
 exports.isMachineCached = function (screen){
   if (screen.value0){
-    machine = window.__CACHED_MACHINE[screen.value0];
-    if (machine != null){
+    var machine = window.__CACHED_MACHINE[screen.value0];
+    if (machine != null && (typeof machine == "object")){
       return true;
     } else {
       return false;
@@ -472,15 +462,6 @@ function replaceView(element) {
   }
 }
 
-// window.moveChild = moveChild;
-// window.removeChild = removeChild;
-// window.addChild = addChild;
-// window.replaceView = replaceView;
-// window.addProperty = addAttribute;
-// window.removeAttribute = removeAttribute;
-// window.updateProperty = updateAttribute;
-window.addAttribute = addAttribute;
-window.insertDom = insertDom;
 window.createPrestoElement = createPrestoElement;
 
 function createPrestoElement() {
@@ -584,16 +565,15 @@ function updateAttribute(element, attribute) {
   applyProp(element, attribute, false);
 }
 
-window.preRenderedRoot = null;
 exports.setRootNode = function(nothing) {
-  var root = null;
-
-  root = {
+  var root = {
     type: "relativeLayout",
     props: {
       root: "true",
       height: "match_parent",
-      width: "match_parent"
+      width: "match_parent",
+      clickable: "true",
+      focusable: "true"
     },
     children: []
   };
@@ -1115,7 +1095,7 @@ exports.exitUI = function(tag) {
 /**
  * Renders dom ahead of time it's actually to be seen.
  * Note: Only for Android
- * @param {object} root - root object, to maintain screen stack
+ * @param {function} callback - function to be called after completing native render
  * @param {object} screen - screenName, to store reference
  * @param {object} dom - dom object to render
  * @return {void}
@@ -1124,7 +1104,7 @@ exports.exitUI = function(tag) {
  * to keep UI ready ahead of time
  */
 exports.prepareDom = prepareDom;
-function prepareDom (screen, dom){
+function prepareDom (callback, screen, dom){
   if (window.__OS == "ANDROID"){
     if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()){
       dom.__ref = {__id: (dom.props.id).toString().trim()};
@@ -1132,10 +1112,20 @@ function prepareDom (screen, dom){
       dom.__ref = window.createPrestoElement();
     }
     dom.props.root = true;
-    Android.prepareAndStoreView(screen.value0, JSON.stringify(domAllImpl(dom, screen.value0)));
+
+    /**
+     * Adding callback to make sure that prepareScreen returns controll only
+     * after native rendering is completed
+     */
+    var callB = window.callbackMapper(callback());
+    Android.prepareAndStoreView(
+      screen.value0,
+      JSON.stringify(domAllImpl(dom, screen.value0)),
+      callB
+    );
   } else {
-    // This shouldn't be call for IOS device
-    // TODO: Add logic to warn developer
+    console.warn("Implementation of prepareDom function missing for "+ window.__OS );
+    callback()();
   }
 }
 
@@ -1232,8 +1222,7 @@ function addScreen(root,dom, screen){
     }
     hideCachedScreen();
   }else{
-    // This shouldn't be call for IOS device
-    // TODO: Add logic to warn developer
+    console.warn("Implementation of addScreen function missing for "+ window.__OS );
   }
 }
 
@@ -1254,7 +1243,7 @@ exports.canPreRender = function (){
       return false;
     }
   } else {
-    console.log("Skipping Pre-Rendering for " + window.__OS );
+    console.warn("Skipping Pre-Rendering for " + window.__OS );
     return false;
   }
 }

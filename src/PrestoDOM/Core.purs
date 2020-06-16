@@ -83,7 +83,9 @@ foreign import setRootNode
 
 foreign import insertDom :: forall a b. EFn.EffectFn2 a b Unit
 
-foreign import prepareDom :: forall a b. EFn.EffectFn2 a b Unit
+foreign import prepareDom
+  :: forall a b
+   . EFn.EffectFn3 (Unit -> Effect Unit) a b Unit
 
 foreign import addScreenImpl :: forall a b c. EFn.EffectFn3 a b c Unit
 
@@ -96,8 +98,6 @@ foreign import _domAll :: forall a b. a -> b
 foreign import setScreenImpl :: EFn.EffectFn1
         String
         Unit
-
-foreign import unsetScreenImpl :: Effect Unit
 
 foreign import callAnimation :: EFn.EffectFn1
         String
@@ -289,7 +289,7 @@ showScreen = runScreenImpl true
 
 -- | Function is responsible for Pre-rendering. Intended to be called ahead of
 -- | time, it'll create and cache screen for future use.
--- | Currently it's not thread safe, can be used for first screen only in
+-- | Currently it's not thread safe for ANDROID, can be used for first screen only in
 -- | Initiate
 -- |
 prepareScreen
@@ -307,8 +307,7 @@ prepareScreen manualEvents { initialState, view, eval, name, globalEvents } cb =
       let myDom = view push initialState
       machine <- EFn.runEffectFn1 (buildVDom (spec (Just name))) myDom -- HalogenVDom Cycle
       EFn.runEffectFn2 cacheMachine machine screenName          -- Cache Dom to window
-      EFn.runEffectFn2 prepareDom screenName (extract machine)-- Add to screen stack
-      cb $ Right unit
+      EFn.runEffectFn3 prepareDom (cb <<< Right) screenName (extract machine)-- Add to screen stack
       pure nonCanceler
       where
       screenName = Just $ Namespace name
