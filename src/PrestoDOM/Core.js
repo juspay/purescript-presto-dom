@@ -144,10 +144,18 @@ exports.isMachineCached = function (screen){
 
 exports.insertDom = insertDom;
 
+function getPrestoID() {
+  if (window.__OS === "WEB") {
+    return 1;
+  }
+
+  return top.__PRESTO_ID ? ++top.__PRESTO_ID : 1;
+}
+
 window.__PRESTO_ID = window.__ui_id_sequence =
   typeof Android.getNewID == "function"
     ? parseInt(Android.getNewID()) * 1000000
-    : ++top.__PRESTO_ID * 1000000;
+    : getPrestoID() * 1000000;
 
 exports._domAll = domAll;
 
@@ -476,7 +484,7 @@ function createPrestoElement() {
     window.__ui_id_sequence =
       typeof Android.getNewID == "function"
         ? parseInt(Android.getNewID()) * 1000000
-        : window.__PRESTO_ID || ++top.__PRESTO_ID * 1000000;
+        : window.__PRESTO_ID || getPrestoID() * 1000000;
     return {
       __id: ++window.__ui_id_sequence
     };
