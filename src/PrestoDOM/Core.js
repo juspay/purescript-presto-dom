@@ -958,6 +958,10 @@ function executePostProcess(cache) {
       }
     }
 
+    if (window.postRenderCallback) {
+      window.postRenderCallback(window.__dui_screen);
+    }
+
     if (JBridge && JBridge.setShadow) {
       for (var tag in window.shadowObject) {
         JBridge.setShadow(
