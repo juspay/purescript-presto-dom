@@ -160,7 +160,7 @@ window.__PRESTO_ID = window.__ui_id_sequence =
 exports._domAll = domAll;
 
 function domAll(elem){
-  return domAllImpl(elem, window.__dui_screen);
+  return domAllImpl(elem, window.__dui_screen, {});
 }
 
 /**
@@ -168,11 +168,12 @@ function domAll(elem){
  * Note: Only for Android
  * @param {object} elem - machine
  * @param {object} screenName
+ * @param {object} VALIDATE_ID - for validating duplicate IDs, always pass empty object
  * @return {DUIElement}
  *
  * Can be called in pre-rendering, doesn't depend on window.__dui_screen
  */
-function domAllImpl(elem, screenName) {
+function domAllImpl(elem, screenName, VALIDATE_ID) {
   /*
   if (!elem.__ref) {
     elem.__ref = window.createPrestoElement();
@@ -184,7 +185,14 @@ function domAllImpl(elem, screenName) {
   */
 
   if (elem.props.hasOwnProperty('id') && elem.props.id != '' && (elem.props.id).toString().trim() != '') {
-    elem.__ref = {__id: (elem.props.id).toString().trim()}
+    var id = (elem.props.id).toString().trim();
+    elem.__ref = {__id: id };
+    if (VALIDATE_ID.hasOwnProperty(id)){
+      console.warn("Found duplicate ID! ID: "+ id +
+        " maybe caused because of overiding `id` prop. This may produce unwanted behvior. Please fix..");
+    }else{
+      VALIDATE_ID[id] = 'used';
+    }
   } else if(!elem.__ref) {
     elem.__ref = window.createPrestoElement()
   }
@@ -303,7 +311,7 @@ function domAllImpl(elem, screenName) {
   var children = [];
 
   for (var i = 0; i < elem.children.length; i++) {
-    children.push(domAllImpl(elem.children[i], screenName));
+    children.push(domAllImpl(elem.children[i], screenName, VALIDATE_ID));
   }
 
   // android specific code
@@ -1128,7 +1136,7 @@ function prepareDom (callback, screen, dom){
     var callB = window.callbackMapper(callback());
     Android.prepareAndStoreView(
       screen.value0,
-      JSON.stringify(domAllImpl(dom, screen.value0)),
+      JSON.stringify(domAllImpl(dom, screen.value0, {})),
       callB
     );
   } else {

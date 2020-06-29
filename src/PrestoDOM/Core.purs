@@ -174,12 +174,10 @@ patchAndRun screenName myDom = do
 
 initUIWithScreen
   :: forall action state
-   . Maybe (Array String)
-  -> Screen action state Unit
+   . Screen action state Unit
   -> (Either Error Unit -> Effect Unit)
   -> Effect Canceler
-initUIWithScreen manualEvents { initialState, view, eval } cb = do
-  setManualEventsName manualEvents
+initUIWithScreen  { initialState, view, eval } cb = do
   { event, push } <- E.create
   let myDom = view push initialState
   root <- EFn.runEffectFn1 setRootNode Nothing
@@ -189,11 +187,9 @@ initUIWithScreen manualEvents { initialState, view, eval } cb = do
   pure nonCanceler
 
 initUI
-  :: Maybe (Array String)
-  -> (Either Error Unit -> Effect Unit)
+  :: (Either Error Unit -> Effect Unit)
   -> Effect Canceler
-initUI manualEvents cb = do
-  setManualEventsName manualEvents
+initUI cb = do
   root <- EFn.runEffectFn1 setRootNode Nothing
   machine <- EFn.runEffectFn1 (buildVDom (spec Nothing)) view
   EFn.runEffectFn2 insertDom root (extract machine)
@@ -201,8 +197,6 @@ initUI manualEvents cb = do
   pure nonCanceler
     where
           view = Elem Nothing (ElemName "linearLayout") [] []
-
-
 
 -- | holds two implementation
 -- | 1. runScreen
@@ -265,15 +259,15 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
                 *> for_ cmds (\effAction -> effAction >>= push)
               _ <- logAction timerRef previousAction currentAction false -- debounce
               pure result
-          onExit scn push previousAction currentAction timerRef (Tuple st ret) = do 
+          onExit scn push previousAction currentAction timerRef (Tuple st ret) = do
               result <- case st of
                    Just s -> patchAndRun screenName (view push s) *> (exitUI scn >>= \_ -> cb $ Right ret)
                    Nothing -> exitUI scn >>= \_ -> cb $ Right ret
               _ <- logAction timerRef previousAction currentAction true -- logNow
-              pure result 
-          registerEvents push = 
+              pure result
+          registerEvents push =
             (\f -> f push)
-          execEval action st = { 
+          execEval action st = {
                   previousAction : st.currentAction
                 , currentAction : Just action
                 , eitherState : (st.eitherState >>= (eval action <<< fst))
@@ -290,7 +284,7 @@ runScreen
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
 runScreen scr st = do
-  let { initialState, view, eval, name , globalEvents } = scr 
+  let { initialState, view, eval, name , globalEvents } = scr
   result <- runScreenImpl false scr st
   trackScreen T.Screen T.Info L.CURRENT_SCREEN "screen" name
   pure result
@@ -301,7 +295,7 @@ showScreen
     -> (Either Error returnType -> Effect Unit)
     -> Effect Canceler
 showScreen scr st = do
-  let { initialState, view, eval, name , globalEvents } = scr 
+  let { initialState, view, eval, name , globalEvents } = scr
   result <- runScreenImpl true scr st
   trackScreen T.Screen T.Info L.CURRENT_SCREEN "overlay" name
   pure result
@@ -313,22 +307,23 @@ showScreen scr st = do
 -- |
 prepareScreen
   :: forall action state returnType
-   . Maybe (Array String)
-  -> Screen action state returnType
+   . Screen action state returnType
   -> (Either Error Unit -> Effect Unit)
   -> Effect Canceler
-prepareScreen manualEvents { initialState, view, eval, name, globalEvents } cb =
+prepareScreen { initialState, view, eval, name, globalEvents } cb =
   if not (canPreRender unit)
     then (cb $ Right unit) $> nonCanceler
     else do
-      setManualEventsName manualEvents
       { event, push } <- E.create
       let myDom = view push initialState
       machine <- EFn.runEffectFn1 (buildVDom (spec (Just name))) myDom -- HalogenVDom Cycle
       EFn.runEffectFn2 cacheMachine machine screenName          -- Cache Dom to window
-      EFn.runEffectFn3 prepareDom (cb <<< Right) screenName (extract machine)-- Add to screen stack
+      EFn.runEffectFn3 prepareDom callBack screenName (extract machine)-- Add to screen stack
       pure nonCanceler
       where
+      callBack result = do
+         trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "screen" name
+         cb (Right result)
       screenName = Just $ Namespace name
 
 setScreen :: String -> Effect Unit
