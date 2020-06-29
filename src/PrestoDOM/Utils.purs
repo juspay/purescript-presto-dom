@@ -4,7 +4,6 @@ import Prelude
 
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
-import Data.String(contains, Pattern(..))
 import Data.Tuple (Tuple(..))
 import PrestoDOM.Types.Core (class Loggable, performLog, Eval, Cmd)
 import Effect(Effect)
