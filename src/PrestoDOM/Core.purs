@@ -63,7 +63,7 @@ foreign import cacheMachine
     :: forall a b
      . EFn.EffectFn2
         (Step a b)
-        (Maybe Namespace)
+        String
         Unit
 
 foreign import getCachedMachineImpl
@@ -71,10 +71,8 @@ foreign import getCachedMachineImpl
      . EFn.EffectFn3
         ((Step a b) -> Maybe (Step a b))
         (Maybe (Step a b))
-        (Maybe Namespace)
+        String
         (Maybe (Step a b))
-
-foreign import isMachineCached :: (Maybe Namespace) -> Boolean
 
 foreign import getRootNode :: Effect DOM.Document
 
@@ -87,10 +85,10 @@ foreign import setRootNode
 foreign import insertDom :: forall a b. EFn.EffectFn2 a b Unit
 
 foreign import prepareDom
-  :: forall a b
-   . EFn.EffectFn3 (Unit -> Effect Unit) a b Unit
+  :: forall  a
+   . EFn.EffectFn3 (Unit -> Effect Unit) String a Unit
 
-foreign import addScreenImpl :: forall a b c. EFn.EffectFn3 a b c Unit
+foreign import addScreenImpl :: forall a b. EFn.EffectFn3 a b String Unit
 
 foreign import updateDom :: forall a b. EFn.EffectFn2 a b Unit
 
@@ -163,7 +161,7 @@ logger a = do
     _ <- EFn.runEffectFn1 emitter a
     pure unit
 
-getCachedMachine :: ∀ a b. Maybe Namespace → Effect (Maybe (Step a b))
+getCachedMachine :: ∀ a b. String → Effect (Maybe (Step a b))
 getCachedMachine = EFn.runEffectFn3 getCachedMachineImpl Just Nothing
 
 patchAndRun :: forall w i. Maybe Namespace -> VDom (Array (Prop i)) w -> Effect Unit
@@ -226,11 +224,11 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
     false ->
       (if cache
         then pure Nothing
-        else getCachedMachine screenName) >>=
+        else getCachedMachine name) >>=
         case _ of
           Just machine -> do
             root <- getRootNode
-            EFn.runEffectFn3 addScreenImpl root  (extract machine) screenName
+            EFn.runEffectFn3 addScreenImpl root  (extract machine) name
             processWidget
             _ <- EFn.runEffectFn1 callAnimation "B"
             newMachine <- EFn.runEffectFn2 step (machine) (myDom)
@@ -317,14 +315,13 @@ prepareScreen { initialState, view, eval, name, globalEvents } cb =
       { event, push } <- E.create
       let myDom = view push initialState
       machine <- EFn.runEffectFn1 (buildVDom (spec (Just name))) myDom -- HalogenVDom Cycle
-      EFn.runEffectFn2 cacheMachine machine screenName          -- Cache Dom to window
-      EFn.runEffectFn3 prepareDom callBack screenName (extract machine)-- Add to screen stack
+      EFn.runEffectFn2 cacheMachine machine name          -- Cache Dom to window
+      EFn.runEffectFn3 prepareDom callBack name (extract machine) -- Create and Cache Screen
       pure nonCanceler
       where
       callBack result = do
          trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "screen" name
          cb (Right result)
-      screenName = Just $ Namespace name
 
 setScreen :: String -> Effect Unit
 setScreen = EFn.runEffectFn1 setScreenImpl

@@ -103,12 +103,11 @@ exports.getLatestMachine = function(screen) {
   return window.MACHINE;
 };
 
-exports.cacheMachine = function(machine, screen) {
+exports.cacheMachine = function(machine, screenName) {
   if (! window.hasOwnProperty("__CACHED_MACHINE")){
     window.__CACHED_MACHINE = {}
   }
-  if (screen.value0)
-    window.__CACHED_MACHINE[screen.value0] = machine;
+  window.__CACHED_MACHINE[screenName] = machine;
 };
 
 /**
@@ -117,9 +116,9 @@ exports.cacheMachine = function(machine, screen) {
  * if machine not present.
  *
  */
-exports.getCachedMachineImpl = function(just,nothing,screen) {
-  if (screen.value0 && window.__OS === "ANDROID"){
-    var machine = window.__CACHED_MACHINE[screen.value0];
+exports.getCachedMachineImpl = function(just,nothing,screenName) {
+  if (window.__OS === "ANDROID"){
+    var machine = window.__CACHED_MACHINE[screenName];
     if (machine != null && (typeof machine == "object")){
       return just(machine);
     } else {
@@ -128,18 +127,6 @@ exports.getCachedMachineImpl = function(just,nothing,screen) {
   } else {
     return nothing;
   }
-}
-
-exports.isMachineCached = function (screen){
-  if (screen.value0){
-    var machine = window.__CACHED_MACHINE[screen.value0];
-    if (machine != null && (typeof machine == "object")){
-      return true;
-    } else {
-      return false;
-    }
-  }
-  return false;
 }
 
 exports.insertDom = insertDom;
@@ -1112,7 +1099,7 @@ exports.exitUI = function(tag) {
  * Renders dom ahead of time it's actually to be seen.
  * Note: Only for Android
  * @param {function} callback - function to be called after completing native render
- * @param {object} screen - screenName, to store reference
+ * @param {String} screenName - to store reference
  * @param {object} dom - dom object to render
  * @return {void}
  *
@@ -1120,7 +1107,7 @@ exports.exitUI = function(tag) {
  * to keep UI ready ahead of time
  */
 exports.prepareDom = prepareDom;
-function prepareDom (callback, screen, dom){
+function prepareDom (callback, screenName, dom){
   if (window.__OS == "ANDROID"){
     if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()){
       dom.__ref = {__id: (dom.props.id).toString().trim()};
@@ -1135,8 +1122,8 @@ function prepareDom (callback, screen, dom){
      */
     var callB = window.callbackMapper(callback());
     Android.prepareAndStoreView(
-      screen.value0,
-      JSON.stringify(domAllImpl(dom, screen.value0, {})),
+      screenName,
+      JSON.stringify(domAllImpl(dom, screenName, {})),
       callB
     );
   } else {
@@ -1149,8 +1136,8 @@ function prepareDom (callback, screen, dom){
  * Inflates view depending on screeen name. Always call after prepareDom().
  * Note: Only for Android
  * @param {object} root - root object, to maintain screen stack
- * @param {object} screen - screenName, to store reference
  * @param {object} dom - dom object to render
+ * @param {String} screenName - to store reference
  * @return {void}
  *
  * This function will attach screen to root node. The screen is assumed to be cached
@@ -1158,7 +1145,7 @@ function prepareDom (callback, screen, dom){
  * and is been processed
  */
 exports.addScreenImpl = addScreen;
-function addScreen(root,dom, screen){
+function addScreen(root,dom, screenName){
   if (window.__OS == "ANDROID") {
     root.children.push(dom);
     window.N = root;
@@ -1167,11 +1154,11 @@ function addScreen(root,dom, screen){
       window.__stashScreen.push(dom.__ref.__id);
       window.__screenNothing = false;
     } else {
-      var screenName = window.__currScreenName;
+      var currScreenName = window.__currScreenName;
       // push() returns array length
       var length = window.__ROOTSCREEN.idSet.child.push({
         id: dom.__ref.__id,
-        name: screenName
+        name: currScreenName
       });
       if (length >= window.__CACHELIMIT) {
         window.__ROOTSCREEN.idSet.child.shift();
@@ -1212,23 +1199,23 @@ function addScreen(root,dom, screen){
     });
     Android.addStoredViewToParent(
       rootId + "",
-      screen.value0,
+      screenName,
       length - 1,
       callback,
       null
     );
-    for (var key in window["entryAnimationF"][screen.value0]) {
+    for (var key in window["entryAnimationF"][screenName]) {
       var config2 = {
         id: key,
         inlineAnimation:
-          window["entryAnimationF"][screen.value0][key]
+          window["entryAnimationF"][screenName][key]
             .inlineAnimation,
-        onAnimationEnd : window["entryAnimationF"][screen.value0][key].onAnimationEnd
+        onAnimationEnd : window["entryAnimationF"][screenName][key].onAnimationEnd
       };
       var cmd2 = cmdForAndroid(
         config2,
         true,
-        window["entryAnimationF"][screen.value0][key].type
+        window["entryAnimationF"][screenName][key].type
       );
       if (Android.updateProperties) {
         Android.updateProperties(JSON.stringify(cmd2));
