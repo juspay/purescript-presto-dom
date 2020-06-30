@@ -17,7 +17,6 @@ import Prelude
 
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
-import Data.String(contains, Pattern(..))
 import Data.Tuple (Tuple(..))
 import Effect.Uncurried as EFn
 

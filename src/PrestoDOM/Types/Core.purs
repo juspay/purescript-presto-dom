@@ -91,6 +91,9 @@ defaultPerformLog action = do
 defaultSkipLog :: forall a. Show a => a -> Effect Unit 
 defaultSkipLog _ = pure unit
 
+instance stringLoggable :: Loggable String where
+  performLog = trackAction T.User T.Info L.EVAL "data" <<< encode
+
 class IsProp a where
   toPropValue :: a -> PropValue
 
