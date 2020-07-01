@@ -312,6 +312,7 @@ prepareScreen { initialState, view, eval, name, globalEvents } cb =
   if not (canPreRender unit)
     then (cb $ Right unit) $> nonCanceler
     else do
+      trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" name
       { event, push } <- E.create
       let myDom = view push initialState
       machine <- EFn.runEffectFn1 (buildVDom (spec (Just name))) myDom -- HalogenVDom Cycle
@@ -320,8 +321,8 @@ prepareScreen { initialState, view, eval, name, globalEvents } cb =
       pure nonCanceler
       where
       callBack result = do
-         trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "screen" name
-         cb (Right result)
+        trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_finished" name
+        cb (Right result)
 
 setScreen :: String -> Effect Unit
 setScreen = EFn.runEffectFn1 setScreenImpl
