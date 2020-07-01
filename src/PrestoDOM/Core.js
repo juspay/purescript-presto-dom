@@ -2,7 +2,7 @@
 
 const clone = require("ramda/src/clone");
 const prestoUI = require("presto-ui")
-const prestoDayum = prestoUI.doms;
+const prestoDayum = window.prestoUI ? window.prestoUI.doms : prestoUI.doms;
 var webParseParams, iOSParseParams, parseParams;
 
 const callbackMapper = prestoUI.helpers.android.callbackMapper;
