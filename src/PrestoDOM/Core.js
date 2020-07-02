@@ -56,7 +56,7 @@ exports.callAnimation = callAnimation;
 
 exports.setScreenImpl = function(screen) {
   if (window.__dui_screen && window.__dui_screen != screen) {
-    window.__dui_old_screen = window.__dui_screen;
+    window.__dui_old_screen = window.__dui_screen + "";
   }
   window.__dui_screen = screen;
   if (typeof window.pageId == "undefined") {
@@ -187,6 +187,7 @@ function domAll(elem) {
     }
 
     if (props.entryAnimationB) {
+      window.entryAnimationB[window.__dui_screen]["hasAnimation"] = true
       window.entryAnimationB[window.__dui_screen][elem.__ref.__id] = {
         visibility: props.visibility ? props.visibility : "visible",
         inlineAnimation: props.entryAnimationB,
@@ -196,6 +197,7 @@ function domAll(elem) {
     }
 
     if (props.exitAnimation) {
+      window.exitAnimation[window.__dui_screen]["hasAnimation"] = true
       window.exitAnimation[window.__dui_screen][elem.__ref.__id] = {
         inlineAnimation: props.exitAnimation,
         onAnimationEnd: props.onAnimationEnd,
@@ -204,6 +206,7 @@ function domAll(elem) {
     }
 
     if (props.exitAnimationF) {
+      window.exitAnimationF[window.__dui_screen]["hasAnimation"] = true
       window.exitAnimationF[window.__dui_screen][elem.__ref.__id] = {
         inlineAnimation: props.exitAnimationF,
         onAnimationEnd: props.onAnimationEnd,
@@ -212,6 +215,7 @@ function domAll(elem) {
     }
 
     if (props.exitAnimationB) {
+      window.exitAnimationB[window.__dui_screen]["hasAnimation"] = true
       window.exitAnimationB[window.__dui_screen][elem.__ref.__id] = {
         inlineAnimation: props.exitAnimationB,
         onAnimationEnd: props.onAnimationEnd,
@@ -905,6 +909,8 @@ function callAnimation(tag) {
       window["entryAnimation" + tag][window.__dui_screen]
     ) {
       for (var key in window["entryAnimation" + tag][window.__dui_screen]) {
+        if (key == "hasAnimation")
+          continue;
         var config = {
           id: key,
           inlineAnimation:
@@ -938,9 +944,12 @@ function callAnimation(tag) {
     if (
       window.__dui_old_screen &&
       window["exitAnimation" + tag] &&
-      window["exitAnimation" + tag][window.__dui_old_screen]
+      window["exitAnimation" + tag][window.__dui_old_screen] && 
+      window["exitAnimation" + tag][window.__dui_old_screen]["hasAnimation"]
     ) {
       for (var key in window["exitAnimation" + tag][window.__dui_old_screen]) {
+        if (key == "hasAnimation")
+          continue;
         var config2 = {
           id: key,
           inlineAnimation:
@@ -964,6 +973,8 @@ function callAnimation(tag) {
           Android.runInUI(webParseParams("linearLayout", config2, "set"));
         }
       }
+    } else {
+      hideOldScreenNow()
     }
   }
   window.__dui_old_screen = window.__dui_screen;
