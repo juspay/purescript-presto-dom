@@ -19,8 +19,7 @@ import Prelude
 
 import Data.Maybe (Maybe(..), fromMaybe)
 import Effect (Effect)
-import Effect.Uncurried as EFn
-import PrestoDOM.Utils (storeToWindow, getFromWindow)
+import PrestoDOM.Utils (storeToWindow, getFromWindow, debounce)
 import Foreign.Class (encode)
 import Halogen.VDom.DOM.Prop (Prop(..))
 import Tracker.Labels (Label(..)) as L
@@ -28,7 +27,6 @@ import Tracker (trackAction)
 import Tracker.Types (Level(..), Action(..)) as T
 import Unsafe.Coerce as U
 import Web.Event.Event (EventType(..), Event) as DOM
-import PrestoDOM.Utils(debounce)
 {-- foreign import dummyEvent :: E.Event Int --}
 foreign import backPressHandlerImpl :: Effect Unit
 
