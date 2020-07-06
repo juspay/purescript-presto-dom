@@ -38,7 +38,7 @@ exports.terminateUI = function (){
   window.__dui_last_patch_screen = undefined;
   window.__dui_screen = undefined;
   window.__dui_old_screen = undefined;
-  window.__usedIDS = undefined; 
+  window.__usedIDS = undefined;
 }
 
 exports.getScreenNumber = function() {
@@ -97,6 +97,9 @@ exports.storeMachine = function(machine, screen) {
   window.MACHINE = machine;
   if (screen.value0) window.MACHINE_MAP[screen.value0] = machine;
   window.__dui_last_patch_screen = screen.value0;
+  if(window.__CACHED_MACHINE[screen.value0]) {
+    window.__CACHED_MACHINE[screen.value0] = machine;
+  }
 };
 
 exports.getLatestMachine = function(screen) {
@@ -105,6 +108,32 @@ exports.getLatestMachine = function(screen) {
   }
   return window.MACHINE;
 };
+
+exports.cacheMachine = function(machine, screenName) {
+  if (! window.hasOwnProperty("__CACHED_MACHINE")){
+    window.__CACHED_MACHINE = {}
+  }
+  window.__CACHED_MACHINE[screenName] = machine;
+};
+
+/**
+ * returns Nothing if __CACHED_MACHINE don't have machine
+ * This function will make sure that addScreen logic don't get executed
+ * if machine not present.
+ *
+ */
+exports.getCachedMachineImpl = function(just,nothing,screenName) {
+  if (window.__OS === "ANDROID"){
+    var machine = window.__CACHED_MACHINE[screenName];
+    if (machine != null && (typeof machine == "object")){
+      return just(machine);
+    } else {
+      return nothing;
+    }
+  } else {
+    return nothing;
+  }
+}
 
 exports.insertDom = insertDom;
 
@@ -123,7 +152,21 @@ window.__PRESTO_ID = window.__ui_id_sequence =
 
 exports._domAll = domAll;
 
-function domAll(elem) {
+function domAll(elem){
+  return domAllImpl(elem, window.__dui_screen, {});
+}
+
+/**
+ * Creates DUI element from machine element
+ * Note: Only for Android
+ * @param {object} elem - machine
+ * @param {object} screenName
+ * @param {object} VALIDATE_ID - for validating duplicate IDs, always pass empty object
+ * @return {DUIElement}
+ *
+ * Can be called in pre-rendering, doesn't depend on window.__dui_screen
+ */
+function domAllImpl(elem, screenName, VALIDATE_ID) {
   /*
   if (!elem.__ref) {
     elem.__ref = window.createPrestoElement();
@@ -135,39 +178,55 @@ function domAll(elem) {
   */
 
   if (elem.props.hasOwnProperty('id') && elem.props.id != '' && (elem.props.id).toString().trim() != '') {
-    elem.__ref = {__id: (elem.props.id).toString().trim()}
+    var id = (elem.props.id).toString().trim();
+    elem.__ref = {__id: id };
+    if (VALIDATE_ID.hasOwnProperty(id)){
+      console.warn("Found duplicate ID! ID: "+ id +
+        " maybe caused because of overiding `id` prop. This may produce unwanted behvior. Please fix..");
+    }else{
+      VALIDATE_ID[id] = 'used';
+    }
   } else if(!elem.__ref) {
     elem.__ref = window.createPrestoElement()
   }
 
   window.entryAnimation = window.entryAnimation || {};
-  window.entryAnimation[window.__dui_screen] =
-    window.entryAnimation[window.__dui_screen] || {};
+  window.entryAnimation[screenName] =
+    window.entryAnimation[screenName] || {};
 
   window.entryAnimationF = window.entryAnimationF || {};
-  window.entryAnimationF[window.__dui_screen] =
-    window.entryAnimationF[window.__dui_screen] || {};
+  window.entryAnimationF[screenName] =
+    window.entryAnimationF[screenName] || {};
 
   window.entryAnimationB = window.entryAnimationB || {};
-  window.entryAnimationB[window.__dui_screen] =
-    window.entryAnimationB[window.__dui_screen] || {};
+  window.entryAnimationB[screenName] =
+    window.entryAnimationB[screenName] || {};
 
   window.exitAnimation = window.exitAnimation || {};
-  window.exitAnimation[window.__dui_screen] =
-    window.exitAnimation[window.__dui_screen] || {};
+  window.exitAnimation[screenName] =
+    window.exitAnimation[screenName] || {};
 
   window.exitAnimationF = window.exitAnimation || {};
-  window.exitAnimationF[window.__dui_screen] =
-    window.exitAnimationF[window.__dui_screen] || {};
+  window.exitAnimationF[screenName] =
+    window.exitAnimationF[screenName] || {};
 
   window.exitAnimationB = window.exitAnimationB || {};
-  window.exitAnimationB[window.__dui_screen] =
-    window.exitAnimationB[window.__dui_screen] || {};
+  window.exitAnimationB[screenName] =
+    window.exitAnimationB[screenName] || {};
 
   var type = prestoUI.prestoClone(elem.type);
   var props = prestoUI.prestoClone(elem.props);
 
   if (window.__OS !== "WEB") {
+    if(props.hasOwnProperty("afterRender")){
+      window.afterRender = window.afterRender || {}
+      window.afterRender[screenName] = window.afterRender[screenName] || {}
+      var x = props.afterRender;
+      window.afterRender[screenName][elem.__ref.__id] = function(){
+        return x;
+      }
+      delete props.afterRender
+    }
     if (
       props.entryAnimation ||
       props.entryAnimationF ||
@@ -186,8 +245,9 @@ function domAll(elem) {
     }
     if (props.entryAnimation) {
       props.inlineAnimation = props.entryAnimation;
-      window.entryAnimation[window.__dui_screen]["hasAnimation"] = true
-      window.entryAnimation[window.__dui_screen][elem.__ref.__id] = {
+      window.entryAnimation[screenName]["hasAnimation"] = true
+      window.entryAnimation[screenName][elem.__ref.__id] = {
+        visibility: props.visibility ? props.visibility : "visible",
         inlineAnimation: props.entryAnimation,
         onAnimationEnd: props.onAnimationEnd,
         type: type
@@ -195,12 +255,19 @@ function domAll(elem) {
     }
 
     if (props.entryAnimationF) {
-      props.inlineAnimation = props.entryAnimationF;
+        window.entryAnimationF[screenName]["hasAnimation"] = true
+        window.entryAnimationF[screenName][elem.__ref.__id] = {
+          visibility: props.visibility ? props.visibility : "visible",
+          inlineAnimation: props.entryAnimationF,
+          onAnimationEnd: props.onAnimationEnd,
+          type: type
+        };
+        props.inlineAnimation = props.entryAnimationF;
     }
 
     if (props.entryAnimationB) {
-      window.entryAnimationB[window.__dui_screen]["hasAnimation"] = true
-      window.entryAnimationB[window.__dui_screen][elem.__ref.__id] = {
+      window.entryAnimationB[screenName]["hasAnimation"] = true
+      window.entryAnimationB[screenName][elem.__ref.__id] = {
         visibility: props.visibility ? props.visibility : "visible",
         inlineAnimation: props.entryAnimationB,
         onAnimationEnd: props.onAnimationEnd,
@@ -209,8 +276,8 @@ function domAll(elem) {
     }
 
     if (props.exitAnimation) {
-      window.exitAnimation[window.__dui_screen]["hasAnimation"] = true
-      window.exitAnimation[window.__dui_screen][elem.__ref.__id] = {
+      window.exitAnimation[screenName]["hasAnimation"] = true
+      window.exitAnimation[screenName][elem.__ref.__id] = {
         inlineAnimation: props.exitAnimation,
         onAnimationEnd: props.onAnimationEnd,
         type: type
@@ -218,8 +285,8 @@ function domAll(elem) {
     }
 
     if (props.exitAnimationF) {
-      window.exitAnimationF[window.__dui_screen]["hasAnimation"] = true
-      window.exitAnimationF[window.__dui_screen][elem.__ref.__id] = {
+      window.exitAnimationF[screenName]["hasAnimation"] = true
+      window.exitAnimationF[screenName][elem.__ref.__id] = {
         inlineAnimation: props.exitAnimationF,
         onAnimationEnd: props.onAnimationEnd,
         type: type
@@ -227,8 +294,8 @@ function domAll(elem) {
     }
 
     if (props.exitAnimationB) {
-      window.exitAnimationB[window.__dui_screen]["hasAnimation"] = true
-      window.exitAnimationB[window.__dui_screen][elem.__ref.__id] = {
+      window.exitAnimationB[screenName]["hasAnimation"] = true
+      window.exitAnimationB[screenName][elem.__ref.__id] = {
         inlineAnimation: props.exitAnimationB,
         onAnimationEnd: props.onAnimationEnd,
         type: type
@@ -243,7 +310,7 @@ function domAll(elem) {
   var children = [];
 
   for (var i = 0; i < elem.children.length; i++) {
-    children.push(domAll(elem.children[i]));
+    children.push(domAllImpl(elem.children[i], screenName, VALIDATE_ID));
   }
 
   // android specific code
@@ -375,7 +442,7 @@ function applyProp(element, attribute, set) {
   // Android.runInUI(parseParams("linearLayout", prop, "set"));
 }
 
-function replaceView(element, attribute, removeProp) {
+function replaceView(element) {
   // console.log("REPLACE VIEW", element.__ref.__id, element.props);
   var props = prestoUI.prestoClone(element.props);
   props.id = element.__ref.__id;
@@ -410,16 +477,9 @@ function replaceView(element, attribute, removeProp) {
   }
 }
 
-window.moveChild = moveChild;
-window.removeChild = removeChild;
-window.addChild = addChild;
-window.replaceView = replaceView;
-window.addProperty = addAttribute;
-// window.removeAttribute = removeAttribute;
-window.updateProperty = updateAttribute;
-window.addAttribute = addAttribute;
-window.insertDom = insertDom;
-window.createPrestoElement = function() {
+window.createPrestoElement = createPrestoElement;
+
+function createPrestoElement() {
   if (
     typeof window.__ui_id_sequence != "undefined" &&
     window.__ui_id_sequence != null
@@ -437,6 +497,23 @@ window.createPrestoElement = function() {
     };
   }
 };
+
+
+exports.replaceView = replaceView;
+exports.addChild = addChild;
+exports.moveChild = moveChild;
+exports.removeChild = removeChild;
+exports.createPrestoElement = createPrestoElement;
+exports.addProperty = function (key, val, obj) {
+  addAttribute(obj, {value0: key, value1: val})
+};
+exports.updateProperty = function (key, val, obj) {
+  updateAttribute(obj, {value0: key, value1: val});
+};
+exports.cancelBehavior = function (ty) {
+    var canceler = window.__CANCELER[ty];
+    canceler();
+}
 
 window.__screenSubs = {};
 
@@ -492,7 +569,8 @@ function addAttribute(element, attribute) {
 
 function removeAttribute(element, attribute) {
   // console.log("remove attr :", attribute);
-  replaceView(element, attribute, true);
+  // replaceView(element, attribute, true);
+  replaceView(element);
 }
 
 function updateAttribute(element, attribute) {
@@ -506,16 +584,17 @@ exports.setRootNode = function(nothing) {
   var root = {
     type: "relativeLayout",
     props: {
-      root: "true"
+      root: "true",
+      height: "match_parent",
+      width: "match_parent",
+      clickable: "true",
+      focusable: "true"
     },
     children: []
   };
 
-  root.props.height = "match_parent";
-  root.props.width = "match_parent";
   var elemRef = window.createPrestoElement();
   root.props.id = elemRef.__id;
-  root.type = "relativeLayout";
   root.__ref = elemRef;
 
   window.N = root;
@@ -539,7 +618,10 @@ exports.setRootNode = function(nothing) {
       child: []
     }
   };
-
+  // store pre-rendered dom
+  if (! window.hasOwnProperty("__CACHED_MACHINE")){
+    window.__CACHED_MACHINE = {}
+  }
   if (window.__OS == "ANDROID") {
     if (typeof Android.getNewID == "function") {
       Android.Render(JSON.stringify(domAll(root)), null, "false");
@@ -781,7 +863,6 @@ function insertDom(root, dom) {
   root.children.push(dom);
   dom.parentNode = root;
   //dom.__ref = window.createPrestoElement();
-  
   if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()){
     dom.__ref = {__id: (dom.props.id).toString().trim()};
   }else{
@@ -849,7 +930,6 @@ exports.updateDom = function(root, dom) {
   dom.parentNode = root;
   //dom.__ref = window.createPrestoElement();
   window.N = root;
-  
   if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()) {
     dom.__ref = {__id: (dom.props.id).toString().trim()};
   }else{
@@ -952,7 +1032,6 @@ function callAnimation(tag) {
         }
       }
     }
-
     if (
       window.__dui_old_screen &&
       window["exitAnimation" + tag] &&
@@ -995,7 +1074,7 @@ function callAnimation(tag) {
 function executePostProcess(cache) {
   return function() {
     callAnimation__(window.__dui_screen) (cache) ();
-    if (window.__dui_screen && window["afterRender"]) {
+    if (window.__dui_screen && window["afterRender"] && window["afterRender"][window.__dui_screen] && !window["afterRender"][window.__dui_screen].executed) {
       for (var tag in window["afterRender"][window.__dui_screen]) {
         try {
           window["afterRender"][window.__dui_screen][tag]()();
@@ -1132,3 +1211,161 @@ function callAnimation_ (screenArray) {
 }
 
 exports.callAnimation_ = callAnimation__;
+
+/**
+ * Renders dom ahead of time it's actually to be seen.
+ * Note: Only for Android
+ * @param {function} callback - function to be called after completing native render
+ * @param {String} screenName - to store reference
+ * @param {object} dom - dom object to render
+ * @return {void}
+ *
+ * this function will create dom and send it to mystique in order
+ * to keep UI ready ahead of time
+ */
+exports.prepareDom = prepareDom;
+function prepareDom (callback, screenName, dom){
+  if (window.__OS == "ANDROID"){
+    if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()){
+      dom.__ref = {__id: (dom.props.id).toString().trim()};
+    }else{
+      dom.__ref = window.createPrestoElement();
+    }
+    dom.props.root = true;
+
+    /**
+     * Adding callback to make sure that prepareScreen returns controll only
+     * after native rendering is completed
+     */
+    var callB = window.callbackMapper(callback());
+    Android.prepareAndStoreView(
+      screenName,
+      JSON.stringify(domAllImpl(dom, screenName, {})),
+      callB
+    );
+  } else {
+    console.warn("Implementation of prepareDom function missing for "+ window.__OS );
+    callback()();
+  }
+}
+
+/**
+ * Inflates view depending on screeen name. Always call after prepareDom().
+ * Note: Only for Android
+ * @param {object} root - root object, to maintain screen stack
+ * @param {object} dom - dom object to render
+ * @param {String} screenName - to store reference
+ * @return {void}
+ *
+ * This function will attach screen to root node. The screen is assumed to be cached
+ * at android side. Native side should handle the case where screen is not yet ready
+ * and is been processed
+ */
+exports.addScreenImpl = addScreen;
+function addScreen(root,dom, screenName){
+  if (window.__OS == "ANDROID") {
+    root.children.push(dom);
+    window.N = root;
+    var rootId = window.__ROOTSCREEN.idSet.root;
+    if (window.__screenNothing) {
+      window.__stashScreen.push(dom.__ref.__id);
+      window.__screenNothing = false;
+    } else {
+      var currScreenName = window.__currScreenName;
+      // push() returns array length
+      var length = window.__ROOTSCREEN.idSet.child.push({
+        id: dom.__ref.__id,
+        name: currScreenName
+      });
+      if (length >= window.__CACHELIMIT) {
+        window.__ROOTSCREEN.idSet.child.shift();
+        length -= 1;
+      }
+      if (length >= 2) {
+        var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
+        var prop = {
+          id: window.__ROOTSCREEN.idSet.child[length - 2].id,
+          visibility: __visibility
+        };
+        window.hideold = function() {
+          if (window.__OS == "ANDROID" && length > 1) {
+            var cmd = cmdForAndroid(prop, true, "relativeLayout");
+            Android.runInUI(cmd.runInUI, null);
+          } else if (window.__OS == "IOS" && length > 1) {
+            Android.runInUI(prop);
+          } else if (length > 1) {
+            Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+          }
+        };
+      }
+    }
+    /**
+     * If SDK exits form other screen which was on top of this screen,
+     * the cached screen's visibility is gone.
+     * Following function call is made to make the screen visible again after
+     * attaching.
+     */
+    var cmdMakeChildVisible = cmdForAndroid({
+      id: dom.__ref.__id,
+      visibility : "visible"
+    }, true, "relativeLayout");
+
+    var callback = window.callbackMapper(function (){
+      Android.runInUI(cmdMakeChildVisible.runInUI, null);
+      executePostProcess("F")();
+    });
+    Android.addStoredViewToParent(
+      rootId + "",
+      screenName,
+      length - 1,
+      callback,
+      null
+    );
+    for (var key in window["entryAnimationF"][screenName]) {
+      var config2 = {
+        id: key,
+        inlineAnimation:
+          window["entryAnimationF"][screenName][key]
+            .inlineAnimation,
+        onAnimationEnd : window["entryAnimationF"][screenName][key].onAnimationEnd
+      };
+      var cmd2 = cmdForAndroid(
+        config2,
+        true,
+        window["entryAnimationF"][screenName][key].type
+      );
+      if (Android.updateProperties) {
+        Android.updateProperties(JSON.stringify(cmd2));
+      } else {
+        Android.runInUI(cmd2.runInUI, null);
+      }
+    }
+    hideCachedScreen();
+  }else{
+    console.warn("Implementation of addScreen function missing for "+ window.__OS );
+  }
+}
+
+/**
+ * This function is for maintaining backward compatibility between Mystique
+ * and purescript-presto-dom. It'll also make sure that prepareScreen
+ * only gets executed in Android.
+ *
+ */
+exports.canPreRender = function (){
+  if (window.__OS == "ANDROID"){
+    if ( typeof Android.addStoredViewToParent == "function" &&
+      typeof Android.prepareAndStoreView == "function"
+    ) {
+      return true;
+    } else{
+      console.warn("Mystique version not compatible. Skipping pre-rendering");
+      return false;
+    }
+  } else {
+    console.warn("Skipping Pre-Rendering for " + window.__OS );
+    return false;
+  }
+}
+
+

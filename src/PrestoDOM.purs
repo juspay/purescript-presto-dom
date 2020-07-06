@@ -8,7 +8,7 @@ module PrestoDOM
     ) where
 
 import PrestoDOM.Core (mapDom, runScreen, showScreen, initUI, initUIWithScreen) as PrestoDOM
-import PrestoDOM.Events (afterRender, attachBackPress, makeEvent, onAnimationEnd, onBackPressed, onChange, onClick, onMenuItemClick, onNetworkChanged) as Events
+import PrestoDOM.Events (afterRender, attachBackPress, makeEvent, onAnimationEnd, onBackPressed, onChange, onClick, onMenuItemClick, onNetworkChanged, setManualEventsName) as Events
 import PrestoDOM.Utils (continue, continueWithCmd, updateAndExit, exit) as Utils
 import PrestoDOM.Elements.Elements (Leaf, Node, button, calendar, checkBox, editText, element, frameLayout, horizontalScrollView, imageView, keyed, linearLayout, linearLayout_, listView, lottieAnimationView, progressBar, relativeLayout, relativeLayout_, scrollView, shimmerFrameLayout, switch, tabLayout, textView, viewPager, viewWidget, webView) as Elements
 import PrestoDOM.Types.Core (class IsProp, Cmd, ElemName(..), Eval, GenProp(..), Gradient(..), Gravity(..), InputType(..), Length(..), Margin(..), Namespace(..), Orientation(..), Padding(..), Position(..), PrestoDOM, PrestoWidget(..), Prop, PropName(..), Props, Screen, Shadow(..), Typeface(..), VDom(..), Visibility(..), renderGradient, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderTypeface, renderVisibility, toPropValue) as Types
