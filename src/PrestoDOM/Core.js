@@ -186,6 +186,12 @@ function domAll(elem) {
     }
     if (props.entryAnimation) {
       props.inlineAnimation = props.entryAnimation;
+      window.entryAnimation[window.__dui_screen]["hasAnimation"] = true
+      window.entryAnimation[window.__dui_screen][elem.__ref.__id] = {
+        inlineAnimation: props.entryAnimation,
+        onAnimationEnd: props.onAnimationEnd,
+        type: type
+      };
     }
 
     if (props.entryAnimationF) {
@@ -988,7 +994,7 @@ function callAnimation(tag) {
 
 function executePostProcess(cache) {
   return function() {
-    callAnimation__(window.__dui_screen, cache);
+    callAnimation__(window.__dui_screen) (cache) ();
     if (window.__dui_screen && window["afterRender"]) {
       for (var tag in window["afterRender"][window.__dui_screen]) {
         try {
@@ -1054,13 +1060,13 @@ function callAnimation__ (screenName) {
         if(isRunScreen) {
           if(topOfStack == screenName)
             return
-          animationArray.push({ screenName : topOfStack, tag : "entryAnimationB"})
+          animationArray.push({ screenName : screenName, tag : "entryAnimationB"})
           animationArray.push({ screenName : topOfStack, tag : "exitAnimationB"})
           while (state.animationStack[state.animationStack.length - 1] != screenName){
-            state.animationStack.pop;
+            state.animationStack.pop();
           }
         } else {
-          animationArray.push({ screenName : topOfStack, tag : "entryAnimation"})
+          animationArray.push({ screenName : screenName, tag : "entryAnimation"})
         }
       } else {
         // Newscreen case
