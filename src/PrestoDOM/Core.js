@@ -1312,7 +1312,7 @@ function addScreen(root,dom, screenName){
 
     var callback = window.callbackMapper(function (){
       Android.runInUI(cmdMakeChildVisible.runInUI, null);
-      executePostProcess("F")();
+      executePostProcess(false)();
     });
     Android.addStoredViewToParent(
       rootId + "",
