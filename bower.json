@@ -11,7 +11,7 @@
     "purescript-effect": "^2.0.0",
     "purescript-aff": "^5.0.0",
     "purescript-either": "^4.0.0",
-    "purescript-halogen-vdom": "https://bitbucket.org/juspay/purescript-halogen-vdom.git#compiler-0.12",
+    "purescript-halogen-vdom": "https://bitbucket.org/juspay/purescript-halogen-vdom.git#compiler/0.12",
     "purescript-presto" : "https://bitbucket.org/juspay/purescript-presto.git#master",
     "purescript-behaviors": "^7.0.0",
     "purescript-event": "^1.2.4",
