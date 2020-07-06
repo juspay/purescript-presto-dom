@@ -19,24 +19,32 @@ exports.backPressHandlerImpl = function () {
   }
 }
 
-var isUndefined = function(val){
-  return (typeof val == "undefined");
-}
+function setManualEvents(screen) {
+  return function(eventName){
+    return function(callbackFunction){
+      var screenName = screen.value0 || window.__dui_screen;
 
-window.manualEventsName = window.manualEventsName || [];
-window.manualEventsName.push("onBackPressedEvent");
-window.manualEventsName.push("onNetworkChange");
-
-function setManualEvents(eventName,callbackFunction){
-  window[eventName] = (!isUndefined(window[eventName])) ? window[eventName] : {};
-  if(!isUndefined(window.__dui_screen)){
-    window[eventName][window.__dui_screen] = callbackFunction;
-    if((!isUndefined(window.__currScreenName.value0)) && (window.__dui_screen != window.__currScreenName.value0)){
-      console.warn("window.__currScreenName is varying from window.__currScreenName");
+      // function was getting cleared when placed outside
+      var isDefined = function(val){
+        return (typeof val !== "undefined");
+      }
+      window[eventName] = isDefined(window[eventName]) ? window[eventName] : {};
+      if (screenName) {
+        window[eventName][screenName] = callbackFunction;
+        if ( isDefined(window.__dui_screen) &&
+          isDefined(window.__currScreenName) &&
+          isDefined(window.__currScreenName.value0) &&
+          (window.__dui_screen != window.__currScreenName.value0)
+        ) {
+          console.warn("window.__currScreenName is varying from window.__currScreenName");
+        }
+      } else {
+        console.error("Please set value to __dui_screen");
+      }
     }
-  } else {
-    console.error("Please set value to __dui_screen");
   }
 }
 
 window.setManualEvents = setManualEvents;
+exports.setManualEvents = setManualEvents;
+
