@@ -3,6 +3,12 @@ const prestoUI = require("presto-ui")
 const prestoDayum = prestoUI.doms;
 var webParseParams, iOSParseParams, parseParams;
 
+const state = {
+  animationStack : []
+, animationCache : []
+, lastAnimatedScreen : ""
+}
+
 const callbackMapper = prestoUI.callbackMapper;
 
 if (window.__OS === "WEB") {
@@ -816,7 +822,7 @@ function insertDom(root, dom) {
     }
   }
 
-  var callback = window.callbackMapper(executePostProcess("F"));
+  var callback = window.callbackMapper(executePostProcess(false));
   if (window.__OS == "ANDROID") {
     Android.addViewToParent(
       rootId + "",
@@ -882,7 +888,7 @@ exports.updateDom = function(root, dom) {
   }
 
   if (window.__OS == "ANDROID") {
-    var callback = window.callbackMapper(executePostProcess(""));
+    var callback = window.callbackMapper(executePostProcess(true));
     Android.addViewToParent(
       rootId,
       JSON.stringify(domAll(dom)),
@@ -982,7 +988,7 @@ function callAnimation(tag) {
 
 function executePostProcess(cache) {
   return function() {
-    callAnimation(cache);
+    callAnimation__(window.__dui_screen, cache);
     if (window.__dui_screen && window["afterRender"]) {
       for (var tag in window["afterRender"][window.__dui_screen]) {
         try {
@@ -1021,3 +1027,102 @@ exports.exitUI = function(tag) {
     delete window["currentCancellor" + tag];
   };
 };
+
+/**
+ * Implicit animation logic.
+ * 1. If two consecutive screens are runscreen. Call animation on both.
+ * 2. If screen is show screen and previous screen is runscreen. Call animation only on showScreen
+ * 3. If screen is run screen and previous is show. Call animation on show, run and previous visible run.\
+ * animationStack : Array of runscreens where exit animation has not be called
+ * animationCache : Array of showscreens.
+ */
+
+function callAnimation__ (screenName) {
+  return function(cache) {
+    return function(){
+      if (screenName == state.lastAnimatedScreen)
+        return;
+      var isRunScreen = state.animationStack.indexOf(screenName) != -1;
+      var isShowScreen = state.animationCache.indexOf(screenName) != -1;
+      var isLastAnimatedCache = state.animationCache.indexOf(state.lastAnimatedScreen) != -1;
+      var topOfStack = state.animationStack[state.animationStack.length - 1];
+      var animationArray = []
+      if (isLastAnimatedCache){
+        animationArray.push({ screenName : state.lastAnimatedScreen + "", tag : "exitAnimation"});
+      }
+      if (isRunScreen || isShowScreen) {
+        if(isRunScreen) {
+          if(topOfStack == screenName)
+            return
+          animationArray.push({ screenName : topOfStack, tag : "entryAnimationB"})
+          animationArray.push({ screenName : topOfStack, tag : "exitAnimationB"})
+          while (state.animationStack[state.animationStack.length - 1] != screenName){
+            state.animationStack.pop;
+          }
+        } else {
+          animationArray.push({ screenName : topOfStack, tag : "entryAnimation"})
+        }
+      } else {
+        // Newscreen case
+        if (cache){
+          state.animationCache.push(screenName); // TODO :: Use different data structure. Array does not realy fit the bill.
+        } else {
+          // new runscreen case call forward exit animation of previous runscreen
+          var previousScreen = state.animationStack[state.animationStack.length - 1]
+          animationArray.push({ screenName : previousScreen, tag : "exitAnimationF"})
+          state.animationStack.push(screenName);
+        }
+      }
+      callAnimation_(animationArray)
+      state.lastAnimatedScreen = screenName;
+    }
+  }
+}
+
+function callAnimation_ (screenArray) {
+  window.enableBackpress = false;
+  if (window.__OS == "WEB") {
+    hideOldScreenNow();
+    return;
+  }
+  var hasAnimation = false;
+  screenArray.forEach(
+    function (animationJson) {
+      if (window[animationJson.tag] && window[animationJson.tag][animationJson.screenName]) {
+        var animationJson = window[animationJson.tag][animationJson.screenName]
+        for (var key in animationJson) {
+          if (key == "hasAnimation")
+            continue;
+          hasAnimation = true;
+          var config = {
+            id: key,
+            inlineAnimation: animationJson[key].inlineAnimation,
+            onAnimationEnd: animationJson[key].onAnimationEnd,
+            visibility: animationJson[key].visibility
+          };
+          if (window.__OS == "ANDROID") {
+            var cmd = cmdForAndroid(
+              config,
+              true,
+              animationJson[key].type
+            );
+            if (Android.updateProperties) {
+              Android.updateProperties(JSON.stringify(cmd));
+            } else {
+              Android.runInUI(cmd.runInUI, null);
+            }
+          } else if (window.__OS == "IOS") {
+            Android.runInUI(config);
+          } else {
+            Android.runInUI(webParseParams("linearLayout", config, "set"));
+          }
+        }
+      }
+    }
+  );
+  if (!hasAnimation){
+    hideOldScreenNow()
+  }
+}
+
+exports.callAnimation_ = callAnimation__;

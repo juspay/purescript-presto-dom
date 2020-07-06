@@ -80,6 +80,8 @@ foreign import callAnimation :: EFn.EffectFn1
         String
         Unit
 
+foreign import callAnimation_ :: String -> Boolean -> Effect Unit
+
 foreign import saveScreenNameImpl
     :: EFn.EffectFn1
         (Maybe Namespace)
@@ -168,7 +170,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
           else EFn.runEffectFn2 insertDom root (extract machine)-- Add to screen stack
       processWidget                                             -- run widgets added by halogen-vdom to window.widgets
     true -> do
-      _ <- EFn.runEffectFn1 callAnimation $ if cache then "" else "B"
+      callAnimation_ name cache
       patchAndRun screenName myDom
   timerRef <- Ref.new Nothing
   let stateBeh = unfold execEval event { previousAction : Nothing, currentAction : Nothing, eitherState : (continue initialState)}
