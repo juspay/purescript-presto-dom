@@ -1137,12 +1137,12 @@ function callAnimation__ (screenName) {
       }
       if (isRunScreen || isShowScreen) {
         if(isRunScreen) {
-          if(topOfStack == screenName)
-            return
-          animationArray.push({ screenName : screenName, tag : "entryAnimationB"})
-          animationArray.push({ screenName : topOfStack, tag : "exitAnimationB"})
-          while (state.animationStack[state.animationStack.length - 1] != screenName){
-            state.animationStack.pop();
+          if(topOfStack != screenName) {
+            animationArray.push({ screenName : screenName, tag : "entryAnimationB"})
+            animationArray.push({ screenName : topOfStack, tag : "exitAnimationB"})
+            while (state.animationStack[state.animationStack.length - 1] != screenName){
+              state.animationStack.pop();
+            }
           }
         } else {
           animationArray.push({ screenName : screenName, tag : "entryAnimation"})
