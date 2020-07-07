@@ -30,6 +30,9 @@ exports.terminateUI = function (){
   } else {
     Android.runInUI(["removeAllUI"], null);
   }
+  state.animationStack = []
+  state.animationCache = []
+  state.lastAnimatedScreen = ""
   window.__VIEWS = [];
   window.__ROOTSCREEN = undefined;
   window.MACHINE = undefined;
