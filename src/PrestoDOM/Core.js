@@ -1157,18 +1157,17 @@ function callAnimation__ (screenName) {
         } else {
           // new runscreen case call forward exit animation of previous runscreen
           var previousScreen = state.animationStack[state.animationStack.length - 1]
-          animationArray.push({ screenName : screenName, tag : "entryAnimationF"})
           animationArray.push({ screenName : previousScreen, tag : "exitAnimationF"})
           state.animationStack.push(screenName);
         }
       }
-      callAnimation_(animationArray)
+      callAnimation_(animationArray, false)
       state.lastAnimatedScreen = screenName;
     }
   }
 }
 
-function callAnimation_ (screenArray) {
+function callAnimation_ (screenArray, resetAnimation) {
   window.enableBackpress = false;
   if (window.__OS == "WEB") {
     hideOldScreenNow();
@@ -1189,6 +1188,9 @@ function callAnimation_ (screenArray) {
             onAnimationEnd: animationJson[key].onAnimationEnd,
             visibility: animationJson[key].visibility
           };
+          if (resetAnimation){
+            config["resetAnimation"] = true;
+          }
           if (window.__OS == "ANDROID") {
             var cmd = cmdForAndroid(
               config,
@@ -1317,6 +1319,7 @@ function addScreen(root,dom, screenName){
     var callback = window.callbackMapper(function (){
       Android.runInUI(cmdMakeChildVisible.runInUI, null);
       executePostProcess(false)();
+      callAnimation_([{ screenName : screenName, tag : "entryAnimationF"}], true);
     });
     Android.addStoredViewToParent(
       rootId + "",
