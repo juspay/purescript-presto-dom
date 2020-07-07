@@ -232,7 +232,6 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
             root <- getRootNode
             EFn.runEffectFn3 addScreenImpl root  (extract machine) name
             processWidget
-            _ <- EFn.runEffectFn1 callAnimation "B"
             newMachine <- EFn.runEffectFn2 step (machine) (myDom)
             EFn.runEffectFn2 storeMachine newMachine screenName
           Nothing -> do

@@ -1038,7 +1038,7 @@ function callAnimation(tag) {
     if (
       window.__dui_old_screen &&
       window["exitAnimation" + tag] &&
-      window["exitAnimation" + tag][window.__dui_old_screen] && 
+      window["exitAnimation" + tag][window.__dui_old_screen] &&
       window["exitAnimation" + tag][window.__dui_old_screen]["hasAnimation"]
     ) {
       for (var key in window["exitAnimation" + tag][window.__dui_old_screen]) {
@@ -1157,6 +1157,7 @@ function callAnimation__ (screenName) {
         } else {
           // new runscreen case call forward exit animation of previous runscreen
           var previousScreen = state.animationStack[state.animationStack.length - 1]
+          animationArray.push({ screenName : screenName, tag : "entryAnimationF"})
           animationArray.push({ screenName : previousScreen, tag : "exitAnimationF"})
           state.animationStack.push(screenName);
         }
@@ -1324,25 +1325,6 @@ function addScreen(root,dom, screenName){
       callback,
       null
     );
-    for (var key in window["entryAnimationF"][screenName]) {
-      var config2 = {
-        id: key,
-        inlineAnimation:
-          window["entryAnimationF"][screenName][key]
-            .inlineAnimation,
-        onAnimationEnd : window["entryAnimationF"][screenName][key].onAnimationEnd
-      };
-      var cmd2 = cmdForAndroid(
-        config2,
-        true,
-        window["entryAnimationF"][screenName][key].type
-      );
-      if (Android.updateProperties) {
-        Android.updateProperties(JSON.stringify(cmd2));
-      } else {
-        Android.runInUI(cmd2.runInUI, null);
-      }
-    }
     hideCachedScreen();
   }else{
     console.warn("Implementation of addScreen function missing for "+ window.__OS );
