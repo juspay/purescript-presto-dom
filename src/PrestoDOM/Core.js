@@ -1267,8 +1267,8 @@ function prepareDom (callback, screenName, dom){
  * at android side. Native side should handle the case where screen is not yet ready
  * and is been processed
  */
-exports.addScreenImpl = addScreen;
-function addScreen(root,dom, screenName){
+exports.attachScreen = attachScreen;
+function attachScreen(root,dom, screenName){
   if (window.__OS == "ANDROID") {
     root.children.push(dom);
     window.N = root;
@@ -1306,31 +1306,44 @@ function addScreen(root,dom, screenName){
       }
     }
     /**
-     * If SDK exits form other screen which was on top of this screen,
-     * the cached screen's visibility is gone.
-     * Following function call is made to make the screen visible again after
-     * attaching.
+     * Set visiblity to GONE, after attaching to root. Once the patch is done, well
+     * set this visible again
      */
-    var cmdMakeChildVisible = cmdForAndroid({
+    var cmdHideChild = cmdForAndroid({
       id: dom.__ref.__id,
-      visibility : "visible"
+      visibility : "gone"
     }, true, "relativeLayout");
 
-    var callback = window.callbackMapper(function (){
-      Android.runInUI(cmdMakeChildVisible.runInUI, null);
-      executePostProcess(false)();
-      callAnimation_([{ screenName : screenName, tag : "entryAnimationF"}], true);
-    });
     Android.addStoredViewToParent(
       rootId + "",
       screenName,
       length - 1,
-      callback,
-      null
+      null,
+      null,
+      cmdHideChild.runInUI
     );
-    hideCachedScreen();
   }else{
     console.warn("Implementation of addScreen function missing for "+ window.__OS );
+  }
+}
+
+/**
+ * Will be called after patch on screen is complete. It'll set visiblity to visible
+ * again, and then start animation on atttached screen.
+ * @param {object} dom - dom object to get ID
+ * @param {String} screenName - to start animation
+ * @return {void}
+ */
+exports.addScreenWithAnim = function (dom,  screenName){
+  if (window.__OS == "ANDROID") {
+    var cmdMakeChildVisible = cmdForAndroid({
+      id: dom.__ref.__id,
+      visibility : "visible"
+    }, true, "relativeLayout");
+    Android.runInUI(cmdMakeChildVisible.runInUI, null);
+    executePostProcess(false)();
+    callAnimation_([{ screenName : screenName, tag : "entryAnimationF"}], true);
+    hideCachedScreen();
   }
 }
 
