@@ -1038,7 +1038,7 @@ function callAnimation(tag) {
     if (
       window.__dui_old_screen &&
       window["exitAnimation" + tag] &&
-      window["exitAnimation" + tag][window.__dui_old_screen] && 
+      window["exitAnimation" + tag][window.__dui_old_screen] &&
       window["exitAnimation" + tag][window.__dui_old_screen]["hasAnimation"]
     ) {
       for (var key in window["exitAnimation" + tag][window.__dui_old_screen]) {
@@ -1161,13 +1161,13 @@ function callAnimation__ (screenName) {
           state.animationStack.push(screenName);
         }
       }
-      callAnimation_(animationArray)
+      callAnimation_(animationArray, false)
       state.lastAnimatedScreen = screenName;
     }
   }
 }
 
-function callAnimation_ (screenArray) {
+function callAnimation_ (screenArray, resetAnimation) {
   window.enableBackpress = false;
   if (window.__OS == "WEB") {
     hideOldScreenNow();
@@ -1188,6 +1188,9 @@ function callAnimation_ (screenArray) {
             onAnimationEnd: animationJson[key].onAnimationEnd,
             visibility: animationJson[key].visibility
           };
+          if (resetAnimation){
+            config["resetAnimation"] = true;
+          }
           if (window.__OS == "ANDROID") {
             var cmd = cmdForAndroid(
               config,
@@ -1264,8 +1267,8 @@ function prepareDom (callback, screenName, dom){
  * at android side. Native side should handle the case where screen is not yet ready
  * and is been processed
  */
-exports.addScreenImpl = addScreen;
-function addScreen(root,dom, screenName){
+exports.attachScreen = attachScreen;
+function attachScreen(root,dom, screenName){
   if (window.__OS == "ANDROID") {
     root.children.push(dom);
     window.N = root;
@@ -1303,49 +1306,44 @@ function addScreen(root,dom, screenName){
       }
     }
     /**
-     * If SDK exits form other screen which was on top of this screen,
-     * the cached screen's visibility is gone.
-     * Following function call is made to make the screen visible again after
-     * attaching.
+     * Set visiblity to GONE, after attaching to root. Once the patch is done, well
+     * set this visible again
      */
-    var cmdMakeChildVisible = cmdForAndroid({
+    var cmdHideChild = cmdForAndroid({
       id: dom.__ref.__id,
-      visibility : "visible"
+      visibility : "gone"
     }, true, "relativeLayout");
 
-    var callback = window.callbackMapper(function (){
-      Android.runInUI(cmdMakeChildVisible.runInUI, null);
-      executePostProcess(false)();
-    });
     Android.addStoredViewToParent(
       rootId + "",
       screenName,
       length - 1,
-      callback,
-      null
+      null,
+      null,
+      cmdHideChild.runInUI
     );
-    for (var key in window["entryAnimationF"][screenName]) {
-      var config2 = {
-        id: key,
-        inlineAnimation:
-          window["entryAnimationF"][screenName][key]
-            .inlineAnimation,
-        onAnimationEnd : window["entryAnimationF"][screenName][key].onAnimationEnd
-      };
-      var cmd2 = cmdForAndroid(
-        config2,
-        true,
-        window["entryAnimationF"][screenName][key].type
-      );
-      if (Android.updateProperties) {
-        Android.updateProperties(JSON.stringify(cmd2));
-      } else {
-        Android.runInUI(cmd2.runInUI, null);
-      }
-    }
-    hideCachedScreen();
   }else{
     console.warn("Implementation of addScreen function missing for "+ window.__OS );
+  }
+}
+
+/**
+ * Will be called after patch on screen is complete. It'll set visiblity to visible
+ * again, and then start animation on atttached screen.
+ * @param {object} dom - dom object to get ID
+ * @param {String} screenName - to start animation
+ * @return {void}
+ */
+exports.addScreenWithAnim = function (dom,  screenName){
+  if (window.__OS == "ANDROID") {
+    var cmdMakeChildVisible = cmdForAndroid({
+      id: dom.__ref.__id,
+      visibility : "visible"
+    }, true, "relativeLayout");
+    Android.runInUI(cmdMakeChildVisible.runInUI, null);
+    executePostProcess(false)();
+    callAnimation_([{ screenName : screenName, tag : "entryAnimationF"}], true);
+    hideCachedScreen();
   }
 }
 
