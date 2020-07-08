@@ -3,7 +3,6 @@ module PrestoDOM.Core.Types.Language.Flow where
 
 import Prelude
 
-import Data.Maybe (Maybe)
 import Effect.Aff (makeAff)
 import Presto.Core.Flow (Flow, doAff)
 import PrestoDOM (Screen)

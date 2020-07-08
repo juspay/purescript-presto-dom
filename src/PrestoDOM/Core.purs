@@ -29,7 +29,7 @@ import Halogen.VDom.DOM.Prop (Prop, buildProp)
 import Halogen.VDom.Machine (Step, step, extract)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
 import Halogen.VDom.Types (FnObject)
-import PrestoDOM.Events (setManualEvents, manualEventsName, setManualEventsName)
+import PrestoDOM.Events (setManualEvents, manualEventsName)
 import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..), class Loggable)
 import PrestoDOM.Utils (continue, logAction)
 import Tracker (trackScreen)
@@ -88,7 +88,9 @@ foreign import prepareDom
   :: forall  a
    . EFn.EffectFn3 (Unit -> Effect Unit) String a Unit
 
-foreign import addScreenImpl :: forall a b. EFn.EffectFn3 a b String Unit
+foreign import attachScreen :: forall a b. EFn.EffectFn3 a b String Unit
+
+foreign import addScreenWithAnim :: forall a. EFn.EffectFn2 a String Unit
 
 foreign import updateDom :: forall a b. EFn.EffectFn2 a b Unit
 
@@ -103,6 +105,8 @@ foreign import setScreenImpl :: EFn.EffectFn1
 foreign import callAnimation :: EFn.EffectFn1
         String
         Unit
+
+foreign import callAnimation_ :: String -> Boolean -> Effect Unit
 
 foreign import saveScreenNameImpl
     :: EFn.EffectFn1
@@ -228,10 +232,10 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
         case _ of
           Just machine -> do
             root <- getRootNode
-            EFn.runEffectFn3 addScreenImpl root  (extract machine) name
+            EFn.runEffectFn3 attachScreen root  (extract machine) name
             processWidget
-            _ <- EFn.runEffectFn1 callAnimation "B"
             newMachine <- EFn.runEffectFn2 step (machine) (myDom)
+            EFn.runEffectFn2 addScreenWithAnim (extract newMachine) name
             EFn.runEffectFn2 storeMachine newMachine screenName
           Nothing -> do
             root <- getRootNode                                       -- window.N
@@ -242,7 +246,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
                 else EFn.runEffectFn2 insertDom root (extract machine)-- Add to screen stack
             processWidget                                             -- run widgets added by halogen-vdom to window.widgets
     true -> do
-      _ <- EFn.runEffectFn1 callAnimation $ if cache then "" else "B"
+      callAnimation_ name cache
       patchAndRun screenName myDom
   timerRef <- Ref.new Nothing
   let stateBeh = unfold execEval event { previousAction : Nothing, currentAction : Nothing, eitherState : (continue initialState)}
