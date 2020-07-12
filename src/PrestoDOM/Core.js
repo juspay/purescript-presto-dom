@@ -73,6 +73,13 @@ exports.callAnimation = callAnimation;
 exports.setScreenImpl = function(screen) {
   if (window.__dui_screen && window.__dui_screen != screen) {
     window.__dui_old_screen = window.__dui_screen + "";
+
+    /**
+     * Resetting afterRender state for previous screen
+     */
+    if( window["afterRender"] && window["afterRender"][window.__dui_screen] && window["afterRender"][window.__dui_screen]["executed"]){
+      window["afterRender"][window.__dui_screen]["executed"] = false;
+    }
   }
   window.__dui_screen = screen;
   if (typeof window.pageId == "undefined") {
