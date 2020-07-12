@@ -42,6 +42,13 @@ exports.terminateUI = function (){
   window.__dui_screen = undefined;
   window.__dui_old_screen = undefined;
   window.__usedIDS = undefined;
+
+  /**
+   * Reason to reset: Since afterRender events is been handeled in JS side, we
+   * are maintaining it's state of execution to prevent repetative trigers in
+   * one iteration. Hence a need to reset
+   */
+  window.afterRender = undefined;
 }
 
 exports.getScreenNumber = function() {
