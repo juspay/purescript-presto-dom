@@ -41,14 +41,31 @@ exports.terminateUI = function (){
   window.__dui_last_patch_screen = undefined;
   window.__dui_screen = undefined;
   window.__dui_old_screen = undefined;
-  window.__usedIDS = undefined;
 
   /**
-   * Reason to reset: Since afterRender events is been handeled in JS side, we
-   * are maintaining it's state of execution to prevent repetative trigers in
-   * one iteration. Hence a need to reset
+   * checks if pre-rendering is being done and reset variables accordingly
    */
-  window.afterRender = undefined;
+  if (window.__CACHED_MACHINE && Object.keys(window.__CACHED_MACHINE).length > 0){
+    for(var screen in window["afterRender"]){
+      /**
+       * tags in pre-rendered screens will be reused, where as in normal screen
+       * they will be recreated. Hence resetting it accordingly
+       */
+      if (screen in window.__CACHED_MACHINE){
+        window["afterRender"][screen]["executed"] = false;
+      } else {
+        window["afterRender"][screen] = undefined;
+      }
+    }
+  }else{
+    window.__usedIDS = undefined;
+    /**
+     * Reason to reset: Since afterRender events is been handeled in JS side, we
+     * are maintaining it's state of execution to prevent repetative trigers in
+     * one iteration. Hence a need to reset
+     */
+    window.afterRender = undefined;
+  }
 }
 
 exports.getScreenNumber = function() {
@@ -1093,6 +1110,8 @@ function executePostProcess(cache) {
     callAnimation__(window.__dui_screen) (cache) ();
     if (window.__dui_screen && window["afterRender"] && window["afterRender"][window.__dui_screen] && !window["afterRender"][window.__dui_screen].executed) {
       for (var tag in window["afterRender"][window.__dui_screen]) {
+        if (tag === "executed")
+          continue;
         try {
           window["afterRender"][window.__dui_screen][tag]()();
           window["afterRender"][window.__dui_screen]["executed"] = true;
