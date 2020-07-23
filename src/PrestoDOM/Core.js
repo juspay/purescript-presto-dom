@@ -1347,17 +1347,44 @@ function attachScreen(root,dom, screenName){
       visibility : "gone"
     }, true, "relativeLayout");
 
+    var scrollViewIDs = resetScrollView(dom);
+    var cmdScrollViewReset = "";
+    /**
+     * genrate cmds for resetting scrolled view
+     * android equivalent function is
+     * scrollView.fullScroll(View.FOCUS_UP);
+     */
+    for(var i =0; i< scrollViewIDs.length; i++){
+      cmdScrollViewReset += "set_view=ctx->findViewById:i_"+ scrollViewIDs[i] +";get_view->fullScroll:i_33;";
+    }
+    var cmds = cmdHideChild.runInUI+ ";" + cmdScrollViewReset;
     Android.addStoredViewToParent(
       rootId + "",
       screenName,
       length - 1,
       null,
       null,
-      cmdHideChild.runInUI
+      cmds
     );
   }else{
     console.warn("Implementation of addScreen function missing for "+ window.__OS );
   }
+}
+
+/**
+ * This will return the ID of scrollView to reset scrolled screen state
+ * @param {object} dom
+ * @return {array string}
+ */
+function resetScrollView(dom){
+  var idArray = [];
+  if (dom["type"] == "scrollView"){
+    idArray.push(dom["__ref"]["__id"]);
+  }
+  for (var i= 0; i < dom["children"].length; i++){
+    idArray = idArray.concat(resetScrollView(dom["children"][i]));
+  }
+  return idArray;
 }
 
 /**
