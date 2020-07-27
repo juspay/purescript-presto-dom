@@ -41,7 +41,31 @@ exports.terminateUI = function (){
   window.__dui_last_patch_screen = undefined;
   window.__dui_screen = undefined;
   window.__dui_old_screen = undefined;
-  window.__usedIDS = undefined;
+
+  /**
+   * checks if pre-rendering is being done and reset variables accordingly
+   */
+  if (window.__CACHED_MACHINE && Object.keys(window.__CACHED_MACHINE).length > 0){
+    for(var screen in window["afterRender"]){
+      /**
+       * tags in pre-rendered screens will be reused, where as in normal screen
+       * they will be recreated. Hence resetting it accordingly
+       */
+      if (screen in window.__CACHED_MACHINE){
+        window["afterRender"][screen]["executed"] = false;
+      } else {
+        window["afterRender"][screen] = undefined;
+      }
+    }
+  }else{
+    window.__usedIDS = undefined;
+    /**
+     * Reason to reset: Since afterRender events is been handeled in JS side, we
+     * are maintaining it's state of execution to prevent repetative trigers in
+     * one iteration. Hence a need to reset
+     */
+    window.afterRender = undefined;
+  }
 }
 
 exports.getScreenNumber = function() {
@@ -66,6 +90,13 @@ exports.callAnimation = callAnimation;
 exports.setScreenImpl = function(screen) {
   if (window.__dui_screen && window.__dui_screen != screen) {
     window.__dui_old_screen = window.__dui_screen + "";
+
+    /**
+     * Resetting afterRender state for previous screen
+     */
+    if( window["afterRender"] && window["afterRender"][window.__dui_screen] && window["afterRender"][window.__dui_screen]["executed"]){
+      window["afterRender"][window.__dui_screen]["executed"] = false;
+    }
   }
   window.__dui_screen = screen;
   if (typeof window.pageId == "undefined") {
@@ -1079,6 +1110,8 @@ function executePostProcess(cache) {
     callAnimation__(window.__dui_screen) (cache) ();
     if (window.__dui_screen && window["afterRender"] && window["afterRender"][window.__dui_screen] && !window["afterRender"][window.__dui_screen].executed) {
       for (var tag in window["afterRender"][window.__dui_screen]) {
+        if (tag === "executed")
+          continue;
         try {
           window["afterRender"][window.__dui_screen][tag]()();
           window["afterRender"][window.__dui_screen]["executed"] = true;
@@ -1314,17 +1347,55 @@ function attachScreen(root,dom, screenName){
       visibility : "gone"
     }, true, "relativeLayout");
 
+    var cmdScrollViewReset = getScrollViewResetCmds(dom);
+    var cmds = cmdHideChild.runInUI+ ";" + cmdScrollViewReset;
     Android.addStoredViewToParent(
       rootId + "",
       screenName,
       length - 1,
       null,
       null,
-      cmdHideChild.runInUI
+      cmds
     );
   }else{
     console.warn("Implementation of addScreen function missing for "+ window.__OS );
   }
+}
+
+/**
+ * This will return dui commands  to reset scrolled screen state
+ * @param {object} dom
+ * @return {string}
+ */
+function getScrollViewResetCmds(dom){
+  var scrollViewIDs = getScrollViewIDs(dom);
+  var cmdScrollViewReset = "";
+  /**
+   * genrate cmds for resetting scrolled view
+   * android equivalent function is
+   * scrollView.fullScroll(View.FOCUS_UP);
+   */
+  for(var i =0; i< scrollViewIDs.length; i++){
+    cmdScrollViewReset += "set_view=ctx->findViewById:i_"+ scrollViewIDs[i] +";get_view->fullScroll:i_33;";
+  }
+  return cmdScrollViewReset;
+
+}
+
+/**
+ * This will return the ID of scrollView to reset scrolled screen state
+ * @param {object} dom
+ * @return {array Int}
+ */
+function getScrollViewIDs(dom){
+  var idArray = [];
+  if (dom["type"] == "scrollView"){
+    idArray.push(dom["__ref"]["__id"]);
+  }
+  for (var i= 0; i < dom["children"].length; i++){
+    idArray = idArray.concat(getScrollViewIDs(dom["children"][i]));
+  }
+  return idArray;
 }
 
 /**
