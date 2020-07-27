@@ -1347,17 +1347,55 @@ function attachScreen(root,dom, screenName){
       visibility : "gone"
     }, true, "relativeLayout");
 
+    var cmdScrollViewReset = getScrollViewResetCmds(dom);
+    var cmds = cmdHideChild.runInUI+ ";" + cmdScrollViewReset;
     Android.addStoredViewToParent(
       rootId + "",
       screenName,
       length - 1,
       null,
       null,
-      cmdHideChild.runInUI
+      cmds
     );
   }else{
     console.warn("Implementation of addScreen function missing for "+ window.__OS );
   }
+}
+
+/**
+ * This will return dui commands  to reset scrolled screen state
+ * @param {object} dom
+ * @return {string}
+ */
+function getScrollViewResetCmds(dom){
+  var scrollViewIDs = getScrollViewIDs(dom);
+  var cmdScrollViewReset = "";
+  /**
+   * genrate cmds for resetting scrolled view
+   * android equivalent function is
+   * scrollView.fullScroll(View.FOCUS_UP);
+   */
+  for(var i =0; i< scrollViewIDs.length; i++){
+    cmdScrollViewReset += "set_view=ctx->findViewById:i_"+ scrollViewIDs[i] +";get_view->fullScroll:i_33;";
+  }
+  return cmdScrollViewReset;
+
+}
+
+/**
+ * This will return the ID of scrollView to reset scrolled screen state
+ * @param {object} dom
+ * @return {array Int}
+ */
+function getScrollViewIDs(dom){
+  var idArray = [];
+  if (dom["type"] == "scrollView"){
+    idArray.push(dom["__ref"]["__id"]);
+  }
+  for (var i= 0; i < dom["children"].length; i++){
+    idArray = idArray.concat(getScrollViewIDs(dom["children"][i]));
+  }
+  return idArray;
 }
 
 /**
