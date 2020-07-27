@@ -535,13 +535,18 @@ function makeVisible(cache, _id) {
   if (cache) {
     var prop = {
       id: _id,
-      visibility: "visible"
+      visibility: "visible",
+      width: "match_parent",
+      height: "match_parent"
+
     };
   } else {
     var length = window.__ROOTSCREEN.idSet.child.length;
     var prop = {
       id: window.__ROOTSCREEN.idSet.child[length - 1].id,
-      visibility: "visible"
+      visibility: "visible",
+      width: "match_parent",
+      height: "match_parent"
     };
   }
   // console.log("SCREEN", " makeVisible", prop);
@@ -632,6 +637,7 @@ function screenIsCached(screen) {
         var prop = {
           id: window.__lastCachedScreen.id,
           visibility: __visibility
+
         };
         // console.log("SCREEN", " screenIsCached", screen, prop);
         if (window.__OS == "ANDROID") {
@@ -704,7 +710,9 @@ function hideCachedScreen() {
     var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
     var prop = {
       id: window.__lastCachedScreen.id,
-      visibility: __visibility
+      visibility: __visibility,
+      height: "0",
+      width: "0"
     };
     // console.log("SCREEN", " hideCached", prop);
 
@@ -771,7 +779,9 @@ function insertDom(root, dom) {
       var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
       var prop = {
         id: window.__ROOTSCREEN.idSet.child[length - 2].id,
-        visibility: __visibility
+        visibility: __visibility,
+        width : "0",
+        height : "0"
       };
 
       window.hideold = function() {
