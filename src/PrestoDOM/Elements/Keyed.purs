@@ -9,7 +9,7 @@ module PrestoDOM.Elements.Keyed
     , tabLayout
     , viewPager
     , scrollView
-	) where
+    ) where
 
 import Data.Tuple (Tuple)
 import Halogen.VDom (ElemName(ElemName), VDom)

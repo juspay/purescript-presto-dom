@@ -21,6 +21,8 @@ module PrestoDOM.Properties
     , btnColor
     , buttonTint
 
+    , buttonClickOverlay
+
     , cardWidth
     , checked
     , classList
@@ -72,6 +74,7 @@ module PrestoDOM.Properties
     , marginEnd
     , marginStart
     , maxDate
+    , maxHeight
     , maxLines
     , maxSeek
     , maxWidth
@@ -210,6 +213,9 @@ btnColor = prop (PropName "btnColor")
 buttonTint :: forall i. String -> Prop i
 buttonTint = prop (PropName "buttonTint")
 
+-- | Number
+buttonClickOverlay :: forall i. Number -> Prop i
+buttonClickOverlay = prop (PropName "buttonClickOverlay")
 
 cardWidth :: forall i. Number -> Prop i
 cardWidth = prop (PropName "cardWidth")
@@ -405,6 +411,10 @@ marginStart = prop (PropName "marginStart")
 -- | L, // long
 maxDate :: forall i. String -> Prop i
 maxDate = prop (PropName "maxDate")
+
+-- | Int
+maxHeight :: forall i. Int -> Prop i
+maxHeight = prop (PropName "maxHeight")
 
 -- | Int
 maxLines :: forall i. Int -> Prop i
