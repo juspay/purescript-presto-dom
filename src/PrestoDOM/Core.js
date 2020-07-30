@@ -383,7 +383,7 @@ function domAllImpl(elem, screenName, VALIDATE_ID) {
   //   }
   // }
 
-  if (__OS == "WEB" && props.onResize) {
+  if (window.__OS == "WEB" && props.onResize) {
     window.__resizeEvent = props.onResize;
   }
 
@@ -402,7 +402,7 @@ function domAllImpl(elem, screenName, VALIDATE_ID) {
 }
 
 function hideOldScreenNow(tag) {
-  var holdArray = window.viewsTobeRemoved;
+  var holdArray = window.viewsTobeRemoved || [];
   var tohide = window.hideold;
   window.hideold = undefined;
   window.viewsTobeRemoved = [];
