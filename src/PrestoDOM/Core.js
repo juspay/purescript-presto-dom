@@ -1372,11 +1372,9 @@ function getScrollViewResetCmds(dom){
   var cmdScrollViewReset = "";
   /**
    * genrate cmds for resetting scrolled view
-   * android equivalent function is
-   * scrollView.fullScroll(View.FOCUS_UP);
    */
   for(var i =0; i< scrollViewIDs.length; i++){
-    cmdScrollViewReset += "set_view=ctx->findViewById:i_"+ scrollViewIDs[i] +";get_view->fullScroll:i_33;";
+    cmdScrollViewReset += "set_view=ctx->findViewById:i_"+ scrollViewIDs[i] +";get_view->scrollTo:i_0,i_0;";
   }
   return cmdScrollViewReset;
 
