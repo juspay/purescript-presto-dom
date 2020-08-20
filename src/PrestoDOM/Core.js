@@ -13,11 +13,11 @@ const state = {
 const callbackMapper = prestoUI.callbackMapper;
 
 if (window.__OS === "WEB") {
-  webParseParams = prestoUI.helpers.web.parseParams;
+  webParseParams = (window.prestoUI || prestoUI).helpers.web.parseParams;
 } else if (window.__OS == "IOS") {
-  iOSParseParams = prestoUI.helpers.ios.parseParams;
+  iOSParseParams = (window.prestoUI || prestoUI).helpers.ios.parseParams;
 } else {
-  parseParams = prestoUI.helpers.android.parseParams;
+  parseParams = (window.prestoUI || prestoUI).helpers.android.parseParams;
 }
 
 
