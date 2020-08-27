@@ -89,6 +89,7 @@ module PrestoDOM.Properties
     , pivotY
     , progressColor
 
+    , removeClassList
     , rotation
     , rotationX
     , rotationY
@@ -470,7 +471,8 @@ pivotY = prop (PropName "pivotY")
 progressColor :: forall i. String -> Prop i
 progressColor = prop (PropName "progressColor")
 
-
+removeClassList :: forall i. Array String -> Prop i
+removeClassList = prop (PropName "removeClassList")
 
 -- | Number
 rotation :: forall i. Number -> Prop i
