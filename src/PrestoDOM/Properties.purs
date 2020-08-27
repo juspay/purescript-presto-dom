@@ -91,6 +91,7 @@ module PrestoDOM.Properties
     , packageIcon
     , placeHolder
 
+    , removeClassList
     , rotation
     , rotationX
     , rotationY
@@ -480,7 +481,9 @@ progressColor = prop (PropName "progressColor")
 placeHolder :: forall i. String -> Prop i
 placeHolder = prop (PropName "placeHolder")
 
-
+-- | Array String
+removeClassList :: forall i. Array String -> Prop i
+removeClassList = prop (PropName "removeClassList")
 
 -- | Number
 rotation :: forall i. Number -> Prop i
