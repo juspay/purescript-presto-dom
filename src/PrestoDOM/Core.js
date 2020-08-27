@@ -2,7 +2,6 @@
 const prestoUI = require("presto-ui")
 const prestoDayum = window.prestoUI ? window.prestoUI.doms : prestoUI.doms;
 var webParseParams, iOSParseParams, parseParams;
-var getNewID = window.josAndroid ? window.josAndroid.getNewID : Android.getNewID;
 
 const state = {
   animationStack : []
@@ -181,8 +180,8 @@ function getPrestoID() {
 }
 
 window.__PRESTO_ID = window.__ui_id_sequence =
-  typeof getNewID == "function"
-    ? parseInt(getNewID()) * 1000000
+  typeof Android.getNewID == "function"
+    ? parseInt(Android.getNewID()) * 1000000
     : getPrestoID() * 1000000;
 
 exports._domAll = domAll;
@@ -524,9 +523,9 @@ function createPrestoElement() {
     };
   } else {
     window.__ui_id_sequence =
-      typeof getNewID == "function"
-        ? parseInt(getNewID()) * 1000000
-        : window.__PRESTO_ID;
+      typeof Android.getNewID == "function"
+        ? parseInt(Android.getNewID()) * 1000000
+        : window.__PRESTO_ID || getPrestoID() * 1000000;
     return {
       __id: ++window.__ui_id_sequence
     };
@@ -658,7 +657,7 @@ exports.setRootNode = function(nothing) {
     window.__CACHED_MACHINE = {}
   }
   if (window.__OS == "ANDROID") {
-    if (typeof getNewID == "function") {
+    if (typeof Android.getNewID == "function") {
       Android.Render(JSON.stringify(domAll(root)), null, "false");
     } else {
       Android.Render(JSON.stringify(domAll(root)), null);
