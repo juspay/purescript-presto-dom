@@ -476,7 +476,7 @@ function applyProp(element, attribute, set) {
   // Android.runInUI(parseParams("linearLayout", prop, "set"));
 }
 
-function replaceView(element) {
+function replaceView(element, removedProps) {
   // console.log("REPLACE VIEW", element.__ref.__id, element.props);
   var props = prestoUI.prestoClone(element.props);
   props.id = element.__ref.__id;
@@ -508,6 +508,11 @@ function replaceView(element) {
     Android.replaceView(JSON.stringify(rep), element.__ref.__id);
   } else {
     Android.replaceView(rep, element.__ref.__id);
+  }
+  if (removedProps.length >0 && removedProps.includes("handler/afterRender")){
+    if (window["afterRender"] && window["afterRender"][window.__dui_screen]) {
+      delete window["afterRender"][window.__dui_screen][element.__ref.__id];
+    }
   }
 }
 
