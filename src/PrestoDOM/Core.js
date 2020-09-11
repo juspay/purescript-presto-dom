@@ -509,7 +509,7 @@ function replaceView(element, removedProps) {
   } else {
     Android.replaceView(rep, element.__ref.__id);
   }
-  if (removedProps.length >0 && removedProps.includes("handler/afterRender")){
+  if (removedProps.length >0 && removedProps.indexOf("handler/afterRender") != -1){
     if (window["afterRender"] && window["afterRender"][window.__dui_screen]) {
       delete window["afterRender"][window.__dui_screen][element.__ref.__id];
     }
@@ -1444,3 +1444,17 @@ exports.canPreRender = function (){
 }
 
 
+/**
+ * we are handling afterRender prop in JS itself
+ * While doing patch over previous dom, the newly added `afterRender` property
+ * is needed to be added in container where we are controlling the behaviour
+ * In case of prepare screen we store the screen after patch is done. Because of which
+ * in successive run we don't generate this prop again and it doesn't get called again.
+ * Its because of this we are handling it in JS
+ *
+ */
+window.removeAfterRenderProp = function (id, func){
+  window["afterRender"] = window["afterRender"] || {};
+  window["afterRender"][window.__dui_screen] = window["afterRender"][window.__dui_screen] || {};
+  window["afterRender"][window.__dui_screen][id] = func;
+}
