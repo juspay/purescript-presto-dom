@@ -48,3 +48,14 @@ function setManualEvents(screen) {
 window.setManualEvents = setManualEvents;
 exports.setManualEvents = setManualEvents;
 
+exports.fireManualEvent = function (eventName) {
+  return function (payload) {
+    function isObject(v) {
+        return typeof object === "object";
+    }
+
+    if (window.__dui_screen && isObject(window[eventName]) && window[eventName][window.__dui_screen]) {
+      window[eventName][window.__dui_screen](payload);
+    }
+  }
+};

@@ -13,6 +13,7 @@ module PrestoDOM.Events
     , pushAndLog
     , setManualEvents
     , setManualEventsName
+    , fireManualEvent
     ) where
 
 import Prelude
@@ -31,6 +32,7 @@ import Web.Event.Event (EventType(..), Event) as DOM
 foreign import backPressHandlerImpl :: Effect Unit
 
 foreign import setManualEvents :: forall a b. (Maybe String) -> a -> b -> Effect Unit
+foreign import fireManualEvent :: forall a. String -> a -> Effect Unit
 
 {-- foreign import saveCanceler --}
 {--     :: forall eff --}
@@ -107,4 +109,3 @@ setManualEventsName :: Maybe (Array String) -> Effect Unit
 setManualEventsName (Just arr)  = storeToWindow "manualEventsName" arr
 setManualEventsName Nothing =
   storeToWindow "manualEventsName" [ "onBackPressedEvent" , "onNetworkChange" ]
-
