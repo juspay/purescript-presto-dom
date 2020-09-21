@@ -509,7 +509,7 @@ function replaceView(element, removedProps) {
   } else {
     Android.replaceView(rep, element.__ref.__id);
   }
-  if (removedProps.length >0 && removedProps.indexOf("handler/afterRender") != -1){
+  if (removedProps != null && removedProps.length >0 && removedProps.indexOf("handler/afterRender") != -1){
     if (window["afterRender"] && window["afterRender"][window.__dui_screen]) {
       delete window["afterRender"][window.__dui_screen][element.__ref.__id];
     }
