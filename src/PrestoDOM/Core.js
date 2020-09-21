@@ -476,7 +476,7 @@ function applyProp(element, attribute, set) {
   // Android.runInUI(parseParams("linearLayout", prop, "set"));
 }
 
-function replaceView(element) {
+function replaceView(element, removedProps) {
   // console.log("REPLACE VIEW", element.__ref.__id, element.props);
   var props = prestoUI.prestoClone(element.props);
   props.id = element.__ref.__id;
@@ -508,6 +508,11 @@ function replaceView(element) {
     Android.replaceView(JSON.stringify(rep), element.__ref.__id);
   } else {
     Android.replaceView(rep, element.__ref.__id);
+  }
+  if (removedProps != null && removedProps.length >0 && removedProps.indexOf("handler/afterRender") != -1){
+    if (window["afterRender"] && window["afterRender"][window.__dui_screen]) {
+      delete window["afterRender"][window.__dui_screen][element.__ref.__id];
+    }
   }
 }
 
@@ -1439,3 +1444,17 @@ exports.canPreRender = function (){
 }
 
 
+/**
+ * we are handling afterRender prop in JS itself
+ * While doing patch over previous dom, the newly added `afterRender` property
+ * is needed to be added in container where we are controlling the behaviour
+ * In case of prepare screen we store the screen after patch is done. Because of which
+ * in successive run we don't generate this prop again and it doesn't get called again.
+ * Its because of this we are handling it in JS
+ *
+ */
+window.removeAfterRenderProp = function (id, func){
+  window["afterRender"] = window["afterRender"] || {};
+  window["afterRender"][window.__dui_screen] = window["afterRender"][window.__dui_screen] || {};
+  window["afterRender"][window.__dui_screen][id] = func;
+}
