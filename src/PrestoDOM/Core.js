@@ -476,7 +476,7 @@ function applyProp(element, attribute, set) {
   // Android.runInUI(parseParams("linearLayout", prop, "set"));
 }
 
-function replaceView(element) {
+function replaceView(element, xs) {
   // console.log("REPLACE VIEW", element.__ref.__id, element.props);
   var props = prestoUI.prestoClone(element.props);
   props.id = element.__ref.__id;
