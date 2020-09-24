@@ -215,6 +215,7 @@ data Gravity
     | TOP_VERTICAL
     | START
     | END
+    | STRETCH
 
 renderGravity :: Gravity -> String
 renderGravity = case _ of
@@ -227,6 +228,7 @@ renderGravity = case _ of
     TOP_VERTICAL -> "top_vertical"
     START -> "start"
     END -> "end"
+    STRETCH -> "stretch"
 
 data Gradient
   = Radial (Array String)
