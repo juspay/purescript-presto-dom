@@ -11,6 +11,8 @@ module PrestoDOM.Types.DomAttributes
     , Margin(..)
     , Shadow(..)
     , Corners(..)
+    , Font(..)
+    , renderFont
     , renderMargin
     , renderPadding
     , renderGravity
@@ -254,3 +256,16 @@ renderCorners (Corner r) = show r
 boolString :: Boolean -> String
 boolString true = "1"
 boolString _ = "0"
+
+data Font =
+   Url String
+ | Res Int
+ | FontName String
+ | Font String
+
+renderFont :: Font -> String
+renderFont = case _ of 
+    (Url url) -> url
+    (Res id) -> "resId," <> show id
+    (FontName fname) ->"name," <> fname
+    (Font path) -> "path," <> path

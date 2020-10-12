@@ -139,7 +139,7 @@ import Prelude
 -- import Data.Tuple (Tuple(..))
 import Halogen.VDom.DOM.Prop (Prop(..))
 import PrestoDOM.Types.DomAttributes (Corners)
-import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Position, Padding, Gravity, Gradient, InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
+import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Position, Padding, Gravity, Gradient,Font ,InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
@@ -300,7 +300,7 @@ fontSize :: forall i. Int -> Prop i
 fontSize = prop (PropName "fontSize")
 
 -- | String
-fontStyle :: forall i. String -> Prop i
+fontStyle :: forall i. Font -> Prop i
 fontStyle = prop (PropName "fontStyle")
 
 -- | Boolean
