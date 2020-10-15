@@ -38,6 +38,7 @@ module PrestoDOM.Properties.GetChildProps
     , fontFamily_p
     , fontSize_p
     , fontStyle_p
+    , font_p
     , foreground_p
 
     , gravity_p
@@ -286,8 +287,12 @@ fontSize_p :: forall i. Int -> Object GenProp -> Prop i
 fontSize_p = fromGenProp "fontSize"
 
 -- | String
-fontStyle_p :: forall i. Font -> Object GenProp -> Prop i
+fontStyle_p :: forall i. String -> Object GenProp -> Prop i
 fontStyle_p = fromGenProp "fontStyle"
+
+-- | Font
+font_p :: forall  i. Font -> Object GenProp -> Prop i 
+font_p = fromGenProp "font"
 
 -- | Boolean
 foreground_p :: forall i. Boolean -> Object GenProp -> Prop i
