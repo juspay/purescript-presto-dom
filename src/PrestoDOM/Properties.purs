@@ -47,6 +47,7 @@ module PrestoDOM.Properties
     , fontFamily
     , fontSize
     , fontStyle
+    , font
     , foreground
 
     , gravity
@@ -135,11 +136,11 @@ module PrestoDOM.Properties
     ) where
 
 import Prelude
-
+import Data.String(toLower)
 -- import Data.Tuple (Tuple(..))
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.DomAttributes (Corners)
-import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Position, Padding, Gravity, Gradient, InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
+import PrestoDOM.Types.DomAttributes (Corners, __IS_ANDROID)
+import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Position, Padding, Gravity, Gradient,Font(..) ,InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
@@ -148,6 +149,17 @@ prop (PropName name) = Property name <<< toPropValue
 id :: forall i. String -> Prop i
 id = prop (PropName "id")
 
+retFontFamilyAndroid :: forall i. String -> Prop i 
+retFontFamilyAndroid str = case (toLower str) of 
+  "regular" -> fontFamily "sans-serif,normal"
+  "bold" -> fontFamily "sans-serif,bold"
+  _ -> fontFamily "sans-serif-medium,normal"
+
+retFontFamilyIOS :: forall i. String -> Prop i 
+retFontFamilyIOS str = case (toLower str) of 
+  "regular" -> fontFamily "0.0"
+  "bold" -> fontFamily "0.4"
+  _ -> fontFamily "0.23"
 
 -- | Boolean
 root :: forall i. Boolean -> Prop i
@@ -302,6 +314,13 @@ fontSize = prop (PropName "fontSize")
 -- | String
 fontStyle :: forall i. String -> Prop i
 fontStyle = prop (PropName "fontStyle")
+
+-- | Font
+font :: forall i. Font -> Prop i
+font fontVal = case fontVal of
+    Default str -> (if __IS_ANDROID then retFontFamilyAndroid str else retFontFamilyIOS str)  
+    FontName str -> (prop (PropName "fontStyle")) str
+    _ -> (prop (PropName "font")) fontVal
 
 -- | Boolean
 foreground :: forall i. Boolean -> Prop i

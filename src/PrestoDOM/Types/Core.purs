@@ -32,8 +32,8 @@ import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Thunk (Thunk)
 import Halogen.VDom.Types (VDom(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
-import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Margin, Orientation, Padding, Typeface, Visibility, Shadow, Corners, Position, renderPosition, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderTypeface, renderVisibility, renderShadow,  renderGradient, renderCorners)
-import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), Length(..), Margin(..), Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), Position(..), renderPosition, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility,  renderGradient) as Types
+import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Margin, Orientation, Padding,Font, Typeface, Visibility, Shadow, Corners, Position, renderPosition, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderFont,renderPadding, renderTypeface, renderVisibility, renderShadow,  renderGradient, renderCorners)
+import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), Length(..), Margin(..),Font(..) ,Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), Position(..), renderPosition, renderGravity, renderInputType, renderLength, renderFont,renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility,  renderGradient) as Types
 {-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
 import Tracker (trackAction)
 import Tracker.Types (Level(..), Action(..)) as T
@@ -56,6 +56,7 @@ data GenProp
     | PositionP Position
     | MarginP Margin
     | PaddingP Padding
+    | FontP Font
     | InputTypeP InputType
     | OrientationP Orientation
     | TypefaceP Typeface
@@ -147,3 +148,6 @@ instance shadowIsProp :: IsProp Shadow where
 
 instance cornersIsProp :: IsProp Corners where
   toPropValue = propFromString <<< renderCorners
+
+instance fontIsProp :: IsProp Font where 
+  toPropValue = propFromString <<< renderFont

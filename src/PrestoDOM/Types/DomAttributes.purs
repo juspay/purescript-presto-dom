@@ -11,6 +11,8 @@ module PrestoDOM.Types.DomAttributes
     , Margin(..)
     , Shadow(..)
     , Corners(..)
+    , Font(..)
+    , renderFont
     , renderMargin
     , renderPadding
     , renderGravity
@@ -23,12 +25,14 @@ module PrestoDOM.Types.DomAttributes
     , renderVisibility
     , renderShadow
     , renderCorners
+    , __IS_ANDROID
     ) where
 
 import Prelude (show, (<>))
 import Data.Function.Uncurried (Fn3, runFn3)
 
 foreign import stringifyGradient :: Fn3 String Number (Array String) String
+foreign import __IS_ANDROID :: Boolean
 
 data Length
     = MATCH_PARENT
@@ -254,3 +258,18 @@ renderCorners (Corner r) = show r
 boolString :: Boolean -> String
 boolString true = "1"
 boolString _ = "0"
+
+data Font =
+   Url String
+ | Res Int
+ | FontName String
+ | Font String
+ | Default String
+
+renderFont :: Font -> String
+renderFont = case _ of 
+    Url url -> url
+    Res id -> "resId," <> show id
+    FontName fname -> fname
+    Font path -> "path," <> path
+    Default style -> ""

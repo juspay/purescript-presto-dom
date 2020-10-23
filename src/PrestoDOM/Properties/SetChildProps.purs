@@ -38,6 +38,7 @@ module PrestoDOM.Properties.SetChildProps
     , fontFamily_c
     , fontSize_c
     , fontStyle_c
+    , font_c
     , foreground_c
 
     , gravity_c
@@ -124,7 +125,7 @@ module PrestoDOM.Properties.SetChildProps
 import Prelude
 
 import Data.Tuple (Tuple(..))
-import PrestoDOM.Types.Core (Gravity, InputType, Length, Margin, Orientation, Padding, Position, Shadow, Typeface, Visibility, GenProp(..))
+import PrestoDOM.Types.Core (Gravity, InputType, Length, Margin, Font, Orientation, Padding, Position, Shadow, Typeface, Visibility, GenProp(..))
 
 
 override_c :: String -> String -> Tuple String GenProp
@@ -264,6 +265,10 @@ fontSize_c = Tuple "fontSize" <<< IntP
 -- | String
 fontStyle_c :: String -> Tuple String GenProp
 fontStyle_c = Tuple "fontStyle" <<< StringP
+
+-- | Font
+font_c :: Font -> Tuple String GenProp
+font_c = Tuple "font" <<< FontP
 
 -- | Boolean
 foreground_c :: Boolean -> Tuple String GenProp
