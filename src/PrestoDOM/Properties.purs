@@ -319,7 +319,7 @@ fontStyle = prop (PropName "fontStyle")
 font :: forall i. Font -> Prop i
 font fontVal = case fontVal of
     Default str -> (if __IS_ANDROID then retFontFamilyAndroid str else retFontFamilyIOS str)  
-    FontName str -> (prop (PropName "fontStyle")) fontVal
+    FontName str -> (prop (PropName "fontStyle")) str
     _ -> (prop (PropName "font")) fontVal
 
 -- | Boolean

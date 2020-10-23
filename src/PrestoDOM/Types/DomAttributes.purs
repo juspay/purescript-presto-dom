@@ -270,6 +270,6 @@ renderFont :: Font -> String
 renderFont = case _ of 
     Url url -> url
     Res id -> "resId," <> show id
-    FontName fname ->"name," <> fname
+    FontName fname -> fname
     Font path -> "path," <> path
     Default style -> ""
