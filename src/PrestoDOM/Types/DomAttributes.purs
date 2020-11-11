@@ -272,4 +272,4 @@ renderFont = case _ of
     Res id -> "resId," <> show id
     FontName fname -> fname
     Font path -> "path," <> path
-    Default style -> ""
+    Default style -> "default," <> style
