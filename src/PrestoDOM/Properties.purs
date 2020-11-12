@@ -155,12 +155,6 @@ retFontFamilyAndroid str = case (toLower str) of
   "bold" -> fontFamily "sans-serif,bold"
   _ -> fontFamily "sans-serif-medium,normal"
 
-retFontFamilyIOS :: forall i. String -> Prop i 
-retFontFamilyIOS str = case (toLower str) of 
-  "regular" -> fontFamily "0.0"
-  "bold" -> fontFamily "0.4"
-  _ -> fontFamily "0.23"
-
 -- | Boolean
 root :: forall i. Boolean -> Prop i
 root = prop (PropName "root")
@@ -318,8 +312,8 @@ fontStyle = prop (PropName "fontStyle")
 -- | Font
 font :: forall i. Font -> Prop i
 font fontVal = case fontVal of
-    Default str -> (if __IS_ANDROID then retFontFamilyAndroid str else retFontFamilyIOS str)  
-    FontName str -> (prop (PropName "fontStyle")) str
+    Default str -> (if __IS_ANDROID then retFontFamilyAndroid str else fontFamily str)  
+    FontName str -> fontStyle str
     _ -> (prop (PropName "font")) fontVal
 
 -- | Boolean
