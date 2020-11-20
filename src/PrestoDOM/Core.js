@@ -725,7 +725,9 @@ function hideCachedScreen() {
       } else if (window.__OS == "IOS") {
         Android.runInUI(prop);
       } else {
-        Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+       // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+       var ele = document.getElementById(prop.id); 
+       ele.style.display = "none"; 
       }
     };
     if (window.__OS == "WEB") {
@@ -791,7 +793,9 @@ function insertDom(root, dom) {
         } else if (window.__OS == "IOS" && length > 1) {
           Android.runInUI(prop);
         } else if (length > 1) {
-          Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+          // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+          var ele = document.getElementById(prop.id); 
+          ele.style.display = "none"; 
         }
       };
     }
