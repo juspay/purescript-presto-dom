@@ -556,7 +556,10 @@ function makeVisible(cache, _id) {
   } else if (window.__OS == "IOS") {
     Android.runInUI(prop);
   } else {
-    Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+    // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+    console.log(" new function ");
+    var ele = document.getElementById(prop.id); 
+    ele.style.display = "block";
   }
 }
 
