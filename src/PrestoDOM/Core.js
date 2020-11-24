@@ -557,7 +557,7 @@ function makeVisible(cache, _id) {
     Android.runInUI(prop);
   } else {
     // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-    console.log(" new function ");
+    // console.log(" new function ");
     var ele = document.getElementById(prop.id); 
     ele.style.display = "block";
   }
