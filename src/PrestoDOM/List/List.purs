@@ -1,6 +1,7 @@
 module PrestoDOM.List
   ( ListItem(..)
   , ListData(..)
+  , ImageSource(..)
   , createListData
   , createListItem
   , list
@@ -16,6 +17,7 @@ module PrestoDOM.List
   , backgroundHolder
   , visibilityHolder
   , alphaHolder
+  , renderImageSource
   ) where
 
 import Prelude
@@ -37,6 +39,9 @@ data ListItem = ListItem String
 
 -- | Stringified item data container
 data ListData = ListData String
+
+data ImageSource = 
+  ImageName String | ImagePath String | ImageResId Int | ImageUrl String String
 
 -- | Encodes and constructs item data container
 createListData :: forall i. Array i -> ListData
@@ -94,3 +99,10 @@ fontStyleHolder = prop (PropName "holder_fontStyle")
 alphaHolder :: forall i. String -> Prop i
 alphaHolder = prop (PropName "holder_alpha")
 
+renderImageSource :: ImageSource -> String 
+renderImageSource imgSrc = 
+  case imgSrc of
+    ImageUrl url placeholder -> "url->" <> url <> "," <>  placeholder
+    ImagePath path           -> "path->" <> path
+    ImageResId resId         -> "resId->" <> show resId
+    ImageName name           -> name

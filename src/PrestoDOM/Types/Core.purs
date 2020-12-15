@@ -32,8 +32,8 @@ import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Thunk (Thunk)
 import Halogen.VDom.Types (VDom(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
-import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Margin, Orientation, Padding,Font, Typeface, Visibility, Shadow, Corners, Position, LineSpacing, renderPosition, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderFont,renderPadding, renderTypeface, renderVisibility, renderShadow,  renderGradient, renderCorners, renderLineSpacing)
-import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), Length(..), Margin(..),Font(..) ,Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), Position(..), renderPosition, renderGravity, renderInputType, renderLength, renderFont,renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility,  renderGradient) as Types
+import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Margin, Orientation, Padding, Font, Typeface, Visibility, Shadow, Corners, Position, LineSpacing, renderPosition, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderFont,renderPadding, renderTypeface, renderVisibility, renderShadow,  renderGradient, renderCorners, renderLineSpacing)
+import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), Length(..), Margin(..), Font(..),Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), Position(..), renderPosition, renderGravity, renderInputType, renderLength, renderFont,renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility,  renderGradient) as Types
 {-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
 import Tracker (trackAction)
 import Tracker.Types (Level(..), Action(..)) as T
