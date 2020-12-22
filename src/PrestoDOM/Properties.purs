@@ -68,6 +68,7 @@ module PrestoDOM.Properties
     , autofocus
     , letterSpacing
     , lineHeight
+    , lineSpacing
 
     , margin
     , marginEnd
@@ -139,7 +140,7 @@ import Prelude
 import Data.String(toLower)
 -- import Data.Tuple (Tuple(..))
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.DomAttributes (Corners, __IS_ANDROID)
+import PrestoDOM.Types.DomAttributes (Corners, LineSpacing, __IS_ANDROID)
 import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Position, Padding, Gravity, Gradient,Font(..) ,InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
 
 
@@ -397,6 +398,11 @@ letterSpacing = prop (PropName "letterSpacing")
 lineHeight :: forall i. String -> Prop i
 lineHeight = prop (PropName "lineHeight")
 
+-- | LineSpacing: extra, multiplier
+-- | LineSpacingExtra : extra
+-- | LineSpacingMultiplier : multiplier
+lineSpacing :: forall i. LineSpacing -> Prop i
+lineSpacing = prop (PropName "lineSpacing")
 
 
 -- | Margin : left, top, right and bottom

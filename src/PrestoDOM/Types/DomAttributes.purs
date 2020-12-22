@@ -12,6 +12,7 @@ module PrestoDOM.Types.DomAttributes
     , Shadow(..)
     , Corners(..)
     , Font(..)
+    , LineSpacing(..)
     , renderFont
     , renderMargin
     , renderPadding
@@ -25,6 +26,7 @@ module PrestoDOM.Types.DomAttributes
     , renderVisibility
     , renderShadow
     , renderCorners
+    , renderLineSpacing
     , __IS_ANDROID
     ) where
 
@@ -273,3 +275,14 @@ renderFont = case _ of
     FontName fname -> fname
     Font path -> "path," <> path
     Default style -> "default," <> style
+
+data LineSpacing
+    = LineSpacing Int Number
+    | LineSpacingExtra Int
+    | LineSpacingMultiplier Number
+
+renderLineSpacing :: LineSpacing -> String
+renderLineSpacing = case _ of
+    LineSpacing extra multiplier      -> (show extra) <> "," <> (show multiplier)
+    LineSpacingExtra extra            -> (show extra) <> ",1.0"
+    LineSpacingMultiplier multiplier  -> "0," <> (show multiplier)
