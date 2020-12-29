@@ -39,6 +39,7 @@ module PrestoDOM.Properties.GetChildProps
     , fontFamily_p
     , fontSize_p
     , fontStyle_p
+    , font_p
     , foreground_p
 
     , gravity_p
@@ -129,7 +130,7 @@ import Data.Maybe (Maybe(..))
 import Foreign.Object (Object, lookup)
 
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.Core (class IsProp, Gravity, InputType, Length, Margin, Orientation, Padding, Position, Shadow, Typeface, Visibility, toPropValue, GenProp(..))
+import PrestoDOM.Types.Core (class IsProp, Gravity, InputType, Length, Margin, Orientation, Padding, Font,Position, Shadow, Typeface, Visibility, toPropValue, GenProp(..))
 
 fromGenProp :: forall a i. IsProp a => String -> a -> Object GenProp -> Prop i
 fromGenProp key default strMap = let value = lookup key strMap
@@ -150,6 +151,7 @@ fromGenProp key default strMap = let value = lookup key strMap
                                   Just (ShadowP v) -> Property key $ toPropValue v
                                   Just (TextP v) -> Property "text" $ toPropValue v
                                   Just (CornersP v) -> Property key $ toPropValue v
+                                  Just (FontP v) -> Property key $ toPropValue v
                                   Nothing -> Property key $ toPropValue default
 
 
@@ -292,6 +294,10 @@ fontSize_p = fromGenProp "fontSize"
 -- | String
 fontStyle_p :: forall i. String -> Object GenProp -> Prop i
 fontStyle_p = fromGenProp "fontStyle"
+
+-- | Font
+font_p :: forall  i. Font -> Object GenProp -> Prop i 
+font_p = fromGenProp "font"
 
 -- | Boolean
 foreground_p :: forall i. Boolean -> Object GenProp -> Prop i

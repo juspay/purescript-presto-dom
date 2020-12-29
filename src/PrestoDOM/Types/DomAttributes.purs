@@ -11,6 +11,9 @@ module PrestoDOM.Types.DomAttributes
     , Margin(..)
     , Shadow(..)
     , Corners(..)
+    , Font(..)
+    , LineSpacing(..)
+    , renderFont
     , renderMargin
     , renderPadding
     , renderGravity
@@ -23,12 +26,15 @@ module PrestoDOM.Types.DomAttributes
     , renderVisibility
     , renderShadow
     , renderCorners
+    , renderLineSpacing
+    , __IS_ANDROID
     ) where
 
 import Prelude (show, (<>))
 import Data.Function.Uncurried (Fn3, runFn3)
 
 foreign import stringifyGradient :: Fn3 String Number (Array String) String
+foreign import __IS_ANDROID :: Boolean
 
 data Length
     = MATCH_PARENT
@@ -256,3 +262,29 @@ renderCorners (Corner r) = show r
 boolString :: Boolean -> String
 boolString true = "1"
 boolString _ = "0"
+
+data Font =
+   Url String
+ | Res Int
+ | FontName String
+ | Font String
+ | Default String
+
+renderFont :: Font -> String
+renderFont = case _ of 
+    Url url -> url
+    Res id -> "resId," <> show id
+    FontName fname -> fname
+    Font path -> "path," <> path
+    Default style -> "default," <> style
+
+data LineSpacing
+    = LineSpacing Int Number
+    | LineSpacingExtra Int
+    | LineSpacingMultiplier Number
+
+renderLineSpacing :: LineSpacing -> String
+renderLineSpacing = case _ of
+    LineSpacing extra multiplier      -> (show extra) <> "," <> (show multiplier)
+    LineSpacingExtra extra            -> (show extra) <> ",1.0"
+    LineSpacingMultiplier multiplier  -> "0," <> (show multiplier)
