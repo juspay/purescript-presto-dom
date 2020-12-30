@@ -638,6 +638,7 @@ exports.setRootNode = function(nothing) {
   root.props.id = elemRef.__id;
   root.__ref = elemRef;
 
+  window.PrestoDOM_Version = "1.0.1" // UPDATE THIS ON EACH NEW BUILD FOR MASTER 
   window.N = root;
   window.__CACHELIMIT = 50;
   window.__psNothing = nothing;
@@ -720,13 +721,14 @@ function makeVisible(cache, _id) {
   } else if (window.__OS == "IOS") {
     Android.runInUI(prop);
   } else {
-    console.log("make visible");
-    Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-    // console.log(" new function ");
-    // var ele = document.getElementById(prop.id); 
-    // if (ele) {
-    //   ele.style.display = "flex";
-    // }
+    // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+    var ele = Android.getUIElement(prop.id); 
+    if (ele) {
+      ele.style.display = "flex";
+    }
+    else {
+      console.error("cache - visible failed"); 
+    }
   }
 }
 
@@ -895,13 +897,13 @@ function hideCachedScreen() {
       } else if (window.__OS == "IOS") {
         Android.runInUI(prop);
       } else {
-        console.log("hide last screen with prop as",prop);
-        console.log("clear cached"); 
-        Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-      //  var ele = document.getElementById(prop.id); 
-      //  if (ele) {
-      //     ele.style.display = "none";
-      //  } 
+        var ele = Android.getUIElement(prop.id); 
+        if (ele) { 
+          ele.style.display = "none"; 
+        }
+        else {
+          console.error("cache - hide failed");  
+        }
       }
     };
     if (window.__OS == "WEB") {
@@ -970,12 +972,13 @@ function insertDom(root, dom) {
         } else if (window.__OS == "IOS" && length > 1) {
           Android.runInUI(prop);
         } else if (length > 1) {
-          console.log("hide old called",prop); 
-          Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-          // var ele = document.getElementById(prop.id); 
-          // if (ele) {
-          //   ele.style.display = "none"; 
-          // }
+          // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+          var ele = Android.getUIElement(prop.id); 
+          if (ele) {
+            ele.style.display = "none"; 
+          } else {
+            console.error("cache - hide old failed"); 
+          }
         }
       };
     }
