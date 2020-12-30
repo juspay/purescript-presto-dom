@@ -11,7 +11,7 @@ const state = {
 
 const callbackMapper = prestoUI.callbackMapper;
 
-// const callbackMapper = prestoUI.helpers.common.callbackMapper; --TODO: confirm this
+// const callbackMapper = prestoUI.helpers.common.callbackMapper;
 
 if (window.__OS === "WEB") {
   webParseParams = (window.prestoUI || prestoUI).helpers.web.parseParams;
@@ -720,10 +720,13 @@ function makeVisible(cache, _id) {
   } else if (window.__OS == "IOS") {
     Android.runInUI(prop);
   } else {
-    // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+    console.log("make visible");
+    Android.runInUI(webParseParams("relativeLayout", prop, "set"));
     // console.log(" new function ");
-    var ele = document.getElementById(prop.id); 
-    ele.style.display = "flex";
+    // var ele = document.getElementById(prop.id); 
+    // if (ele) {
+    //   ele.style.display = "flex";
+    // }
   }
 }
 
@@ -892,9 +895,13 @@ function hideCachedScreen() {
       } else if (window.__OS == "IOS") {
         Android.runInUI(prop);
       } else {
-       // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-       var ele = document.getElementById(prop.id); 
-       ele.style.display = "none"; 
+        console.log("hide last screen with prop as",prop);
+        console.log("clear cached"); 
+        Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+      //  var ele = document.getElementById(prop.id); 
+      //  if (ele) {
+      //     ele.style.display = "none";
+      //  } 
       }
     };
     if (window.__OS == "WEB") {
@@ -929,15 +936,19 @@ function insertDom(root, dom) {
 
   dom.props.root = true;
   if (window.__screenNothing) {
-    window.__stashScreen.push(dom.__ref.__id);
-    window.__screenNothing = false;
-  } else {
+        window.__stashScreen.push(dom.__ref.__id);
+        window.__screenNothing = false;
+  } 
+  else {
+    
     var screenName = window.__currScreenName;
-
+    
     var length = window.__ROOTSCREEN.idSet.child.push({
       id: dom.__ref.__id,
       name: screenName
     });
+
+
     if (length >= window.__CACHELIMIT) {
       window.__ROOTSCREEN.idSet.child.shift();
       length -= 1;
@@ -959,9 +970,12 @@ function insertDom(root, dom) {
         } else if (window.__OS == "IOS" && length > 1) {
           Android.runInUI(prop);
         } else if (length > 1) {
-          // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-          var ele = document.getElementById(prop.id); 
-          ele.style.display = "none"; 
+          console.log("hide old called",prop); 
+          Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+          // var ele = document.getElementById(prop.id); 
+          // if (ele) {
+          //   ele.style.display = "none"; 
+          // }
         }
       };
     }
@@ -1129,6 +1143,7 @@ function callAnimation(tag) {
   window.__dui_old_screen = window.__dui_screen;
 }
 
+// What does this do? Need comments here 
 function executePostProcess(cache) {
   return function() {
     callAnimation__(window.__dui_screen) (cache) ();
