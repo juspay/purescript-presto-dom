@@ -1,5 +1,5 @@
 
-const prestoUI = require("presto-ui")
+const prestoUI = window.parent.prestoUI
 const prestoDayum = window.prestoUI ? window.prestoUI.doms : prestoUI.doms;
 var webParseParams, iOSParseParams, parseParams;
 
@@ -250,8 +250,11 @@ function domAllImpl(elem, screenName, VALIDATE_ID) {
   window.exitAnimationB[screenName] =
     window.exitAnimationB[screenName] || {};
 
-  var type = prestoUI.prestoClone(elem.type);
-  var props = prestoUI.prestoClone(elem.props);
+  // var type = prestoUI.prestoClone(elem.type);
+  // var props = prestoUI.prestoClone(elem.props);
+
+  var type = elem.type; 
+  var props = elem.props; 
 
   if (window.__OS !== "WEB") {
     if(props.hasOwnProperty("afterRender")){
@@ -994,9 +997,12 @@ function insertDom(root, dom) {
       null
     );
   } else {
-    Android.addViewToParent(rootId, domAll(dom), length - 1, callback, null);
+    Android.addViewToParent(rootId, domAll(dom), length - 1, null, null);
   }
 
+  if (window.__OS == "WEB") {
+        hideOldScreenNow();
+  }
   hideCachedScreen();
 }
 
@@ -1240,7 +1246,7 @@ function callAnimation__ (screenName) {
           state.animationStack.push(screenName);
         }
       }
-      callAnimation_(animationArray, false)
+      callAnimation_(animationArray, false) // hide screen in this 
       state.lastAnimatedScreen = screenName;
     }
   }
