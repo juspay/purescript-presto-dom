@@ -997,7 +997,7 @@ function insertDom(root, dom) {
       null
     );
   } else {
-    Android.addViewToParent(rootId, domAll(dom), length - 1, null, null);
+    Android.addViewToParent(rootId, domAll(dom), length - 1, callback, null);
   }
 
   if (window.__OS == "WEB") {
