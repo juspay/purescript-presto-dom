@@ -1000,9 +1000,6 @@ function insertDom(root, dom) {
     Android.addViewToParent(rootId, domAll(dom), length - 1, callback, null);
   }
 
-  if (window.__OS == "WEB") {
-        hideOldScreenNow();
-  }
   hideCachedScreen();
 }
 
@@ -1154,6 +1151,7 @@ function callAnimation(tag) {
 
 // What does this do? Need comments here 
 function executePostProcess(cache) {
+  // console.log("executePostProcess - PrestoDOM - Document Location",document.location); 
   return function() {
     callAnimation__(window.__dui_screen) (cache) ();
     if (window.__dui_screen && window["afterRender"] && window["afterRender"][window.__dui_screen] && !window["afterRender"][window.__dui_screen].executed) {
