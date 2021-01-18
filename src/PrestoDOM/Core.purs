@@ -2,6 +2,7 @@ module PrestoDOM.Core
    ( runScreen
    , showScreen
    , prepareScreen
+   , updateScreen
    , initUI
    , initUIWithScreen
    , mapDom
@@ -301,6 +302,15 @@ showScreen scr st = do
   result <- runScreenImpl true scr st
   trackScreen T.Screen T.Info L.CURRENT_SCREEN "overlay" name
   pure result
+
+-- | Function is intended to update a rendered screen's state
+
+updateScreen :: forall action state returnType
+     . Show action => Loggable action => Screen action state returnType
+    -> Effect Unit
+updateScreen { initialState, view, eval, name , globalEvents } = do
+  let myDom = view (\_ -> pure unit ) initialState
+  patchAndRun (Just $ Namespace name) myDom
 
 -- | Function is responsible for Pre-rendering. Intended to be called ahead of
 -- | time, it'll create and cache screen for future use.

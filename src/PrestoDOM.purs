@@ -7,7 +7,7 @@ module PrestoDOM
     , module Utils
     ) where
 
-import PrestoDOM.Core (mapDom, runScreen, showScreen, initUI, initUIWithScreen) as PrestoDOM
+import PrestoDOM.Core (mapDom, runScreen, showScreen, updateScreen, initUI, initUIWithScreen) as PrestoDOM
 import PrestoDOM.Events (afterRender, attachBackPress, makeEvent, onAnimationEnd, onBackPressed, onChange, onClick, onMenuItemClick, onNetworkChanged, setManualEventsName) as Events
 import PrestoDOM.Utils (continue, continueWithCmd, updateAndExit, exit) as Utils
 import PrestoDOM.Elements.Elements (Leaf, Node, button, calendar, checkBox, editText, element, frameLayout, horizontalScrollView, imageView, keyed, linearLayout, linearLayout_, listView, lottieAnimationView, progressBar, relativeLayout, relativeLayout_, scrollView, shimmerFrameLayout, switch, tabLayout, textView, viewPager, viewWidget, webView) as Elements
