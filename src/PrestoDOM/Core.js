@@ -1,6 +1,20 @@
+/* 
 
-const prestoUI = window.parent.prestoUI
-const prestoDayum = window.prestoUI ? window.prestoUI.doms : prestoUI.doms;
+The PrestoDOM is most likely loaded as a micro-app in jOS architure. 
+Meaning, in Web, PrestoDOM is loaded in a nested iframe. 
+The parent iframe holds the presto-ui. 
+
+
+Hence, it is necessary to fetch the Android and JBridge objects from the parent.  
+
+If jOS is not being used, this would still work. 
+Then it is safe to assume, the scope of all the objects is same (one window)
+And the corrosponding Android and JBridge objects are fetched from the same window.
+
+*/
+const prestoUI = require("presto-ui"); 
+const prestoDayum = prestoUI.doms; 
+
 var webParseParams, iOSParseParams, parseParams;
 
 const state = {
@@ -10,8 +24,6 @@ const state = {
 }
 
 const callbackMapper = prestoUI.callbackMapper;
-
-// const callbackMapper = prestoUI.helpers.common.callbackMapper;
 
 if (window.__OS === "WEB") {
   webParseParams = (window.prestoUI || prestoUI).helpers.web.parseParams;
