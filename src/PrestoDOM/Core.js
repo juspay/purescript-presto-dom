@@ -897,9 +897,7 @@ function hideCachedScreen() {
     var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
     var prop = {
       id: window.__lastCachedScreen.id,
-      visibility: __visibility,
-      height: "0",
-      width: "0"
+      visibility: __visibility
     };
     // console.log("SCREEN", " hideCached", prop);
 
