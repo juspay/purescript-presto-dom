@@ -1161,7 +1161,6 @@ function callAnimation(tag) {
   window.__dui_old_screen = window.__dui_screen;
 }
 
-// What does this do? Need comments here 
 function executePostProcess(cache) {
   // console.log("executePostProcess - PrestoDOM - Document Location",document.location); 
   return function() {
