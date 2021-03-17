@@ -5,6 +5,8 @@ module PrestoDOM.Types.Core
     , toPropValue
     , GenProp(..)
     , Screen
+    , ScreenBase
+    , ScopedScreen
     , Eval
     , Cmd
     , PrestoWidget(..)
@@ -73,13 +75,18 @@ data GenProp
     | CornersP Corners
 
 
-type Screen action state returnType =
+type Screen action state returnType = ScreenBase action state returnType ()
+
+type ScreenBase action state returnType a =
   { initialState :: state
   , name :: String
   , globalEvents :: Array ((action -> Effect Unit) -> Effect (Effect Unit))
   , view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
   , eval :: action -> state -> Eval action returnType state
+  | a
   }
+
+type ScopedScreen action state returnType = ScreenBase action state returnType (parent :: Maybe String)
 
 derive instance newtypePropName :: Newtype (PropName value) _
 

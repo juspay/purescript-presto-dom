@@ -12,7 +12,7 @@
     "purescript-aff": "^5.0.0",
     "purescript-either": "^4.0.0",
     "purescript-halogen-vdom": "git@bitbucket.org:juspay/purescript-halogen-vdom.git#fg10",
-    "purescript-presto": "git@bitbucket.org:juspay/purescript-presto.git#fg10",
+    "purescript-presto": "git@bitbucket.org:juspay/purescript-presto.git#PICAF-3451",
     "purescript-behaviors": "^7.0.0",
     "purescript-event": "^1.2.4",
     "purescript-maybe": "^4.0.0",
@@ -32,5 +32,8 @@
     "type": "git",
     "url": "https://bitbucket.org/juspay/purescript-presto-dom.git"
   },
-  "version": "v0.5.0_rc3"
+  "version": "v0.5.0_rc3",
+  "resolutions": {
+    "purescript-presto": "PICAF-3451"
+  }
 }

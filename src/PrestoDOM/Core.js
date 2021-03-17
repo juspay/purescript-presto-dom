@@ -681,9 +681,9 @@ exports.setRootNode = function(nothing) {
   }
   if (window.__OS == "ANDROID") {
     if (typeof Android.getNewID == "function") {
-      Android.Render(JSON.stringify(domAll(root)), null, "false");
+      Android.render(JSON.stringify(domAll(root)), null, "false");
     } else {
-      Android.Render(JSON.stringify(domAll(root)), null);
+      Android.render(JSON.stringify(domAll(root)), null);
     }
   } else if (window.__OS == "WEB") {
     Android.Render(domAll(root), null);

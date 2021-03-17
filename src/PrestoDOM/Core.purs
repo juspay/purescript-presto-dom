@@ -1,14 +1,4 @@
-module PrestoDOM.Core
-   ( runScreen
-   , showScreen
-   , prepareScreen
-   , updateScreen
-   , initUI
-   , initUIWithScreen
-   , mapDom
-   , terminateUI
-   , _domAll
-   ) where
+module PrestoDOM.Core where
 
 import Prelude
 
@@ -31,7 +21,7 @@ import Halogen.VDom.Machine (Step, step, extract)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
 import Halogen.VDom.Types (FnObject)
 import PrestoDOM.Events (setManualEvents, manualEventsName)
-import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, Namespace, PrestoWidget(..), class Loggable)
+import PrestoDOM.Types.Core (ElemName(..), VDom(Elem), PrestoDOM, Screen, ScreenBase, Namespace, PrestoWidget(..), class Loggable)
 import PrestoDOM.Utils (continue, logAction)
 import Tracker (trackScreen)
 import Tracker.Types (Level(..), Screen(..)) as T
@@ -212,13 +202,14 @@ initUI cb = do
 -- | showScreen : creates new screen on top of previous screen
 -- |
 runScreenImpl
-    :: forall action state returnType
+    :: forall action state returnType a
      . Show action => Loggable action => Boolean
-    -> Screen action state returnType
+    -> ScreenBase action state returnType a
+    -> Maybe String
     -> (Either Error returnType -> Effect Unit)
     -> (Object.Object Foreign)
     -> Effect Canceler
-runScreenImpl cache { initialState, view, eval, name , globalEvents } cb json = do
+runScreenImpl cache { initialState, view, eval, name , globalEvents } namespace cb json = do
   { event, push } <- E.create
   _ <- trackScreen T.Screen T.Info L.UPCOMING_SCREEN (if cache then "overlay" else "screen") name json
   screenNumber <- getScreenNumber
@@ -236,7 +227,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb json = 
         case _ of
           Just machine -> do -- this can be true only if the OS is android 
             root <- getRootNode
-            EFn.runEffectFn3 attachScreen root  (extract machine) name
+            EFn.runEffectFn3 attachScreen root (extract machine) name
             processWidget
             newMachine <- EFn.runEffectFn2 step (machine) (myDom)
             EFn.runEffectFn2 addScreenWithAnim (extract newMachine) name

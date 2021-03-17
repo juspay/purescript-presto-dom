@@ -224,11 +224,11 @@ function insertDom(root) {
       window.N = holder;
 
       if(window.__OS == "ANDROID"){
-        Android.Render(JSON.stringify(domAll(root)), null);
+        Android.render(JSON.stringify(domAll(root)), null);
       } else if(window.__OS == "WEB"){
-        Android.Render(domAll(root), null);
+        Android.render(domAll(root), null);
       } else{
-        Android.Render(JSON.stringify(domAll(root)), null);
+        Android.render(JSON.stringify(domAll(root)), null);
       }
       // Android.Render(domAll(root));
     }

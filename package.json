@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "pulp -w build",
+    "start": "npx pulp -w build",
     "compile": "npx pulp build"
   },
   "dependencies": {
