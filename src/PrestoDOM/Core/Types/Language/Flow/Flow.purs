@@ -9,7 +9,7 @@ import Effect.Class (liftEffect)
 import Presto.Core.Flow (Flow, doAff)
 import Presto.Core.Types.Language.Flow(getLogFields)
 import PrestoDOM (Screen)
-import PrestoDOM.Core (initUIWithScreen, runScreen, showScreen, updateScreen, prepareScreen) as PrestoDOM
+import PrestoDOM.Core (prepareScreen) as PrestoDOM
 import PrestoDOM.Core2 as PrestoDOM2
 import PrestoDOM.Types.Core (class Loggable, ScopedScreen)
 
@@ -22,7 +22,7 @@ initUIWithScreen
    . Screen action state Unit
   -> Flow Unit
 initUIWithScreen screen =
-  doAff (makeAff \cb -> PrestoDOM.initUIWithScreen screen cb)
+  doAff do makeAff \cb -> PrestoDOM2.initUIWithScreen "default" Nothing (mapToScopedScreen screen) *> pure nonCanceler
 
 runScreen :: forall action state retType. Show action => Loggable action => Screen action state retType -> Flow retType
 runScreen screen = do
@@ -43,11 +43,9 @@ showScreen screen = do
   doAff do makeAff \cb -> PrestoDOM2.showScreen (mapToScopedScreen screen) cb json
 
 updateScreen :: forall action state retType. Show action => Loggable action => Screen action state retType -> Flow Unit
-updateScreen screen = do
-  json <- getLogFields
-  doAff do liftEffect $ PrestoDOM.updateScreen screen json
+updateScreen screen = doAff do liftEffect $ PrestoDOM2.updateScreen (mapToScopedScreen screen)
 
-mapToScopedScreen :: forall action state retType. Show action => Loggable action => Screen action state retType -> ScopedScreen action state retType
+mapToScopedScreen :: forall action state retType. Screen action state retType -> ScopedScreen action state retType
 mapToScopedScreen screen =
   { initialState : screen.initialState
   , name : screen.name

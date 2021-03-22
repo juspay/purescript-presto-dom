@@ -132,6 +132,15 @@ initUIWithNameSpace :: String -> Maybe String -> Effect Unit
 initUIWithNameSpace namespace id =
   setUpBaseState namespace $ encode id
 
+initUIWithScreen :: 
+  forall action state returnType. 
+  String -> Maybe String -> ScopedScreen action state returnType -> Effect Unit
+initUIWithScreen namespace id screen = do
+  initUIWithNameSpace namespace id
+  let myDom = screen.view (\_ -> pure unit) screen.initialState
+  machine <- EFn.runEffectFn1 (buildVDom (spec (sanitiseNamespace screen.parent) screen.name)) myDom
+  EFn.runEffectFn4 insertDom (fromMaybe "default" screen.parent) screen.name (extract machine) false
+
 -- runScreen
 -- check if namespace exists
 -- else check if screen exists
@@ -195,6 +204,12 @@ showScreen {initialState, view, eval, name, globalEvents, parent} cb = do
       EFn.runEffectFn3 callAnimation name (sanitiseNamespace parent) true
   controllerActions {event, push} {initialState, view, eval, name, globalEvents, parent} cb
 
+updateScreen :: forall action state returnType
+     . Show action => Loggable action => ScopedScreen action state returnType
+    -> Effect Unit
+updateScreen { initialState, view, eval, name , globalEvents, parent } = do
+  let myDom = view (\_ -> pure unit ) initialState
+  patchAndRun name parent myDom
 
 terminateUI :: String -> Effect Unit
 terminateUI nameSpace = EFn.runEffectFn1 terminateUIImpl nameSpace
