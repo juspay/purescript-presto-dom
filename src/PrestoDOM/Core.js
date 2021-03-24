@@ -1,6 +1,20 @@
+/* 
 
-const prestoUI = require("presto-ui")
-const prestoDayum = prestoUI.doms;
+The PrestoDOM is most likely loaded as a micro-app in jOS architure. 
+Meaning, in Web, PrestoDOM is loaded in a nested iframe. 
+The parent iframe holds the presto-ui. 
+
+
+Hence, it is necessary to fetch the Android and JBridge objects from the parent.  
+
+If jOS is not being used, this would still work. 
+Then it is safe to assume, the scope of all the objects is same (one window)
+And the corrosponding Android and JBridge objects are fetched from the same window.
+
+*/
+const prestoUI = require("presto-ui"); 
+const prestoDayum = prestoUI.doms; 
+
 var webParseParams, iOSParseParams, parseParams;
 
 const state = {
@@ -12,11 +26,11 @@ const state = {
 const callbackMapper = prestoUI.callbackMapper;
 
 if (window.__OS === "WEB") {
-  webParseParams = prestoUI.helpers.web.parseParams;
+  webParseParams = (window.prestoUI || prestoUI).helpers.web.parseParams;
 } else if (window.__OS == "IOS") {
-  iOSParseParams = prestoUI.helpers.ios.parseParams;
+  iOSParseParams = (window.prestoUI || prestoUI).helpers.ios.parseParams;
 } else {
-  parseParams = prestoUI.helpers.android.parseParams;
+  parseParams = (window.prestoUI || prestoUI).helpers.android.parseParams;
 }
 
 
@@ -248,8 +262,11 @@ function domAllImpl(elem, screenName, VALIDATE_ID) {
   window.exitAnimationB[screenName] =
     window.exitAnimationB[screenName] || {};
 
-  var type = prestoUI.prestoClone(elem.type);
-  var props = prestoUI.prestoClone(elem.props);
+  // var type = prestoUI.prestoClone(elem.type);
+  // var props = prestoUI.prestoClone(elem.props);
+
+  var type = elem.type; 
+  var props = elem.props; 
 
   if (window.__OS !== "WEB") {
     if(props.hasOwnProperty("afterRender")){
@@ -382,7 +399,7 @@ function domAllImpl(elem, screenName, VALIDATE_ID) {
   //   }
   // }
 
-  if (__OS == "WEB" && props.onResize) {
+  if (window.__OS == "WEB" && props.onResize) {
     window.__resizeEvent = props.onResize;
   }
 
@@ -401,7 +418,7 @@ function domAllImpl(elem, screenName, VALIDATE_ID) {
 }
 
 function hideOldScreenNow(tag) {
-  var holdArray = window.viewsTobeRemoved;
+  var holdArray = window.viewsTobeRemoved || [];
   var tohide = window.hideold;
   window.hideold = undefined;
   window.viewsTobeRemoved = [];
@@ -636,6 +653,7 @@ exports.setRootNode = function(nothing) {
   root.props.id = elemRef.__id;
   root.__ref = elemRef;
 
+  window.PrestoDOM_Version = "1.0.1" // UPDATE THIS ON EACH NEW BUILD FOR MASTER 
   window.N = root;
   window.__CACHELIMIT = 50;
   window.__psNothing = nothing;
@@ -697,13 +715,18 @@ function makeVisible(cache, _id) {
   if (cache) {
     var prop = {
       id: _id,
-      visibility: "visible"
+      visibility: "visible",
+      width: "match_parent",
+      height: "match_parent"
+
     };
   } else {
     var length = window.__ROOTSCREEN.idSet.child.length;
     var prop = {
       id: window.__ROOTSCREEN.idSet.child[length - 1].id,
-      visibility: "visible"
+      visibility: "visible",
+      width: "match_parent",
+      height: "match_parent"
     };
   }
   // console.log("SCREEN", " makeVisible", prop);
@@ -713,7 +736,14 @@ function makeVisible(cache, _id) {
   } else if (window.__OS == "IOS") {
     Android.runInUI(prop);
   } else {
-    Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+    // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+    var ele = Android.getUIElement(prop.id); 
+    if (ele) {
+      ele.style.display = "flex";
+    }
+    else {
+      console.error("cache - visible failed"); 
+    }
   }
 }
 
@@ -794,6 +824,7 @@ function screenIsCached(screen) {
         var prop = {
           id: window.__lastCachedScreen.id,
           visibility: __visibility
+
         };
         // console.log("SCREEN", " screenIsCached", screen, prop);
         if (window.__OS == "ANDROID") {
@@ -879,7 +910,13 @@ function hideCachedScreen() {
       } else if (window.__OS == "IOS") {
         Android.runInUI(prop);
       } else {
-        Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+        var ele = Android.getUIElement(prop.id); 
+        if (ele) { 
+          ele.style.display = "none"; 
+        }
+        else {
+          console.error("cache - hide failed");  
+        }
       }
     };
     if (window.__OS == "WEB") {
@@ -914,15 +951,19 @@ function insertDom(root, dom) {
 
   dom.props.root = true;
   if (window.__screenNothing) {
-    window.__stashScreen.push(dom.__ref.__id);
-    window.__screenNothing = false;
-  } else {
+        window.__stashScreen.push(dom.__ref.__id);
+        window.__screenNothing = false;
+  } 
+  else {
+    
     var screenName = window.__currScreenName;
-
+    
     var length = window.__ROOTSCREEN.idSet.child.push({
       id: dom.__ref.__id,
       name: screenName
     });
+
+
     if (length >= window.__CACHELIMIT) {
       window.__ROOTSCREEN.idSet.child.shift();
       length -= 1;
@@ -932,7 +973,9 @@ function insertDom(root, dom) {
       var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
       var prop = {
         id: window.__ROOTSCREEN.idSet.child[length - 2].id,
-        visibility: __visibility
+        visibility: __visibility,
+        width : "0",
+        height : "0"
       };
 
       window.hideold = function() {
@@ -942,7 +985,13 @@ function insertDom(root, dom) {
         } else if (window.__OS == "IOS" && length > 1) {
           Android.runInUI(prop);
         } else if (length > 1) {
-          Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+          // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+          var ele = Android.getUIElement(prop.id); 
+          if (ele) {
+            ele.style.display = "none"; 
+          } else {
+            console.error("cache - hide old failed"); 
+          }
         }
       };
     }
@@ -1111,6 +1160,7 @@ function callAnimation(tag) {
 }
 
 function executePostProcess(cache) {
+  // console.log("executePostProcess - PrestoDOM - Document Location",document.location); 
   return function() {
     callAnimation__(window.__dui_screen) (cache) ();
     if (window.__dui_screen && window["afterRender"] && window["afterRender"][window.__dui_screen] && !window["afterRender"][window.__dui_screen].executed) {
@@ -1124,6 +1174,10 @@ function executePostProcess(cache) {
           console.warn(err);
         }
       }
+    }
+
+    if (window.postRenderCallback) {
+      window.postRenderCallback(window.__dui_screen);
     }
 
     if (JBridge && JBridge.setShadow) {
@@ -1199,7 +1253,7 @@ function callAnimation__ (screenName) {
           state.animationStack.push(screenName);
         }
       }
-      callAnimation_(animationArray, false)
+      callAnimation_(animationArray, false) // hide screen in this 
       state.lastAnimatedScreen = screenName;
     }
   }

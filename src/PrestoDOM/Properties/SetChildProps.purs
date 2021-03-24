@@ -16,6 +16,7 @@ module PrestoDOM.Properties.SetChildProps
     , btnBackground_c
     , btnColor_c
     , buttonTint_c
+    , buttonClickOverlay_c
 
     , checked_c
     , clickable_c
@@ -63,6 +64,7 @@ module PrestoDOM.Properties.SetChildProps
     , marginEnd_c
     , marginStart_c
     , maxDate_c
+    , maxHeight_c
     , maxLines_c
     , maxSeek_c
     , maxWidth_c
@@ -187,6 +189,9 @@ btnColor_c = Tuple "btnColor" <<< StringP
 buttonTint_c :: String -> Tuple String GenProp
 buttonTint_c = Tuple "buttonTint" <<< StringP
 
+-- | Number
+buttonClickOverlay_c :: Number -> Tuple String GenProp
+buttonClickOverlay_c = Tuple "buttonClickOverlay" <<< NumberP
 
 
 -- | Boolean
@@ -370,6 +375,10 @@ marginStart_c = Tuple "marginStart" <<< IntP
 -- | L, // long
 maxDate_c :: String -> Tuple String GenProp
 maxDate_c = Tuple "maxDate" <<< StringP
+
+-- | Int
+maxHeight_c :: Int -> Tuple String GenProp
+maxHeight_c = Tuple "maxHeight" <<< IntP
 
 -- | Int
 maxLines_c :: Int -> Tuple String GenProp

@@ -16,6 +16,7 @@ module PrestoDOM.Properties.GetChildProps
     , btnBackground_p
     , btnColor_p
     , buttonTint_p
+    , buttonClickOverlay_p
 
     , checked_p
     , clickable_p
@@ -63,6 +64,7 @@ module PrestoDOM.Properties.GetChildProps
     , marginEnd_p
     , marginStart_p
     , maxDate_p
+    , maxHeight_p
     , maxLines_p
     , maxSeek_p
     , maxWidth_p
@@ -211,6 +213,9 @@ btnColor_p = fromGenProp "btnColor"
 buttonTint_p :: forall i. String -> Object GenProp -> Prop i
 buttonTint_p = fromGenProp "buttonTint"
 
+-- | Number
+buttonClickOverlay_p :: forall i. Number -> Object GenProp -> Prop i
+buttonClickOverlay_p = fromGenProp "buttonClickOverlay"
 
 
 -- | Boolean
@@ -395,6 +400,10 @@ marginStart_p = fromGenProp "marginStart"
 -- | L, // long
 maxDate_p :: forall i. String -> Object GenProp -> Prop i
 maxDate_p = fromGenProp "maxDate"
+
+-- | Int
+maxHeight_p :: forall i. Int -> Object GenProp -> Prop i
+maxHeight_p = fromGenProp "maxHeight"
 
 -- | Int
 maxLines_p :: forall i. Int -> Object GenProp -> Prop i

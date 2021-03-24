@@ -193,7 +193,7 @@ initUI
   :: (Either Error Unit -> Effect Unit)
   -> Effect Canceler
 initUI cb = do
-  root <- EFn.runEffectFn1 setRootNode Nothing
+  root <- EFn.runEffectFn1 setRootNode Nothing -- Sets the initial window objects 
   machine <- EFn.runEffectFn1 (buildVDom (spec Nothing)) view
   EFn.runEffectFn2 insertDom root (extract machine)
   cb $ Right unit
@@ -205,8 +205,9 @@ initUI cb = do
 -- | 1. runScreen
 -- | 2. showScreen
 -- |
--- | runScreen : can creates new screen or reuse cached screen and render it
--- |   replacing previous screen
+-- | runScreen : can creates new screen (create a DOM and attach to the liveDOM) or 
+-- | reuse cached screen (evalute the view, diff the VDOMs and update the screen after hiding the current screen) 
+-- | 
 -- | showScreen : creates new screen on top of previous screen
 -- |
 runScreenImpl
@@ -220,7 +221,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
   _ <- trackScreen T.Screen T.Info L.UPCOMING_SCREEN (if cache then "overlay" else "screen") name
   screenNumber <- getScreenNumber
   _ <- setScreen name
-  let myDom = view push initialState
+  let myDom = view push initialState -- evalute the view function, resolve the state variables to values and create a VDOM object. 
   patch <- if cache
                then checkCachedScreen screenName
                else compareScreen screenName
@@ -231,7 +232,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
         then pure Nothing
         else getCachedMachine name) >>=
         case _ of
-          Just machine -> do
+          Just machine -> do -- this can be true only if the OS is android 
             root <- getRootNode
             EFn.runEffectFn3 attachScreen root  (extract machine) name
             processWidget
@@ -239,7 +240,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
             EFn.runEffectFn2 addScreenWithAnim (extract newMachine) name
             EFn.runEffectFn2 storeMachine newMachine screenName
           Nothing -> do
-            root <- getRootNode                                       -- window.N
+            root <- getRootNode                                       -- window.N ; this is the root element of the screen
             machine <- EFn.runEffectFn1 (buildVDom (spec Nothing)) myDom -- HalogenVDom Cycle
             EFn.runEffectFn2 storeMachine machine screenName          -- Cache Dom to window
             if cache                                                  -- Show/Run
