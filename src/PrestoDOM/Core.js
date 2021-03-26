@@ -968,9 +968,7 @@ function insertDom(root, dom) {
       var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
       var prop = {
         id: window.__ROOTSCREEN.idSet.child[length - 2].id,
-        visibility: __visibility,
-        width : "0",
-        height : "0"
+        visibility: __visibility
       };
 
       window.hideold = function() {
