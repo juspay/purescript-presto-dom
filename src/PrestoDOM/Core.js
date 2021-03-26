@@ -715,18 +715,13 @@ function makeVisible(cache, _id) {
   if (cache) {
     var prop = {
       id: _id,
-      visibility: "visible",
-      width: "match_parent",
-      height: "match_parent"
-
+      visibility: "visible"
     };
   } else {
     var length = window.__ROOTSCREEN.idSet.child.length;
     var prop = {
       id: window.__ROOTSCREEN.idSet.child[length - 1].id,
-      visibility: "visible",
-      width: "match_parent",
-      height: "match_parent"
+      visibility: "visible"
     };
   }
   // console.log("SCREEN", " makeVisible", prop);
