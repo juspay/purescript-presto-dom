@@ -53,7 +53,6 @@ function createPrestoElement() {
 function removeViewFromNameSpace (namespace, id) {
   // Return a callback, which can be used to remove the screen
   return function() {
-    debugger;
     Android.removeView(id, getIdFromNamespace(namespace))
   }
 }
@@ -81,7 +80,6 @@ function hideViewInNameSpace (id, namespace) {
 function showViewInNameSpace (id, namespace) {
   // Return callback to show screens
   return function () {
-    debugger;
     var prop = {
       id: id,
       visibility: "visible"
@@ -317,7 +315,6 @@ exports.callAnimation = callAnimation__
  */
 
 function callAnimation__ (screenName, namespace, cache) {
-  debugger;
   state.scopedState[namespace].activateScreen = false;
   state.scopedState[namespace].activeScreen = screenName;
   if (screenName == state.scopedState[namespace].animations.lastAnimatedScreen)
@@ -370,7 +367,6 @@ function callAnimation_ (namespace, screenArray, resetAnimation, screenName) {
   var hasAnimation = false;
   screenArray.forEach(
     function (animationJson) {
-      debugger;
       console.log(namespace, animationJson, false, screenName)
       if (state.scopedState[namespace].animations[animationJson.tag] && state.scopedState[namespace].animations[animationJson.tag][animationJson.screenName]) {
         var animationJson = state.scopedState[namespace].animations[animationJson.tag][animationJson.screenName]
