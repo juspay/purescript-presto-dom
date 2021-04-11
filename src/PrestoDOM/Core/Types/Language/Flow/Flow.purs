@@ -4,7 +4,7 @@ module PrestoDOM.Core.Types.Language.Flow where
 import Prelude
 
 import Data.Maybe (Maybe(..))
-import Effect.Aff (makeAff, nonCanceler)
+import Effect.Aff (makeAff)
 import Effect.Class (liftEffect)
 import Presto.Core.Flow (Flow, doAff)
 import Presto.Core.Types.Language.Flow(getLogFields)
@@ -14,7 +14,7 @@ import PrestoDOM.Core2 as PrestoDOM2
 import PrestoDOM.Types.Core (class Loggable, ScopedScreen)
 
 initUI :: Flow Unit
-initUI  = doAff do makeAff \cb -> PrestoDOM2.initUIWithNameSpace "default" Nothing *> pure nonCanceler
+initUI  = doAff do liftEffect $ PrestoDOM2.initUIWithNameSpace "default" Nothing
 
 -- deprecated
 initUIWithScreen
@@ -22,7 +22,7 @@ initUIWithScreen
    . Screen action state Unit
   -> Flow Unit
 initUIWithScreen screen =
-  doAff do makeAff \cb -> PrestoDOM2.initUIWithScreen "default" Nothing (mapToScopedScreen screen) *> pure nonCanceler
+  doAff do liftEffect $ PrestoDOM2.initUIWithScreen "default" Nothing (mapToScopedScreen screen)
 
 runScreen :: forall action state retType. Show action => Loggable action => Screen action state retType -> Flow retType
 runScreen screen = do

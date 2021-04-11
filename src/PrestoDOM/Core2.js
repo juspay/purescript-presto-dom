@@ -11,10 +11,25 @@ if (window.__OS === "WEB") {
   parseParams = prestoUI.helpers.android.parseParams;
 }
 
-
 const state = {
   scopedState : {}
 }
+
+var getIdFromNamespace = function(namespace) {
+  var ns = state.scopedState[namespace].id ? state.scopedState[namespace].id : undefined
+  if(window.__OS == "ANDROID")
+    ns = state.scopedState[namespace].id ? state.scopedState[namespace].id : null;
+  return ns;
+}
+
+function getPrestoID() {
+  if (window.__OS === "WEB") {
+    return 1;
+  }
+
+  return top.__PRESTO_ID ? ++top.__PRESTO_ID : 1;
+}
+
 
 function createPrestoElement() {
   if (
@@ -38,12 +53,13 @@ function createPrestoElement() {
 function removeViewFromNameSpace (namespace, id) {
   // Return a callback, which can be used to remove the screen
   return function() {
-    Android.removeView(id, state.scopedState[namespace].id ? state.scopedState[namespace].id : null)
+    debugger;
+    Android.removeView(id, getIdFromNamespace(namespace))
   }
 }
 
 
-function hideViewInNameSpace (id) {
+function hideViewInNameSpace (id, namespace) {
   // Return callback to hide screens
   return function () {
     var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
@@ -55,16 +71,17 @@ function hideViewInNameSpace (id) {
       var cmd = cmdForAndroid(prop, true, "relativeLayout");
       Android.runInUI(cmd.runInUI, null);
     } else if (window.__OS == "IOS") {
-      Android.runInUI(prop);
+      Android.runInUI(prop, getIdFromNamespace(namespace));
     } else if (length > 1) {
       Android.runInUI(webParseParams("relativeLayout", prop, "set"));
     }
   }
 }
 
-function showViewInNameSpace (id) {
+function showViewInNameSpace (id, namespace) {
   // Return callback to show screens
   return function () {
+    debugger;
     var prop = {
       id: id,
       visibility: "visible"
@@ -73,7 +90,7 @@ function showViewInNameSpace (id) {
       var cmd = cmdForAndroid(prop, true, "relativeLayout");
       Android.runInUI(cmd.runInUI, null);
     } else if (window.__OS == "IOS") {
-      Android.runInUI(prop);
+      Android.runInUI(prop, getIdFromNamespace(namespace));
     } else {
       Android.runInUI(webParseParams("relativeLayout", prop, "set"));
     }
@@ -253,7 +270,11 @@ function hideOldScreenNow(namespace) {
     if(typeof cb == "function") {
       cb();
     }
-  } 
+  }
+  if (state.scopedState[namespace].shouldHideCacheRoot){
+    state.scopedState[namespace].shouldHideCacheRoot = false
+    hideViewInNameSpace(state.scopedState[namespace].cacheRoot, namespace)()
+  }
 }
 
 function cmdForAndroid(config, set, type) {
@@ -334,6 +355,7 @@ function callAnimation__ (screenName, namespace, cache) {
       state.scopedState[namespace].animations.animationStack.push(screenName);
     }
   }
+  console.log(namespace, animationArray, false, screenName)
   callAnimation_(namespace, animationArray, false, screenName)
   state.scopedState[namespace].animations.lastAnimatedScreen = screenName;
 }
@@ -348,6 +370,8 @@ function callAnimation_ (namespace, screenArray, resetAnimation, screenName) {
   var hasAnimation = false;
   screenArray.forEach(
     function (animationJson) {
+      debugger;
+      console.log(namespace, animationJson, false, screenName)
       if (state.scopedState[namespace].animations[animationJson.tag] && state.scopedState[namespace].animations[animationJson.tag][animationJson.screenName]) {
         var animationJson = state.scopedState[namespace].animations[animationJson.tag][animationJson.screenName]
         for (var key in animationJson) {
@@ -370,12 +394,12 @@ function callAnimation_ (namespace, screenArray, resetAnimation, screenName) {
               animationJson[key].type
             );
             if (Android.updateProperties) {
-              Android.updateProperties(JSON.stringify(cmd), state.scopedState[namespace].id ? state.scopedState[namespace].id : null);
+              Android.updateProperties(JSON.stringify(cmd), getIdFromNamespace(namespace));
             } else {
               Android.runInUI(cmd.runInUI, null);
             }
           } else if (window.__OS == "IOS") {
-            Android.runInUI(config);
+            Android.runInUI(config, getIdFromNamespace(namespace));
           } else {
             Android.runInUI(webParseParams("linearLayout", config, "set"));
           }
@@ -457,7 +481,8 @@ exports.setUpBaseState = function (namespace) {
                 id : cacheRef.__id,
                 root: "true",
                 height: "match_parent",
-                width: "match_parent"
+                width: "match_parent",
+                visibility : "gone"
               }
             , __ref : cacheRef
             , children: []
@@ -487,6 +512,7 @@ exports.setUpBaseState = function (namespace) {
       state.scopedState[namespace].animations.animationCache = []
       state.scopedState[namespace].animations.lastAnimatedScreen = ""
       state.scopedState[namespace].registeredEvents = {}
+      state.scopedState[namespace].shouldHideCacheRoot = false
       
       
       if (window.__OS == "ANDROID") {
@@ -500,18 +526,18 @@ exports.setUpBaseState = function (namespace) {
       } else if (window.__OS == "WEB") {
         Android.Render(domAll(state.scopedState[namespace].root, "base", namespace), null); // Add support for Web
       } else {
-        Android.Render(domAll(state.scopedState[namespace].root, "base", namespace), null); // Add support for iOS
+        Android.render(domAll(state.scopedState[namespace].root, "base", namespace), null, (id ? id : undefined)); // Add support for iOS
       }
     }
   }
 }
 
 exports.insertDom = function(namespace, name, dom, cache) {
-  debugger;
   if(!state.scopedState[namespace]) {
     console.error("Call initUI for namespace :: " + namespace + "before triggering run/show screen")
     return;
   }
+
   state.scopedState[namespace].animations.entry[name] = {}
   state.scopedState[namespace].animations.exit[name] = {}
   state.scopedState[namespace].animations.entryF[name] = {}
@@ -530,8 +556,8 @@ exports.insertDom = function(namespace, name, dom, cache) {
   var rootId = cache ? state.scopedState[namespace].cacheRoot : state.scopedState[namespace].stackRoot
   var length = cache ? state.scopedState[namespace].screenCache.length : state.scopedState[namespace].screenStack.length
   // TODO implement cache limit later
-  state.scopedState[namespace].screenHideCallbacks[name] = hideViewInNameSpace(dom.__ref.__id)
-  state.scopedState[namespace].screenShowCallbacks[name] = showViewInNameSpace(dom.__ref.__id)
+  state.scopedState[namespace].screenHideCallbacks[name] = hideViewInNameSpace(dom.__ref.__id, namespace)
+  state.scopedState[namespace].screenShowCallbacks[name] = showViewInNameSpace(dom.__ref.__id, namespace)
   state.scopedState[namespace].screenRemoveCallbacks[name] = removeViewFromNameSpace(namespace, dom.__ref.__id)
   var callback = callbackMapper.map(executePostProcess(name, namespace, cache))
   if (window.__OS == "ANDROID") {
@@ -541,10 +567,17 @@ exports.insertDom = function(namespace, name, dom, cache) {
       length - 1,
       callback,
       null,
-      state.scopedState[namespace].id ? state.scopedState[namespace].id : null
+       getIdFromNamespace(namespace)
     );
   } else {
-    Android.addViewToParent(rootId, domAll(dom, name, namespace), length - 1, callback, null);
+    Android.addViewToParent(
+      rootId, 
+      domAll(dom, name, namespace), 
+      length - 1, 
+      callback, 
+      null, 
+      getIdFromNamespace(namespace)
+      );
   }
 }
 
@@ -609,9 +642,9 @@ exports.terminateUIImpl = function (namespace) {
       && state.scopedState[namespace].root.__ref
       && state.scopedState[namespace].root.__ref.__id
       ) {
-      Android.removeView(state.scopedState[namespace].root.__ref.__id);
+      Android.removeView(state.scopedState[namespace].root.__ref.__id, getIdFromNamespace(namespace));
   } else {
-    Android.runInUI(["removeAllUI"], null);
+    Android.runInUI(["removeAllUI"], getIdFromNamespace(namespace));
   }
   delete state.scopedState[namespace] 
 }
@@ -677,7 +710,7 @@ exports.addChild = function (namespace) {
         index,
         null,
         null,
-        state.scopedState[namespace].id ? state.scopedState[namespace].id : null
+        getIdFromNamespace(namespace)
       );
     } else
       Android.addViewToParent(
@@ -685,7 +718,8 @@ exports.addChild = function (namespace) {
         domAll(child),
         index,
         null,
-        null
+        null,
+        getIdFromNamespace(namespace)
       );
   }
 }
@@ -719,12 +753,12 @@ function applyProp(element, attribute, set, namespace) {
   if (window.__OS == "ANDROID") {
     var cmd = cmdForAndroid(prop, set, element.type);
     if (Android.updateProperties) {
-      Android.updateProperties(JSON.stringify(cmd), state.scopedState[namespace].id ? state.scopedState[namespace].id : null);
+      Android.updateProperties(JSON.stringify(cmd),  getIdFromNamespace(namespace));
     } else {
       Android.runInUI(cmd.runInUI, null);
     }
   } else if (window.__OS == "IOS") {
-    Android.runInUI(prop);
+    Android.runInUI(prop,  getIdFromNamespace(namespace));
   } else {
     Android.runInUI(webParseParams("linearLayout", prop, "set"));
   }
@@ -764,10 +798,10 @@ exports.replaceView = function (namespace) {
       Android.replaceView(
           JSON.stringify(rep)
         , element.__ref.__id
-        , state.scopedState[namespace].id ? state.scopedState[namespace].id : null
+        , getIdFromNamespace(namespace)
         );
     } else {
-      Android.replaceView(rep, element.__ref.__id);
+      Android.replaceView(rep, element.__ref.__id, getIdFromNamespace(namespace));
     }
     if (removedProps != null && removedProps.length >0 && removedProps.indexOf("handler/afterRender") != -1){
       if (window["afterRender"] && window["afterRender"][window.__dui_screen]) {
@@ -786,13 +820,13 @@ exports.createPrestoElement = createPrestoElement;
 
 exports.moveChild = function(namespace) {
   return function (child, parent, index) {
-    Android.moveView(child.__ref.__id, index, state.scopedState[namespace].id ? state.scopedState[namespace].id : null);
+    Android.moveView(child.__ref.__id, index, getIdFromNamespace(namespace));
   }
 }
 
 exports.removeChild = function(namespace) {
   return function removeChild(child, parent, index) {
-    Android.removeView(child.__ref.__id,  state.scopedState[namespace].id ? state.scopedState[namespace].id : null);
+    Android.removeView(child.__ref.__id,  getIdFromNamespace(namespace));
   }
 }
 
@@ -831,7 +865,6 @@ exports.setManualEvents = function (namespace) {
 exports.fireManualEvent = function (eventName) {
   return function (payload) {
     return function() {
-      debugger;
       for (var key in state.scopedState) {
         if(state.scopedState[key].registeredEvents && state.scopedState[key].registeredEvents.hasOwnProperty(eventName)) {
           var screenName = state.scopedState[key].activeScreen
@@ -843,3 +876,12 @@ exports.fireManualEvent = function (eventName) {
     }
   }
 };
+
+exports.makeCacheRootVisible = function(namespace) {
+  state.scopedState[namespace].shouldHideCacheRoot = false;
+  showViewInNameSpace(state.scopedState[namespace].cacheRoot, namespace)();
+}
+
+exports.hideCacheRootOnAnimationEnd = function(namespace) {
+  state.scopedState[namespace].shouldHideCacheRoot = true;
+}

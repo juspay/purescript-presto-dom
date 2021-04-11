@@ -13,6 +13,7 @@ import Effect.Aff (Canceler, effectCanceler)
 import Effect.Exception (Error)
 import Effect.Ref as Ref
 import Effect.Uncurried as EFn
+import Effect.Uncurried as Efn
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (EventIO, subscribe)
 import FRP.Event as E
@@ -42,6 +43,8 @@ foreign import checkAndDeleteFromHideAndRemoveStacks :: EFn.EffectFn2 String Str
 foreign import terminateUIImpl :: EFn.EffectFn1 String Unit
 foreign import setToTopOfStack :: EFn.EffectFn2 String String Unit
 foreign import addToCachedList :: EFn.EffectFn2 String String Unit
+foreign import makeCacheRootVisible :: EFn.EffectFn1 String Unit
+foreign import hideCacheRootOnAnimationEnd :: EFn.EffectFn1 String Unit
 foreign import makeScreenVisible :: EFn.EffectFn2 String String Unit
 
 foreign import addChild :: forall a b. String -> EFn.EffectFn3 a b Int Unit
@@ -160,6 +163,7 @@ runScreen {initialState, view, eval, name, globalEvents, parent} cb = do
   {event, push} <- E.create
   _ <- trackScreen T.Screen T.Info L.UPCOMING_SCREEN "screen" name
   let myDom = view push initialState
+  Efn.runEffectFn1 hideCacheRootOnAnimationEnd (sanitiseNamespace parent)
   check <- EFn.runEffectFn2 isInStack name (sanitiseNamespace parent) <#> not
   EFn.runEffectFn2 setToTopOfStack (sanitiseNamespace parent) name
   if check
@@ -188,6 +192,7 @@ showScreen :: forall action state returnType
   -> Effect Canceler
 showScreen {initialState, view, eval, name, globalEvents, parent} cb = do
   EFn.runEffectFn2 checkAndDeleteFromHideAndRemoveStacks name (sanitiseNamespace parent)
+  Efn.runEffectFn1 makeCacheRootVisible (sanitiseNamespace parent)
   {event, push} <- E.create
   _ <- trackScreen T.Screen T.Info L.UPCOMING_SCREEN "overlay" name
   let myDom = view push initialState
