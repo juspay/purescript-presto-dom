@@ -35,5 +35,8 @@
   "version": "v0.5.0_rc3",
   "resolutions": {
     "purescript-presto": "PICAF-3451"
+  },
+  "devDependencies": {
+    "purescript-debug": "^4.0.0"
   }
 }

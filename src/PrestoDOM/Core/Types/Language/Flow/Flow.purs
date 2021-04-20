@@ -24,10 +24,20 @@ initUIWithScreen
 initUIWithScreen screen =
   doAff do liftEffect $ PrestoDOM2.initUIWithScreen "default" Nothing (mapToScopedScreen screen)
 
+initUIWithNamespace
+  :: String
+   -> Maybe String
+  -> Flow Unit
+initUIWithNamespace namespace id =
+  doAff do liftEffect $ PrestoDOM2.initUIWithNameSpace namespace id
+
 runScreen :: forall action state retType. Show action => Loggable action => Screen action state retType -> Flow retType
 runScreen screen = do
   json <- getLogFields
   doAff do makeAff \cb -> PrestoDOM2.runScreen (mapToScopedScreen screen) cb json
+
+runScreenWithNameSpace :: forall action state retType. Show action => Loggable action => ScopedScreen action state retType -> Flow retType
+runScreenWithNameSpace screen = doAff do makeAff \cb -> PrestoDOM2.runScreen screen cb
 
 prepareScreen
   :: forall action state retType
