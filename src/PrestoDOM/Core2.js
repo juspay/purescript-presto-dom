@@ -61,7 +61,7 @@ function removeViewFromNameSpace (namespace, id) {
 function hideViewInNameSpace (id, namespace) {
   // Return callback to hide screens
   return function () {
-    var __visibility = window.__OS == "ANDROID" ? "gone" : "invisible";
+    var __visibility = window.__OS == "IOS" ? "invisible" : "gone";
     var prop = {
       id: id,
       visibility: __visibility
@@ -71,8 +71,8 @@ function hideViewInNameSpace (id, namespace) {
       Android.runInUI(cmd.runInUI, null);
     } else if (window.__OS == "IOS") {
       Android.runInUI(prop, getIdFromNamespace(namespace));
-    } else if (length > 1) {
-      Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+    } else {
+      Android.runInUI(webParseParams("relativeLayout", prop, "set"), getIdFromNamespace(namespace));
     }
   }
 }
@@ -90,7 +90,7 @@ function showViewInNameSpace (id, namespace) {
     } else if (window.__OS == "IOS") {
       Android.runInUI(prop, getIdFromNamespace(namespace));
     } else {
-      Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+      Android.runInUI(webParseParams("relativeLayout", prop, "set"), getIdFromNamespace(namespace));
     }
   }
 }
@@ -135,6 +135,20 @@ function domAllImpl(elem, screenName, VALIDATE_ID, namespace) {
 
   var type = prestoUI.prestoClone(elem.type);
   var props = prestoUI.prestoClone(elem.props);
+
+  if(type == "microapp") {
+    // Add to queue of m-app ui to be triggered.
+    // Queue to be fired on callback of AddViewToParent
+    var mappBootData = {
+      payload : props.payload
+    , viewGroupTag : props.viewGroupTag
+    , requestId : elem.requestId
+    , service : props.service
+    , elemId : elem.__ref.__id
+    }
+    state.scopedState[namespace].mappQueue.push(mappBootData);
+    type = "linearLayout"
+  }
 
   if (window.__OS !== "WEB") {
     if(props.hasOwnProperty("afterRender")){
@@ -397,7 +411,7 @@ function callAnimation_ (namespace, screenArray, resetAnimation, screenName) {
           } else if (window.__OS == "IOS") {
             Android.runInUI(config, getIdFromNamespace(namespace));
           } else {
-            Android.runInUI(webParseParams("linearLayout", config, "set"));
+            Android.runInUI(webParseParams("linearLayout", config, "set"), getIdFromNamespace(namespace));
           }
         }
       }
@@ -409,11 +423,20 @@ function callAnimation_ (namespace, screenArray, resetAnimation, screenName) {
   }
 }
 
+function processMapps(namespace) {
+  state.scopedState[namespace].mappQueue.forEach( 
+    function(payload) {
+      payload.payload.fragmentViewGroups[payload.viewGroupTag] = Android.addToContainerList(parseInt(payload.elemId), getIdFromNamespace(namespace));
+      JOS.emitEvent(payload.service)("onMerchantEvent")(["process", JSON.stringify(payload.payload)])
+    }
+  )
+}
 
 function executePostProcess(name, namespace, cache) {
   return function() {
     console.log("Hyper was here" , state)
     callAnimation__(name, namespace, cache);
+    processMapps(namespace)
     // if (window.__dui_screen && window["afterRender"] && window["afterRender"][window.__dui_screen] && !window["afterRender"][window.__dui_screen].executed) {
     //   for (var tag in window["afterRender"][window.__dui_screen]) {
     //     if (tag === "executed")
@@ -509,6 +532,7 @@ exports.setUpBaseState = function (namespace) {
       state.scopedState[namespace].animations.lastAnimatedScreen = ""
       state.scopedState[namespace].registeredEvents = {}
       state.scopedState[namespace].shouldHideCacheRoot = false
+      state.scopedState[namespace].mappQueue = []
       
       
       if (window.__OS == "ANDROID") {
@@ -520,7 +544,7 @@ exports.setUpBaseState = function (namespace) {
           Android.render(JSON.stringify(domAll(state.scopedState[namespace].root), "base", namespace), null);
         }
       } else if (window.__OS == "WEB") {
-        Android.Render(domAll(state.scopedState[namespace].root, "base", namespace), null); // Add support for Web
+        Android.Render(domAll(state.scopedState[namespace].root, "base", namespace), null, (id ? id : undefined));
       } else {
         Android.render(domAll(state.scopedState[namespace].root, "base", namespace), null, (id ? id : undefined)); // Add support for iOS
       }
@@ -729,7 +753,7 @@ exports.addProperty = function (namespace) {
 function addAttribute(element, attribute, namespace) {
   // console.log("add attr :", attribute);
   element.props[attribute.value0] = attribute.value1;
-  applyProp(element, attribute, truem, namespace);
+  applyProp(element, attribute, true, namespace);
 }
 
 function applyProp(element, attribute, set, namespace) {
@@ -756,7 +780,7 @@ function applyProp(element, attribute, set, namespace) {
   } else if (window.__OS == "IOS") {
     Android.runInUI(prop,  getIdFromNamespace(namespace));
   } else {
-    Android.runInUI(webParseParams("linearLayout", prop, "set"));
+    Android.runInUI(webParseParams("linearLayout", prop, "set"),getIdFromNamespace(namespace));
   }
   // Android.runInUI(parseParams("linearLayout", prop, "set"));
 }
