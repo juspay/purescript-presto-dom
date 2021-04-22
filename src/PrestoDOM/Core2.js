@@ -145,11 +145,12 @@ function domAllImpl(elem, screenName, VALIDATE_ID, namespace) {
     , requestId : elem.requestId
     , service : props.service
     , elemId : elem.__ref.__id
+    , callback : props.onMicroappResponse
     }
     state.scopedState[namespace].mappQueue.push(mappBootData);
     type = "linearLayout"
   }
-
+  
   if (window.__OS !== "WEB") {
     if(props.hasOwnProperty("afterRender")){
       window.afterRender = window.afterRender || {}
@@ -424,10 +425,19 @@ function callAnimation_ (namespace, screenArray, resetAnimation, screenName) {
 }
 
 function processMapps(namespace) {
-  state.scopedState[namespace].mappQueue.forEach( 
-    function(payload) {
-      payload.payload.fragmentViewGroups[payload.viewGroupTag] = Android.addToContainerList(parseInt(payload.elemId), getIdFromNamespace(namespace));
-      JOS.emitEvent(payload.service)("onMerchantEvent")(["process", JSON.stringify(payload.payload)])
+  state.scopedState[namespace].mappQueue.forEach(
+    function(cachedObject) {
+      var cb = function (code) {
+        return function (message) {
+          return function() {
+            cachedObject.callback({code: code, message: message});
+          }
+        }
+      }
+      var p = JSON.parse(cachedObject.payload)
+      p.fragmentViewGroups[cachedObject.viewGroupTag] = Android.addToContainerList(parseInt(cachedObject.elemId), getIdFromNamespace(namespace));
+      var x = {service: cachedObject.service, requestId: "1234", payload: p};
+      JOS.emitEvent(x.service)("onMerchantEvent")(["process", JSON.stringify(x)])(cb)();
     }
   )
 }
@@ -436,7 +446,7 @@ function executePostProcess(name, namespace, cache) {
   return function() {
     console.log("Hyper was here" , state)
     callAnimation__(name, namespace, cache);
-    processMapps(namespace)
+    processMapps(namespace);
     // if (window.__dui_screen && window["afterRender"] && window["afterRender"][window.__dui_screen] && !window["afterRender"][window.__dui_screen].executed) {
     //   for (var tag in window["afterRender"][window.__dui_screen]) {
     //     if (tag === "executed")
