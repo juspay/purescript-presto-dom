@@ -143,7 +143,7 @@ function domAllImpl(elem, screenName, VALIDATE_ID, namespace) {
       payload : props.payload
     , viewGroupTag : props.viewGroupTag
     , requestId : elem.requestId
-    , service : props.service
+    , service : elem.service
     , elemId : elem.__ref.__id
     , callback : props.onMicroappResponse
     }
@@ -436,7 +436,7 @@ function processMapps(namespace) {
       }
       var p = JSON.parse(cachedObject.payload)
       p.fragmentViewGroups[cachedObject.viewGroupTag] = Android.addToContainerList(parseInt(cachedObject.elemId), getIdFromNamespace(namespace));
-      var x = {service: cachedObject.service, requestId: "1234", payload: p};
+      var x = {service: cachedObject.service, requestId: cachedObject.requestId, payload: p};
       JOS.emitEvent(x.service)("onMerchantEvent")(["process", JSON.stringify(x)])(cb)();
     }
   )

@@ -138,6 +138,8 @@ module PrestoDOM.Properties
     , alignParentLeft
     , popupMenu
     , pattern
+    , viewGroupTag
+    , payload
     ) where
 
 import Prelude
@@ -674,3 +676,9 @@ popupMenu = prop (PropName "popupMenu")
 -- | Int -- ime option for edittext
 imeOptions :: forall i. Int -> Prop i
 imeOptions = prop (PropName "imeOptions")
+
+viewGroupTag :: forall i. String -> Prop i
+viewGroupTag = prop (PropName "viewGroupTag")
+
+payload :: forall i. String -> Prop i
+payload = prop (PropName "payload")

@@ -14,6 +14,7 @@ module PrestoDOM.Events
     , setManualEvents
     , setManualEventsName
     , fireManualEvent
+    , onMicroappResponse
     ) where
 
 import Prelude
@@ -100,6 +101,9 @@ onNetworkChanged push f = event (DOM.EventType "onNetworkChange") (Just <<< (mak
 
 afterRender :: forall a b . (a -> Effect Unit) -> (b -> a) -> Prop (Effect Unit)
 afterRender push f = event (DOM.EventType "afterRender") (Just <<< (makeEvent (push <<< f)))
+
+onMicroappResponse :: forall b . ({code :: Int, message :: String} -> Effect Unit) -> (b -> {code :: Int, message :: String}) -> Prop (Effect Unit)
+onMicroappResponse push f = event (DOM.EventType "onMicroappResponse") (Just <<< (makeEvent (push <<< f)))
 
 -- TODO: Change String to a type
 manualEventsName :: Unit -> Array String

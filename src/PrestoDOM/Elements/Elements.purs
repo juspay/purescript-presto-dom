@@ -8,6 +8,7 @@ module PrestoDOM.Elements.Elements
     , relativeLayout_
 
     , linearLayout
+    , mapp
     , relativeLayout
     , horizontalScrollView
     , scrollView
@@ -138,3 +139,6 @@ viewWidget = leaf "viewWidget"
 
 webView :: forall i p. Leaf (Prop i) p
 webView = leaf "webView"
+
+mapp :: forall i p. String -> Array (Prop i) -> VDom (Array (Prop i)) p
+mapp service = Microapp service
