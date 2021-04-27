@@ -430,11 +430,15 @@ function processMapps(namespace) {
       var cb = function (code) {
         return function (message) {
           return function() {
-            cachedObject.callback({code: code, message: message});
+            if(typeof cachedObject.callback == "function")
+              cachedObject.callback({code: code, message: message});
+            else
+              console.log("Mapp response", code, message)
           }
         }
       }
       var p = JSON.parse(cachedObject.payload)
+      p.fragmentViewGroups = p.fragmentViewGroups || {};
       p.fragmentViewGroups[cachedObject.viewGroupTag] = Android.addToContainerList(parseInt(cachedObject.elemId), getIdFromNamespace(namespace));
       var x = {service: cachedObject.service, requestId: cachedObject.requestId, payload: p};
       JOS.emitEvent(x.service)("onMerchantEvent")(["process", JSON.stringify(x)])(cb)();
