@@ -15,7 +15,7 @@ import Effect.Ref as Ref
 import Effect.Uncurried as EFn
 import Effect.Uncurried as Efn
 import FRP.Behavior (sample_, unfold)
-import FRP.Event (EventIO, subscribe)
+import FRP.Event (Event, subscribe)
 import FRP.Event as E
 import Foreign (Foreign)
 import Foreign.Generic (encode)
@@ -58,6 +58,11 @@ foreign import updateProperty ∷ forall a b. String -> EFn.EffectFn3 String a b
 
 foreign import setManualEvents :: forall a b. String -> String -> a -> b -> Effect Unit
 foreign import fireManualEvent :: forall a. String -> a -> Effect Unit
+
+type EventIO a =
+  { event :: Event a
+  , push :: a -> Effect Unit
+  }
 
 sanitiseNamespace :: Maybe String -> String
 sanitiseNamespace = fromMaybe "default"
