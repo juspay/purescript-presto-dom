@@ -867,7 +867,7 @@ exports.removeChild = function(namespace) {
 exports.updateProperty = function (namespace) {
   return function (key, val, element) {
     // console.log("update attr :", attribute);
-    attribute = {value0: key, value1: val}
+    var attribute = {value0: key, value1: val}
     element.props[attribute.value0] = attribute.value1;
     applyProp(element, attribute, false, namespace);
   }
