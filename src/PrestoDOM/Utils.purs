@@ -25,6 +25,7 @@ import Effect(Effect)
 import Effect.Ref as Ref
 import Effect.Timer as Timer
 import Foreign(Foreign)
+import Foreign.Object as Object
 
 continue
   :: forall state action returnType
@@ -54,7 +55,7 @@ continueWithCmd state cmds = Right (Tuple state cmds)
 
 
 foreign import concatPropsArrayImpl :: forall a. Array a -> Array a -> Array a
-foreign import debounce :: (String -> Foreign -> Effect Unit) -> String -> Foreign -> Effect Unit
+foreign import debounce :: (String -> Foreign -> Object.Object Foreign -> Effect Unit) -> String -> Foreign -> (Object.Object Foreign) -> Effect Unit
 
 
 concatPropsArrayRight :: forall a. Array a -> Array a -> Array a
@@ -86,34 +87,34 @@ clearTimeout timerRef = do
     Just t -> Timer.clearTimeout t
     Nothing -> pure unit
 
-logAction :: forall a. Loggable a => Show a => Ref.Ref (Maybe Timer.TimeoutId) -> (Maybe a) -> (Maybe a) -> Boolean -> Effect Unit
-logAction timerRef (Just prevAct) (Just currAct) true = do -- logNow without waiting
+logAction :: forall a. Loggable a => Show a => Ref.Ref (Maybe Timer.TimeoutId) -> (Maybe a) -> (Maybe a) -> Boolean -> (Object.Object Foreign)-> Effect Unit
+logAction timerRef (Just prevAct) (Just currAct) true json = do -- logNow without waiting
   clearTimeout timerRef
-  loggerFunction timerRef prevAct
-  loggerFunction timerRef currAct
-logAction timerRef (Just prevAct) (Just currAct) logNow = do
+  loggerFunction timerRef prevAct json
+  loggerFunction timerRef currAct json
+logAction timerRef (Just prevAct) (Just currAct) logNow json = do
   let previousAction = show prevAct
       currentAction = show currAct
   timer <- Ref.read timerRef
   if(previousAction == currentAction) then do -- current == previous, if previous log isn't already logged cancell it and setTimeout for current one.
       clearTimeout timerRef
-      tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct
+      tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct json
       Ref.write (Just tid) timerRef
     else
       case timer of
         Just t -> do -- current != previous, timer running, log current and last log
           Timer.clearTimeout t
-          loggerFunction timerRef prevAct
-          loggerFunction timerRef currAct
+          loggerFunction timerRef prevAct json
+          loggerFunction timerRef currAct json
         Nothing -> do -- current != previous, timer NOT running, set timeout for current log
-          tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct
+          tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct json
           Ref.write (Just tid) timerRef
-logAction timerRef Nothing (Just currAct) logNow = do
-  tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct
+logAction timerRef Nothing (Just currAct) logNow json = do
+  tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct json
   Ref.write (Just tid) timerRef
-logAction _ _ _ _ = pure unit
+logAction _ _ _ _ _= pure unit
 
-loggerFunction :: forall a. Loggable a => Show a => Ref.Ref (Maybe Timer.TimeoutId) -> a -> Effect Unit
-loggerFunction ref action = do
-  performLog action
+loggerFunction :: forall a. Loggable a => Show a => Ref.Ref (Maybe Timer.TimeoutId) -> a -> (Object.Object Foreign) -> Effect Unit
+loggerFunction ref action json = do
+  performLog action json
   Ref.write Nothing ref-- set ref to nothing after done.

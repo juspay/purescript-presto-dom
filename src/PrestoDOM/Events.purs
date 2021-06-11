@@ -28,6 +28,8 @@ import Tracker (trackAction)
 import Tracker.Types (Level(..), Action(..)) as T
 import Unsafe.Coerce as U
 import Web.Event.Event (EventType(..), Event) as DOM
+import Foreign.Object as Object
+import Foreign(Foreign)
 {-- foreign import dummyEvent :: E.Event Int --}
 foreign import backPressHandlerImpl :: Effect Unit
 
@@ -56,13 +58,13 @@ backPressHandler = \ev -> do
 onClick :: forall a. (a ->  Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
 onClick push f = event (DOM.EventType "onClick") (Just <<< (makeEvent (push <<< f)))
 
-onClickWithLogger :: String -> String -> forall a. (a ->  Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
-onClickWithLogger label value push f = event (DOM.EventType "onClick") (Just <<< (makeEvent (pushAndLog label value push <<< f)))
+onClickWithLogger :: String -> String -> forall a. (a ->  Effect Unit) -> (Unit -> a) -> Object.Object Foreign -> Prop (Effect Unit)
+onClickWithLogger label value push f json = event (DOM.EventType "onClick") (Just <<< (makeEvent (pushAndLog label value push json <<< f )))
 
-pushAndLog :: forall a. String -> String -> (a -> Effect Unit) -> a -> Effect Unit
-pushAndLog label value push a = do
+pushAndLog :: forall a. String -> String -> (a -> Effect Unit) -> Object.Object Foreign -> a ->Effect Unit
+pushAndLog label value push json a = do
     push a
-    debounce (trackAction T.User T.Info L.ON_CLICK) label $ encode value
+    debounce (trackAction T.User T.Info L.ON_CLICK) label (encode value) json
 
 onChange :: forall a. (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
 onChange push f = event (DOM.EventType "onChange") (Just <<< (makeEvent (push <<< f)))

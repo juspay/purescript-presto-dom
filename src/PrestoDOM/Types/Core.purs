@@ -38,7 +38,9 @@ import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), 
 import Tracker (trackAction)
 import Tracker.Types (Level(..), Action(..)) as T
 import Tracker.Labels (Label(..)) as L
+import Foreign(Foreign)
 import Foreign.Class (encode)
+import Foreign.Object as Object
 
 newtype PrestoWidget a = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget a))
 
@@ -82,15 +84,15 @@ type Screen action state returnType =
 derive instance newtypePropName :: Newtype (PropName value) _
 
 class Loggable a where 
-  performLog :: a -> Effect Unit
+  performLog :: a -> (Object.Object Foreign) ->Effect Unit
 
-defaultPerformLog :: forall a. Show a => a -> Effect Unit 
-defaultPerformLog action = do
+defaultPerformLog :: forall a. Show a => a -> (Object.Object Foreign) ->Effect Unit 
+defaultPerformLog action json = do
   let value = show action 
-  trackAction T.User T.Info L.EVAL "data" $ encode value
+  trackAction T.User T.Info L.EVAL "data" (encode value) json
 
-defaultSkipLog :: forall a. Show a => a -> Effect Unit 
-defaultSkipLog _ = pure unit
+defaultSkipLog :: forall a. Show a => a -> (Object.Object Foreign)-> Effect Unit 
+defaultSkipLog _ _ = pure unit
 
 instance stringLoggable :: Loggable String where
   performLog = trackAction T.User T.Info L.EVAL "data" <<< encode
