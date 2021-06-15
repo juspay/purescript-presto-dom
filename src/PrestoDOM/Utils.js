@@ -43,30 +43,32 @@ exports.getFromWindow_ = function (key){
 exports.debounce = function (logger){
   return function (key) {
     return function (value) {
-      return function(){
-        var last = window.lastLog || {key : "", value : ""};
-        if(key === last.key){
-          // key == last, if previous log is not already logged it will be cancelled, this one will be logged
-          clearTimeout(window.loggerTimeout); 
-          window.loggerTimeout = setTimeout(loggerFunction,2000,logger,key,value);
-        } else {
-          if(window.loggerTimeout){
-              // key != last, timer running, log current and last log 
-            clearTimeout(window.loggerTimeout);
-            loggerFunction(logger,key,value);
-            loggerFunction(logger,last.key,last.value);
-          }else{
-              // key != last, timer not running, log current log only 
-            loggerFunction(logger,key,value);
+      return function (json){
+        return function(){
+          var last = window.lastLog || {key : "", value : ""};
+          if(key === last.key){
+            // key == last, if previous log is not already logged it will be cancelled, this one will be logged
+            clearTimeout(window.loggerTimeout); 
+            window.loggerTimeout = setTimeout(loggerFunction,2000,logger,key,value,json);
+          } else {
+            if(window.loggerTimeout){
+                // key != last, timer running, log current and last log 
+              clearTimeout(window.loggerTimeout);
+              loggerFunction(logger,key,value,json);
+              loggerFunction(logger,last.key,last.value,json);
+            }else{
+                // key != last, timer not running, log current log only 
+              loggerFunction(logger,key,value,json);
+            }
           }
+          window.lastLog = {key : key, value : value};
         }
-        window.lastLog = {key : key, value : value};
       }
     }
   }
 }
 
-function loggerFunction(logger, key, value){
-  logger(key)(value)();
+function loggerFunction(logger, key, value, json){
+  logger(key)(value)(json)();
   window.loggerTimeout =  null;
 }

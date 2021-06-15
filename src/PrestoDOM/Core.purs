@@ -38,6 +38,7 @@ import Tracker.Types (Level(..), Screen(..)) as T
 import Tracker.Labels (Label(..)) as L
 import Web.DOM.Document (Document) as DOM
 import Effect.Ref as Ref
+import Foreign(Foreign)
 
 foreign import terminateUI :: Effect Unit
 
@@ -215,10 +216,11 @@ runScreenImpl
      . Show action => Loggable action => Boolean
     -> Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
+    -> (Object.Object Foreign)
     -> Effect Canceler
-runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
+runScreenImpl cache { initialState, view, eval, name , globalEvents } cb json = do
   { event, push } <- E.create
-  _ <- trackScreen T.Screen T.Info L.UPCOMING_SCREEN (if cache then "overlay" else "screen") name
+  _ <- trackScreen T.Screen T.Info L.UPCOMING_SCREEN (if cache then "overlay" else "screen") name json
   screenNumber <- getScreenNumber
   _ <- setScreen name
   let myDom = view push initialState -- evalute the view function, resolve the state variables to values and create a VDOM object. 
@@ -261,13 +263,13 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb = do
           onStateChange push previousAction currentAction timerRef (Tuple state cmds) = do
               result <- patchAndRun screenName (view push state)
                 *> for_ cmds (\effAction -> effAction >>= push)
-              _ <- logAction timerRef previousAction currentAction false -- debounce
+              _ <- logAction timerRef previousAction currentAction false json -- debounce
               pure result
           onExit scn push previousAction currentAction timerRef (Tuple st ret) = do
               result <- case st of
                    Just s -> patchAndRun screenName (view push s) *> (exitUI scn >>= \_ -> cb $ Right ret)
                    Nothing -> exitUI scn >>= \_ -> cb $ Right ret
-              _ <- logAction timerRef previousAction currentAction true -- logNow
+              _ <- logAction timerRef previousAction currentAction true json -- logNow
               pure result
           registerEvents push =
             (\f -> f push)
@@ -286,30 +288,33 @@ runScreen
     :: forall action state returnType
      . Show action => Loggable action => Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
+    -> (Object.Object Foreign)
     -> Effect Canceler
-runScreen scr st = do
+runScreen scr st json = do
   let { initialState, view, eval, name , globalEvents } = scr
-  result <- runScreenImpl false scr st
-  trackScreen T.Screen T.Info L.CURRENT_SCREEN "screen" name
+  result <- runScreenImpl false scr st json
+  trackScreen T.Screen T.Info L.CURRENT_SCREEN "screen" name json
   pure result
 
 showScreen
     :: forall action state returnType
      . Show action => Loggable action => Screen action state returnType
     -> (Either Error returnType -> Effect Unit)
+    -> Object.Object Foreign
     -> Effect Canceler
-showScreen scr st = do
+showScreen scr st json = do
   let { initialState, view, eval, name , globalEvents } = scr
-  result <- runScreenImpl true scr st
-  trackScreen T.Screen T.Info L.CURRENT_SCREEN "overlay" name
+  result <- runScreenImpl true scr st json
+  trackScreen T.Screen T.Info L.CURRENT_SCREEN "overlay" name json
   pure result
 
 -- | Function is intended to update a rendered screen's state
 
 updateScreen :: forall action state returnType
      . Show action => Loggable action => Screen action state returnType
+    -> Object.Object Foreign
     -> Effect Unit
-updateScreen { initialState, view, eval, name , globalEvents } = do
+updateScreen { initialState, view, eval, name , globalEvents } json = do
   let myDom = view (\_ -> pure unit ) initialState
   patchAndRun (Just $ Namespace name) myDom
 
@@ -322,12 +327,13 @@ prepareScreen
   :: forall action state returnType
    . Screen action state returnType
   -> (Either Error Unit -> Effect Unit)
+  -> Object.Object Foreign
   -> Effect Canceler
-prepareScreen { initialState, view, eval, name, globalEvents } cb =
+prepareScreen { initialState, view, eval, name, globalEvents } cb json =
   if not (canPreRender unit)
     then (cb $ Right unit) $> nonCanceler
     else do
-      trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" name
+      trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" name json
       { event, push } <- E.create
       let myDom = view push initialState
       machine <- EFn.runEffectFn1 (buildVDom (spec (Just name))) myDom -- HalogenVDom Cycle
@@ -336,7 +342,7 @@ prepareScreen { initialState, view, eval, name, globalEvents } cb =
       pure nonCanceler
       where
       callBack result = do
-        trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_finished" name
+        trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_finished" name json
         cb (Right result)
 
 setScreen :: String -> Effect Unit
