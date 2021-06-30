@@ -334,6 +334,7 @@ runScreen st@{ name, parent, view} json = do
   liftEffect $ EFn.runEffectFn2 checkAndDeleteFromHideAndRemoveStacks name (sanitiseNamespace parent)
   check <- liftEffect $  EFn.runEffectFn2 isInStack name (sanitiseNamespace parent) <#> not
   eventIO <- liftEffect $ getEventIO name parent
+  _ <- liftEffect $ trackScreen T.Screen T.Info L.CURRENT_SCREEN "screen" name json
   _ <- liftEffect $ trackScreen T.Screen T.Info L.UPCOMING_SCREEN "screen" name json
   liftEffect $ Efn.runEffectFn1 hideCacheRootOnAnimationEnd (sanitiseNamespace parent)
   liftEffect $ EFn.runEffectFn2 setToTopOfStack (sanitiseNamespace parent) name
@@ -370,6 +371,7 @@ showScreen st@{name, parent, view} json = do
   liftEffect $ Efn.runEffectFn1 makeCacheRootVisible (sanitiseNamespace parent)
   check <- liftEffect $  EFn.runEffectFn2 isCached name (sanitiseNamespace parent) <#> not
   eventIO <- liftEffect $ getEventIO name parent
+  _ <- liftEffect $ trackScreen T.Screen T.Info L.CURRENT_SCREEN "overlay" name json
   _ <- liftEffect $ trackScreen T.Screen T.Info L.UPCOMING_SCREEN "overlay" name json
   liftEffect $ EFn.runEffectFn2 addToCachedList (sanitiseNamespace parent) name
   renderOrPatch eventIO st check false
