@@ -51,7 +51,7 @@ continueWithCmd
    . state
   -> Cmd action
   -> Eval action returnType state
-continueWithCmd state cmds = Right (Tuple state cmds)
+continueWithCmd state cmds = Right (Tuple state  cmds)
 
 
 foreign import concatPropsArrayImpl :: forall a. Array a -> Array a -> Array a

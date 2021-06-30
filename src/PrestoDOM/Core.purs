@@ -2,12 +2,10 @@ module PrestoDOM.Core
    ( runScreen
    , showScreen
    , prepareScreen
-   , updateScreen
    , initUI
    , initUIWithScreen
    , mapDom
    , terminateUI
-   , _domAll
    ) where
 
 import Prelude
@@ -24,6 +22,7 @@ import Effect.Uncurried as EFn
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
 import FRP.Event as E
+import Foreign(Foreign)
 import Foreign.Object as Object
 import Halogen.VDom (Namespace(..), VDomSpec(VDomSpec), buildVDom)
 import Halogen.VDom.DOM.Prop (Prop, buildProp)
@@ -38,7 +37,7 @@ import Tracker.Types (Level(..), Screen(..)) as T
 import Tracker.Labels (Label(..)) as L
 import Web.DOM.Document (Document) as DOM
 import Effect.Ref as Ref
-import Foreign(Foreign)
+import PrestoDOM.Core2 (updateMicroAppPayload, updateProperties, updateChildren, parseParams)
 
 foreign import terminateUI :: Effect Unit
 
@@ -98,8 +97,6 @@ foreign import updateDom :: forall a b. EFn.EffectFn2 a b Unit
 
 foreign import processWidget :: Effect Unit
 
-foreign import _domAll :: forall a b. a -> b
-
 foreign import setScreenImpl :: EFn.EffectFn1
         String
         Unit
@@ -152,14 +149,18 @@ spec screen =
   fun :: FnObject
   fun = { replaceView
         , setManualEvents : setManualEvents screen
+        , updateChildren : updateChildren "" ""
+        {--
         , addChild
         , moveChild
-        , removeChild
+        --}
+        , removeChild 
         , createPrestoElement
-        , addProperty
-        , updateProperty
         , cancelBehavior
         , manualEventsName : manualEventsName unit
+        , updateMicroAppPayload : updateMicroAppPayload ""
+        , updateProperties : updateProperties "" ""
+        , parseParams : parseParams
         }
 
 logger :: forall a. (a → Effect Unit)
@@ -194,7 +195,7 @@ initUI
   :: (Either Error Unit -> Effect Unit)
   -> Effect Canceler
 initUI cb = do
-  root <- EFn.runEffectFn1 setRootNode Nothing -- Sets the initial window objects 
+  root <- EFn.runEffectFn1 setRootNode Nothing
   machine <- EFn.runEffectFn1 (buildVDom (spec Nothing)) view
   EFn.runEffectFn2 insertDom root (extract machine)
   cb $ Right unit
@@ -206,9 +207,8 @@ initUI cb = do
 -- | 1. runScreen
 -- | 2. showScreen
 -- |
--- | runScreen : can creates new screen (create a DOM and attach to the liveDOM) or 
--- | reuse cached screen (evalute the view, diff the VDOMs and update the screen after hiding the current screen) 
--- | 
+-- | runScreen : can creates new screen or reuse cached screen and render it
+-- |   replacing previous screen
 -- | showScreen : creates new screen on top of previous screen
 -- |
 runScreenImpl
@@ -218,12 +218,12 @@ runScreenImpl
     -> (Either Error returnType -> Effect Unit)
     -> (Object.Object Foreign)
     -> Effect Canceler
-runScreenImpl cache { initialState, view, eval, name , globalEvents } namespace cb json = do
+runScreenImpl cache { initialState, view, eval, name , globalEvents } cb json = do
   { event, push } <- E.create
   _ <- trackScreen T.Screen T.Info L.UPCOMING_SCREEN (if cache then "overlay" else "screen") name json
   screenNumber <- getScreenNumber
   _ <- setScreen name
-  let myDom = view push initialState -- evalute the view function, resolve the state variables to values and create a VDOM object. 
+  let myDom = view push initialState
   patch <- if cache
                then checkCachedScreen screenName
                else compareScreen screenName
@@ -234,7 +234,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } namespace 
         then pure Nothing
         else getCachedMachine name) >>=
         case _ of
-          Just machine -> do -- this can be true only if the OS is android 
+          Just machine -> do
             root <- getRootNode
             EFn.runEffectFn3 attachScreen root  (extract machine) name
             processWidget
@@ -242,7 +242,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } namespace 
             EFn.runEffectFn2 addScreenWithAnim (extract newMachine) name
             EFn.runEffectFn2 storeMachine newMachine screenName
           Nothing -> do
-            root <- getRootNode                                       -- window.N ; this is the root element of the screen
+            root <- getRootNode                                       -- window.N
             machine <- EFn.runEffectFn1 (buildVDom (spec Nothing)) myDom -- HalogenVDom Cycle
             EFn.runEffectFn2 storeMachine machine screenName          -- Cache Dom to window
             if cache                                                  -- Show/Run
@@ -307,16 +307,6 @@ showScreen scr st json = do
   result <- runScreenImpl true scr st json
   trackScreen T.Screen T.Info L.CURRENT_SCREEN "overlay" name json
   pure result
-
--- | Function is intended to update a rendered screen's state
-
-updateScreen :: forall action state returnType
-     . Show action => Loggable action => Screen action state returnType
-    -> Object.Object Foreign
-    -> Effect Unit
-updateScreen { initialState, view, eval, name , globalEvents } json = do
-  let myDom = view (\_ -> pure unit ) initialState
-  patchAndRun (Just $ Namespace name) myDom
 
 -- | Function is responsible for Pre-rendering. Intended to be called ahead of
 -- | time, it'll create and cache screen for future use.

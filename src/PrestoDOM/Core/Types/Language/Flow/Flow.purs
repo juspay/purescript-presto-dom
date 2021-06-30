@@ -8,13 +8,16 @@ import Effect.Aff (makeAff)
 import Effect.Class (liftEffect)
 import Presto.Core.Flow (Flow, doAff)
 import Presto.Core.Types.Language.Flow(getLogFields)
-import PrestoDOM (Screen)
+import Effect(Effect)
 import PrestoDOM.Core (prepareScreen) as PrestoDOM
 import PrestoDOM.Core2 as PrestoDOM2
-import PrestoDOM.Types.Core (class Loggable, ScopedScreen)
+import PrestoDOM.Types.Core (class Loggable, ScopedScreen, Controller, Screen)
 
 initUI :: Flow Unit
 initUI  = doAff do liftEffect $ PrestoDOM2.initUIWithNameSpace "default" Nothing
+
+initUIWithNameSpace :: String -> Maybe String -> Effect Unit
+initUIWithNameSpace = PrestoDOM2.initUIWithNameSpace
 
 -- deprecated
 initUIWithScreen
@@ -22,22 +25,17 @@ initUIWithScreen
    . Screen action state Unit
   -> Flow Unit
 initUIWithScreen screen =
-  doAff do liftEffect $ PrestoDOM2.initUIWithScreen "default" Nothing (mapToScopedScreen screen)
-
-initUIWithNamespace
-  :: String
-   -> Maybe String
-  -> Flow Unit
-initUIWithNamespace namespace id =
-  doAff do liftEffect $ PrestoDOM2.initUIWithNameSpace namespace id
+  doAff do PrestoDOM2.initUIWithScreen "default" Nothing (mapToScopedScreen screen)
 
 runScreen :: forall action state retType. Show action => Loggable action => Screen action state retType -> Flow retType
 runScreen screen = do
   json <- getLogFields
-  doAff do makeAff \cb -> PrestoDOM2.runScreen (mapToScopedScreen screen) cb json
+  doAff $ PrestoDOM2.runScreen (mapToScopedScreen screen) json
 
 runScreenWithNameSpace :: forall action state retType. Show action => Loggable action => ScopedScreen action state retType -> Flow retType
-runScreenWithNameSpace screen = doAff do makeAff \cb -> PrestoDOM2.runScreen screen cb
+runScreenWithNameSpace screen = do
+  json <- getLogFields
+  doAff $ PrestoDOM2.runScreen screen json
 
 prepareScreen
   :: forall action state retType
@@ -50,7 +48,17 @@ prepareScreen screen = do
 showScreen :: forall action state retType. Show action => Loggable action => Screen action state retType -> Flow retType
 showScreen screen = do
   json <- getLogFields
-  doAff do makeAff \cb -> PrestoDOM2.showScreen (mapToScopedScreen screen) cb json
+  doAff $ PrestoDOM2.showScreen (mapToScopedScreen screen) json
+
+showScreenWithNameSpace :: forall action state retType. Show action => Loggable action => ScopedScreen action state retType -> Flow retType
+showScreenWithNameSpace screen = do
+  json <- getLogFields
+  doAff $ PrestoDOM2.showScreen screen json
+
+runController :: forall action state retType. Show action => Loggable action => Controller action state retType -> Flow retType
+runController controller = do
+  json <- getLogFields
+  doAff $ PrestoDOM2.runController controller json
 
 updateScreen :: forall action state retType. Show action => Loggable action => Screen action state retType -> Flow Unit
 updateScreen screen = doAff do liftEffect $ PrestoDOM2.updateScreen (mapToScopedScreen screen)

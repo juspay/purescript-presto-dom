@@ -15,6 +15,8 @@ module PrestoDOM.Events
     , setManualEventsName
     , fireManualEvent
     , onMicroappResponse
+    , update
+    , registerEvent
     ) where
 
 import Prelude
@@ -96,22 +98,29 @@ onMenuItemClick push f = event (DOM.EventType "onMenuItemClick") (Just <<< (make
 onBackPressed :: forall a b . (a ->  Effect Unit) -> (b -> a) -> Prop (Effect Unit)
 onBackPressed push f = event (DOM.EventType "onBackPressedEvent") (Just <<< (makeEvent (push <<< f)))
 
+update :: forall a b . (a ->  Effect Unit) -> (b -> a) -> Prop (Effect Unit)
+update push f = event (DOM.EventType "update") (Just <<< (makeEvent (push <<< f)))
+
+
+registerEvent :: forall a b . String -> (a ->  Effect Unit) -> (b -> a) -> Prop (Effect Unit)
+registerEvent s push f = event (DOM.EventType s) (Just <<< (makeEvent (push <<< f)))
+
 onNetworkChanged :: forall a b . (a ->  Effect Unit) -> (b -> a) -> Prop (Effect Unit)
 onNetworkChanged push f = event (DOM.EventType "onNetworkChange") (Just <<< (makeEvent (push <<< f)))
 
 afterRender :: forall a b . (a -> Effect Unit) -> (b -> a) -> Prop (Effect Unit)
 afterRender push f = event (DOM.EventType "afterRender") (Just <<< (makeEvent (push <<< f)))
 
-onMicroappResponse :: forall b . (b -> Effect Unit) -> ({code :: Int, message :: String} -> b) -> Prop (Effect Unit)
+onMicroappResponse :: forall a. (a -> Effect Unit) -> ({code :: Int, message :: String} -> a) -> Prop (Effect Unit)
 onMicroappResponse push f = event (DOM.EventType "onMicroappResponse") (Just <<< (makeEvent (push <<< f)))
 
 -- TODO: Change String to a type
 manualEventsName :: Unit -> Array String
 manualEventsName _ =
-  let defaultEvents = [ "onBackPressedEvent" , "onNetworkChange" ]
+  let defaultEvents = [ "onBackPressedEvent" , "onNetworkChange", "update" ]
   in fromMaybe defaultEvents $ getFromWindow "manualEventsName"
 
 setManualEventsName :: Maybe (Array String) -> Effect Unit
 setManualEventsName (Just arr)  = storeToWindow "manualEventsName" arr
 setManualEventsName Nothing =
-  storeToWindow "manualEventsName" [ "onBackPressedEvent" , "onNetworkChange" ]
+  storeToWindow "manualEventsName" [ "onBackPressedEvent" , "onNetworkChange", "update" ]

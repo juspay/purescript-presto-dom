@@ -198,8 +198,6 @@ window.__PRESTO_ID = window.__ui_id_sequence =
     ? parseInt(Android.getNewID()) * 1000000
     : getPrestoID() * 1000000;
 
-exports._domAll = domAll;
-
 function domAll(elem){
   return domAllImpl(elem, window.__dui_screen, {});
 }
@@ -262,11 +260,8 @@ function domAllImpl(elem, screenName, VALIDATE_ID) {
   window.exitAnimationB[screenName] =
     window.exitAnimationB[screenName] || {};
 
-  // var type = prestoUI.prestoClone(elem.type);
-  // var props = prestoUI.prestoClone(elem.props);
-
-  var type = elem.type; 
-  var props = elem.props; 
+  var type = prestoUI.prestoClone(elem.type);
+  var props = prestoUI.prestoClone(elem.props);
 
   if (window.__OS !== "WEB") {
     if(props.hasOwnProperty("afterRender")){

@@ -2,12 +2,15 @@ module PrestoDOM.List
   ( ListItem(..)
   , ListData(..)
   , ImageSource(..)
+  , AnimationHolder(..)
   , createListData
   , createListItem
+  , createOnclick
   , list
-  , listData
+  , listDataV2
   , listItem
   , onItemClick
+  , onClickHolder
   , textHolder
   , colorHolder
   , imageUrlHolder
@@ -17,92 +20,285 @@ module PrestoDOM.List
   , backgroundHolder
   , visibilityHolder
   , alphaHolder
+  , clickableHolder
+  , textFromHtmlHolder
+  , preComputeListItem
   , renderImageSource
+  , preComputeListItemWithFragment
+  , animationSetHolder
   ) where
 
 import Prelude
 
+import Control.Monad.Except (runExcept)
 import Data.Maybe (Maybe(..))
+import Data.Either (Either(..), hush)
+import Data.Foldable (foldr, foldM)
+import Effect.Uncurried as EFn
+import Data.Array (catMaybes, cons, length)
 import Effect (Effect)
 import Global.Unsafe (unsafeStringify)
-import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM (ElemName(..), PropName(..), VDom, element)
-import PrestoDOM.Core (_domAll)
+import PrestoDOM (PropName(..))
+import Halogen.VDom.Types(VDom(..), ElemName(..))
+import Data.Tuple (snd)
+import Data.String.CodePoints (drop, contains)
+import Data.String.Pattern (Pattern(..))
+import Effect.Ref (Ref, new, read, modify, write) as Ref
+import Effect.Class (liftEffect)
+import Foreign (Foreign, unsafeToForeign)
+import Foreign.Class (encode, decode)
+import Foreign.Object (Object, empty, insert, singleton, update, fromHomogeneous, alter, union)
+import Presto.Core.Flow (Flow, doAff)
+import Presto.Core.Types.API (class StandardEncode, standardEncode)
+import Halogen.VDom.DOM.Prop(Prop(..), PropValue) as P
+import Type.Row.Homogeneous (class Homogeneous)
+import Data.Traversable (traverse)
 import PrestoDOM.Events (makeEvent)
+import PrestoDOM.Elements.Elements (element)
 import PrestoDOM.Properties (prop)
+import PrestoDOM.Core2 (createPrestoElement)
+import PrestoDOM.Types.Core (toPropValue, PrestoDOM)
+import Effect.Aff (effectCanceler, makeAff)
 import Web.Event.Event (EventType(..)) as DOM
+import Unsafe.Coerce (unsafeCoerce)
+import PrestoDOM.Core.Utils (callbackMapper, setDebounceToCallback, callMicroAppList, generateCommands)
+import PrestoDOM.Core.Types (ListItemType)
+import PrestoDOM.Animation (AnimProp, _mergeAnimation)
 
-foreign import _createListItem :: forall i p a b. VDom (Array (Prop i)) p -> (a -> b) -> String
+preComputeListItem :: forall i p. VDom (Array (P.Prop i)) p -> Flow ListItem
+preComputeListItem = preComputeListItemWithFragment Nothing
+
+createListItem :: forall i p. VDom (Array (P.Prop i)) p -> Flow ListItem
+createListItem = preComputeListItem
+
+getBaseId :: Effect Int
+getBaseId = (_.__id) <$> unsafeCoerce createPrestoElement
+
+preComputeListItemWithFragment :: forall i p. Maybe String -> VDom (Array (P.Prop i)) p -> Flow ListItem
+preComputeListItemWithFragment parentType dom = do
+  hv <- doAff do liftEffect $ Ref.new []
+  tv <- doAff do liftEffect $ Ref.new =<< getBaseId
+  kpm <- doAff do liftEffect $ Ref.new empty
+  klm <- doAff do liftEffect $ Ref.new empty
+  aim <- doAff do liftEffect $ Ref.new empty
+  itemView <- extractView hv tv kpm klm aim (encode parentType) dom
+  holderViews <- doAff do liftEffect $ Ref.read hv
+  keyPropMap <- doAff do liftEffect $ Ref.read kpm
+  keyIdMap <- doAff do liftEffect $ Ref.read klm
+  animationIdMap <- doAff do liftEffect $ Ref.read aim
+  pure $ mkListItem {itemView : encode itemView, holderViews, keyPropMap, keyIdMap, animationIdMap}
+
+-- Store non holder key names, against view Id
+-- in update properties, map keys against prop name
+-- get runInUI cmd for each key
+-- replace value of the holder prop
+-- test samples can be expand or textFromHtml
+
+allowedHolderProps :: Array String
+allowedHolderProps = ["background", "text", "color", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "onClick"]
+
+mkListItem :: ListItemType -> ListItem
+mkListItem = unsafeCoerce
+
+getValueFromListItem :: ListItem -> ListItemType
+getValueFromListItem = unsafeCoerce
+
+extractView :: forall i p. Ref.Ref (Array (Object Foreign)) -> Ref.Ref Int -> Ref.Ref (Object (Object String)) -> Ref.Ref (Object String) -> Ref.Ref (Object Foreign) -> Foreign -> VDom (Array (P.Prop i)) p -> Flow (Maybe Foreign)
+extractView hv tv kpm klm aim parentType (Elem _ (ElemName name) p c) = do
+  children <- catMaybes <$> (extractView hv tv kpm klm aim (encode $ (Nothing :: Maybe String)) `traverse` c)
+  props <- addRunInUI hv =<< foldM (parseProps hv tv kpm klm aim) {id : Nothing , props : empty} p
+  pure $ Just $ generateCommands
+    { "type" : name
+    , props : props
+    , children : children
+    , parentType
+    , __ref : Nothing
+    }
+extractView hv tv kpm klm aim parentType (Keyed _ (ElemName name) p c) = do
+  children <- catMaybes <$> ((extractView hv tv kpm klm aim (encode $ (Nothing :: Maybe String)) <<< snd) `traverse` c)
+  props <- addRunInUI hv =<< foldM (parseProps hv tv kpm klm aim) {id : Nothing , props : empty} p
+  pure $ Just $ generateCommands
+    { "type" : name
+    , props : props
+    , children : children
+    , parentType
+    , __ref : Nothing
+    }
+extractView hv tv kpm klm aim parentType (Microapp s p) = do
+  props <- addRunInUI hv =<< foldM (parseProps hv tv kpm klm aim) {id : Nothing , props : empty} p
+  listItem <- hush <<< runExcept <<< decode <$> (doAff $ makeAff $ \cb -> callMicroAppList s props (cb <<< Right) <#> effectCanceler)
+  children <- case listItem of
+    Just ({holderViews, itemView, keyPropMap, keyIdMap, animationIdMap} :: ListItemType) -> do
+        _ <- doAff $ liftEffect $ Ref.modify (flip append holderViews ) hv
+        _ <- doAff $ liftEffect $ Ref.modify (flip append keyPropMap ) kpm
+        _ <- doAff $ liftEffect $ Ref.modify (flip append keyIdMap ) klm
+        _ <- doAff $ liftEffect $ Ref.modify (union animationIdMap ) aim
+        pure [itemView]
+    _ -> pure []
+  pure $ Just $ generateCommands 
+    { "type" : "relativeLayout"
+    , props : props
+    , children : children
+    , parentType
+    , __ref : Nothing
+    }
+extractView _ _ _ _ _ _ _ = pure Nothing
+
+
+parseProps :: forall i. Ref.Ref (Array (Object Foreign)) -> Ref.Ref Int -> Ref.Ref (Object (Object String)) -> Ref.Ref (Object String) -> Ref.Ref (Object Foreign)-> {id :: Maybe Int, props :: Object Foreign} -> P.Prop i -> Flow ({id :: Maybe Int, props :: Object Foreign})
+parseProps hv tv kpm klm aim obj (P.Property a b) 
+  | a == "holder_inlineAnimation" = do
+      i <- case obj.id of
+        Nothing -> do
+          i <- doAff do liftEffect $ Ref.modify (_ + 1) tv
+          _ <- doAff do liftEffect $ Ref.modify (insert (show i) empty) kpm
+          pure i
+        Just key -> pure key
+      _ <- doAff do liftEffect $ Ref.modify (insert (unsafeCoerce b) (show i)) klm
+      _ <- doAff do liftEffect $ Ref.modify (insert (show i) (unsafeCoerce b)) aim
+      let object = insert (drop 7 a) (encode $ "inlineAnimation" <> (show i)) $ singleton "id" (encode i)
+      _ <- doAff do liftEffect $ Ref.modify (cons object) hv
+      pure $ obj { props = insert "id" (unsafeToForeign i) obj.props, id = Just i}
+  | contains (Pattern "holder_") a = do
+      i <- case obj.id of
+        Nothing -> do
+          i <- doAff do liftEffect $ Ref.modify (_ + 1) tv
+          _ <- doAff do liftEffect $ Ref.modify (insert (show i) empty) kpm
+          pure i
+        Just key -> pure key
+      _ <- doAff do liftEffect $ Ref.modify (insert (unsafeCoerce b) (show i)) klm
+      _ <- doAff do liftEffect $ Ref.modify (update (Just <<< insert (unsafeCoerce b) (drop 7 a)) (show i)) kpm
+      let object = insert (drop 7 a) (unsafeToForeign b) $ singleton "id" (encode i)
+      _ <- doAff do liftEffect $ Ref.modify (cons object) hv
+      pure $ obj { props = insert "id" (unsafeToForeign i) obj.props, id = Just i}
+  | otherwise = pure $ obj { props = insert a (unsafeToForeign b) obj.props}
+parseProps hv tv kpm klm aim obj (P.Payload a) =
+  pure $ obj { props = insert "payload" (unsafeToForeign a) obj.props}
+parseProps _ _ _ _ _ obj _ = pure $ obj
+
+addRunInUI :: Ref.Ref (Array (Object Foreign)) -> {id :: Maybe Int, props :: Object Foreign} -> Flow (Object Foreign)
+addRunInUI hv {id:(Just i), props} = doAff $ liftEffect do
+  -- TODO Add this only if props need runInUI
+  arr <- Ref.read hv
+  let object = insert "runInUI" (encode $ "runInUI" <> (show i)) $ singleton "id" (encode i)
+  _ <- Ref.modify (cons object) hv
+  pure props
+addRunInUI hv {id, props} = pure props
 
 -- | Stringified item view container
-data ListItem = ListItem String
+foreign import data ListItem :: Type
+
+instance encodeListItem :: StandardEncode ListItem where
+  standardEncode = standardEncode <<< getValueFromListItem
 
 -- | Stringified item data container
 data ListData = ListData String
 
-data ImageSource = 
+data ImageSource =
   ImageName String | ImagePath String | ImageResId Int | ImageUrl String String
 
 -- | Encodes and constructs item data container
-createListData :: forall i. Array i -> ListData
-createListData vals = ListData (unsafeStringify vals)
-
--- | Encodes and constructs item view container
-createListItem :: forall i p. VDom (Array (Prop i)) p -> ListItem
-createListItem elem = ListItem (_createListItem elem _domAll)
+createListData :: forall i. Array i -> Array i
+createListData vals = vals
 
 -- | Elememt
--- | Flat list inflates the list using template (listItem) and data (listData) provided 
+-- | Flat list inflates the list using template (listItem) and data (listData) provided
 -- | for displaying very large list
-list :: forall i p. Array (Prop i) -> VDom (Array (Prop i)) p
+list :: forall i p. Array (P.Prop i) -> VDom (Array (P.Prop i)) p
 list props = element (ElemName "listView") props []
 
 -- | Events
 -- | Events supported by list item
-onItemClick :: forall a. (a -> Effect Unit ) -> (Int -> a) -> Prop (Effect Unit)
-onItemClick push f = Handler (DOM.EventType "onItemClick") (Just <<< (makeEvent (push <<< f)))
+onItemClick :: forall a. (a -> Effect Unit ) -> (Int -> a) -> P.Prop (Effect Unit)
+onItemClick push f = P.Handler (DOM.EventType "onItemClick") (Just <<< (makeEvent (push <<< f)))
 
 -- | Properties
 -- | List template data property
-listData :: forall i. ListData -> Prop i
+listData :: forall i. ListData -> P.Prop i
 listData (ListData val) = prop (PropName "listData") val
 
+-- | Properties
+-- | List template data property
+listDataV2 :: forall i r. Homogeneous r P.PropValue => Array (Record r) -> P.Prop i
+listDataV2 val = P.ListData $ fromHomogeneous <$> val
+
 -- | List template item property
-listItem :: forall i. ListItem -> Prop i
-listItem (ListItem val) = prop (PropName "listItem") val
+listItem :: forall i. ListItem -> P.Prop i
+-- EVALUATE IF THISIS THE CORRECT PLACE TO ENCODE A PROP
+listItem val = P.Nopatch "listItem" $ toPropValue $ encode $ getValueFromListItem val
+
+onClickHolder :: forall action i. (action -> Effect Unit) -> (Int -> action) -> P.Prop i
+onClickHolder push action = prop (PropName "holder_onClick") $ createOnclick $ push <<< action
+
+createOnclick :: (Int -> Effect Unit) -> String
+createOnclick = setDebounceToCallback <<< callbackMapper <<< EFn.mkEffectFn1
 
 -- | Following properties create a property holder value which is referenced from item data
-textHolder :: forall i. String -> Prop i
+textHolder :: forall i. String -> P.Prop i
 textHolder = prop (PropName "holder_text")
 
-imageUrlHolder :: forall i. String -> Prop i
+imageUrlHolder :: forall i. String -> P.Prop i
 imageUrlHolder = prop (PropName "holder_imageUrl")
 
-packageIconHolder :: forall i. String -> Prop i
+packageIconHolder :: forall i. String -> P.Prop i
 packageIconHolder = prop (PropName "holder_packageIcon")
 
-backgroundHolder :: forall i. String -> Prop i
+backgroundHolder :: forall i. String -> P.Prop i
 backgroundHolder = prop (PropName "holder_background")
 
-colorHolder :: forall i. String -> Prop i
+colorHolder :: forall i. String -> P.Prop i
 colorHolder = prop (PropName "holder_color")
 
-visibilityHolder :: forall i. String -> Prop i
+visibilityHolder :: forall i. String -> P.Prop i
 visibilityHolder = prop (PropName "holder_visibility")
 
-textSizeHolder :: forall i. String -> Prop i
+textSizeHolder :: forall i. String -> P.Prop i
 textSizeHolder = prop (PropName "holder_textSize")
 
-fontStyleHolder :: forall i. String -> Prop i
+fontStyleHolder :: forall i. String -> P.Prop i
 fontStyleHolder = prop (PropName "holder_fontStyle")
 
-alphaHolder :: forall i. String -> Prop i
+alphaHolder :: forall i. String -> P.Prop i
 alphaHolder = prop (PropName "holder_alpha")
 
-renderImageSource :: ImageSource -> String 
-renderImageSource imgSrc = 
+clickableHolder :: forall i. String -> P.Prop i
+clickableHolder = prop (PropName "holder_clickable")
+
+textFromHtmlHolder :: forall i. String -> P.Prop i
+textFromHtmlHolder = prop (PropName "holder_textFromHtml")
+
+renderImageSource :: ImageSource -> String
+renderImageSource imgSrc =
   case imgSrc of
     ImageUrl url placeholder -> "url->" <> url <> "," <>  placeholder
     ImagePath path           -> "path->" <> path
     ImageResId resId         -> "resId->" <> show resId
     ImageName name           -> name
+
+
+data AnimationHolder = AnimationHolder (Array AnimProp) String
+
+animationSetHolder :: forall w. Array AnimationHolder -> (PrestoDOM (Effect Unit) w) -> PrestoDOM (Effect Unit) w
+animationSetHolder = animationSetHolderImpl "holder_inlineAnimation"
+
+-- | Animation set is a composible animation view
+-- | It applies the set of animations on the provided view
+animationSetHolderImpl :: forall w. String -> Array AnimationHolder -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+animationSetHolderImpl propName animations view = do
+  case view of
+    Elem ns eName props child -> do
+      let newProps = props <> [prop (PropName propName) filterAnimations] <> [prop (PropName "hasAnimation") "true"]
+      Elem ns eName newProps child
+    Keyed ns eName props child -> do
+      let newProps = props <> [prop (PropName propName) filterAnimations] <> [prop (PropName "hasAnimation") "true"]
+      Keyed ns eName newProps child
+    _ -> view
+
+  where
+    filterAnimations = foldr
+                          (\(AnimationHolder anims holder) b -> alter (updateHolder anims) holder b)
+                          empty
+                          animations
+
+    updateHolder a (Just arr) = Just $ arr <> [a]
+    updateHolder a _ = Just [a]

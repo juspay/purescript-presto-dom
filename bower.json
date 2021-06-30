@@ -11,18 +11,17 @@
     "purescript-effect": "^2.0.0",
     "purescript-aff": "^5.0.0",
     "purescript-either": "^4.0.0",
-    "purescript-halogen-vdom": "git@bitbucket.org:juspay/purescript-halogen-vdom.git#PICAF-4739-fg10",
+    "purescript-halogen-vdom": "git@bitbucket.org:juspay/purescript-halogen-vdom.git#PICAF-5134-group-patches",
     "purescript-presto": "git@bitbucket.org:juspay/purescript-presto.git#PICAF-3451",
     "purescript-behaviors": "^7.0.0",
-    "purescript-event": "^1.2.4",
+    "purescript-event": "1.3.0",
     "purescript-maybe": "^4.0.0",
     "purescript-generics-rep": "^6.1.1",
     "purescript-tracker": "git@bitbucket.org:juspay/purescript-tracker.git#fg10"
   },
   "devDependencies": {
     "purescript-console": "^4.1.0",
-    "purescript-psci-support": "^4.0.0",
-    "purescript-debug": "^4.0.0"
+    "purescript-psci-support": "^4.0.0"
   },
   "homepage": "https://bitbucket.org/juspay/purescript-presto-dom",
   "description": "UI Framework for writing cross platform apps",
@@ -35,6 +34,8 @@
   },
   "version": "v0.5.0_rc3",
   "resolutions": {
-    "purescript-presto": "PICAF-3451"
+    "purescript-presto": "PICAF-3451",
+    "purescript-foreign-object": "^2.0.0",
+    "purescript-typelevel-prelude": ">= 4.0.0 < 6.0.0"
   }
 }

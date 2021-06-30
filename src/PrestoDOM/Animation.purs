@@ -33,6 +33,7 @@ module PrestoDOM.Animation
   , exitAnimationSet
   , exitAnimationSetForward
   , exitAnimationSetBackward
+  , _mergeAnimation
   ) where
 
 import Prelude

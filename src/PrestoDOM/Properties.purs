@@ -41,6 +41,7 @@ module PrestoDOM.Properties
     , duration
 
     , elevation
+    , ellipsize
 
     , fillViewport
     , focus
@@ -291,7 +292,9 @@ duration = prop (PropName "duration")
 elevation :: forall i. Int -> Prop i
 elevation = prop (PropName "elevation")
 
-
+-- | Boolean
+ellipsize :: forall i. Boolean -> Prop i
+ellipsize = prop (PropName "ellipsize")
 
 -- | Boolean
 fillViewport :: forall i. Boolean -> Prop i
@@ -681,4 +684,4 @@ viewGroupTag :: forall i. String -> Prop i
 viewGroupTag = prop (PropName "viewGroupTag")
 
 payload :: forall i. String -> Prop i
-payload = prop (PropName "payload")
+payload = Payload

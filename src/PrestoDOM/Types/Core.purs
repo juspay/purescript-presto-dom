@@ -7,6 +7,7 @@ module PrestoDOM.Types.Core
     , Screen
     , ScreenBase
     , ScopedScreen
+    , Controller
     , Eval
     , Cmd
     , PrestoWidget(..)
@@ -43,6 +44,7 @@ import Tracker.Labels (Label(..)) as L
 import Foreign(Foreign)
 import Foreign.Class (encode)
 import Foreign.Object as Object
+import Unsafe.Coerce (unsafeCoerce)
 
 newtype PrestoWidget a = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget a))
 
@@ -75,18 +77,19 @@ data GenProp
     | CornersP Corners
 
 
-type Screen action state returnType = ScreenBase action state returnType ()
+type Screen action state returnType = ScreenBase action state returnType (view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit)))
 
 type ScreenBase action state returnType a =
   { initialState :: state
   , name :: String
   , globalEvents :: Array ((action -> Effect Unit) -> Effect (Effect Unit))
-  , view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
   , eval :: action -> state -> Eval action returnType state
   | a
   }
 
-type ScopedScreen action state returnType = ScreenBase action state returnType (parent :: Maybe String)
+type Controller action state returnType = ScreenBase action state returnType (parent :: Maybe String, emitter :: state -> Effect Unit)
+
+type ScopedScreen action state returnType = ScreenBase action state returnType (parent :: Maybe String, view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit)))
 
 derive instance newtypePropName :: Newtype (PropName value) _
 
@@ -102,7 +105,7 @@ defaultSkipLog :: forall a. Show a => a -> (Object.Object Foreign)-> Effect Unit
 defaultSkipLog _ _ = pure unit
 
 instance stringLoggable :: Loggable String where
-  performLog = trackAction T.User T.Info L.EVAL "data" <<< encode
+  performLog = defaultPerformLog
 
 class IsProp a where
   toPropValue :: a -> PropValue
@@ -118,6 +121,12 @@ instance numberIsProp :: IsProp Number where
 
 instance booleanIsProp :: IsProp Boolean where
   toPropValue = propFromBoolean
+
+instance foreignIsProp :: IsProp Foreign where
+  toPropValue = unsafeCoerce
+
+instance objectIsProp :: IsProp (Object.Object a) where
+  toPropValue = unsafeCoerce
 
 instance stringArrayIsProp :: IsProp (Array String) where
   toPropValue = propFromString <<< unsafeStringify
