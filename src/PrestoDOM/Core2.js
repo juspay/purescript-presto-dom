@@ -577,7 +577,11 @@ function processMapps(namespace, nam) {
         requestId: cachedObject.requestId,
         payload: p
       };
-      JOS.emitEvent(x.service)("onMerchantEvent")(["process", JSON.stringify(x)])(cb)();
+      if(JOS.isMAppPresent(x.service)()) {
+        JOS.emitEvent(x.service)("onMerchantEvent")(["process", JSON.stringify(x)])(cb)();
+      } else {
+        cb(0)("error")()
+      }
       cachedObject = state.scopedState[namespace].mappQueue.pop();
     }
   }, 32);
@@ -1152,8 +1156,12 @@ exports.updateMicroAppPayloadImpl = function (payload, element, isPatch) {
     }
     var cb = function(){return function(){ return function(){ /* Ignored */ }}}
     setTimeout( function() {
-      JOS.emitEvent(x.service)("onMerchantEvent")(["update", JSON.stringify(x)])(cb)();
-      }, 32); 
+      if(JOS.isMAppPresent(x.service)()) {
+        JOS.emitEvent(x.service)("onMerchantEvent")(["update", JSON.stringify(x)])(cb)();
+      } else {
+        cb(0)("error")()
+      }
+    }, 32);
   }
 }
 

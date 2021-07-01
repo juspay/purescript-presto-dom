@@ -274,11 +274,12 @@ forkoutListState "listView" props = do
   let keys = do
         id <- lookup "id" props
         listData <- extractAndDecode "listData" props
-        payloads <- extractJsonAndDecode "payload" props
-        pure {id, listData, payloads}
-  case keys of 
-    Just {id, listData, payloads} -> forkAff $ Just <$> callMicroAppsForListState id listData payloads
-    Nothing -> forkAff $ pure Nothing
+        pure {id, listData}
+  let payloads = extractJsonAndDecode "payload" props
+  case keys, payloads of 
+    Just {id, listData}, Just payloads -> forkAff $ Just <$> callMicroAppsForListState id listData payloads
+    Just {id, listData}, _ -> forkAff $ pure $ Just listData
+    Nothing, _ -> forkAff $ pure Nothing
 forkoutListState _ _ = forkAff $ pure Nothing
 
 

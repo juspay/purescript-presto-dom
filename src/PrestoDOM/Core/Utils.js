@@ -101,7 +101,12 @@ exports.callMicroAppListItem = function (service) {
                     payload : JSON.parse(a.payload),
                     service : service
                 }
-                return JOS.emitEvent(service)("onMerchantEvent")(["process", JSON.stringify(request)])(success)()
+                if(JOS.isMAppPresent(service)()) {
+                    return JOS.emitEvent(service)("onMerchantEvent")(["process", JSON.stringify(request)])(success)()
+                } else {
+                    success(0)("failure")()
+                    return function() {}
+                }
             }
         }
     }
@@ -156,7 +161,12 @@ exports.callMicroApp = function (service) {
                             }
                         }
                     }
-                    return JOS.emitEvent(service)("onMerchantEvent")([action, JSON.stringify(request)])(success)()
+                    if(JOS.isMAppPresent(service)()) {
+                        return JOS.emitEvent(service)("onMerchantEvent")([action, JSON.stringify(request)])(success)()
+                    } else {
+                        success(0)("failure")();
+                        return function() {}
+                    }
                 }
             }
         }
