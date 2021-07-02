@@ -577,7 +577,8 @@ function processMapps(namespace, nam) {
         requestId: cachedObject.requestId,
         payload: p
       };
-      if(JOS.isMAppPresent(x.service)()) {
+
+      if(window.JOS && typeof JOS.isMAppPresent == "function" &&  typeof JOS.isMAppPresent(x.service) == "function" && JOS.isMAppPresent(x.service)()) {
         JOS.emitEvent(x.service)("onMerchantEvent")(["process", JSON.stringify(x)])(cb)();
       } else {
         cb(0)("error")()
@@ -1156,7 +1157,7 @@ exports.updateMicroAppPayloadImpl = function (payload, element, isPatch) {
     }
     var cb = function(){return function(){ return function(){ /* Ignored */ }}}
     setTimeout( function() {
-      if(JOS.isMAppPresent(x.service)()) {
+      if(window.JOS && typeof JOS.isMAppPresent == "function" &&  typeof JOS.isMAppPresent(x.service) == "function" && JOS.isMAppPresent(x.service)()) {
         JOS.emitEvent(x.service)("onMerchantEvent")(["update", JSON.stringify(x)])(cb)();
       } else {
         cb(0)("error")()
