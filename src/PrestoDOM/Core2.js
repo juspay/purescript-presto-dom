@@ -89,6 +89,8 @@ const state = {
 , listViewAnimationKeys : {}
 , counter: 0
 , bitMap: {}
+, activityNamespaces: {}
+, currentActivity: ''
 }
 
 var getIdFromNamespace = function(namespace) {
@@ -131,6 +133,7 @@ function createPrestoElement() {
     };
   }
 };
+window.createPrestoElement = createPrestoElement;
 
 function removeViewFromNameSpace (namespace, id) {
   // Return a callback, which can be used to remove the screen
@@ -238,7 +241,6 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
   if(typeof props.listItem == "object") {
     state.listViewKeys[elem.__ref.__id] = props.listItem.keyPropMap
     state.listViewAnimationKeys[elem.__ref.__id] = props.listItem.animationIdMap
-    console.log("keyPropMap", state.listViewKeys[elem.__ref.__id], props.listItem, props.listData)
     props.listItem = JSON.stringify({itemView : props.listItem.itemView, holderViews : props.listItem.holderViews})
   }
 
@@ -248,6 +250,8 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
     var mappBootData = {
       payload : props.payload
     , viewGroupTag : props.viewGroupTag || "main"
+    , unNestPayload : props.unNestPayload
+    , useStartApp : props.useStartApp
     , requestId : elem.requestId
     , service : elem.service
     , elemId : elem.__ref.__id
@@ -523,7 +527,7 @@ function callAnimation_ (namespace, screenArray, resetAnimation, screenName) {
 
 function processMapps(namespace, nam) {
   setTimeout(function () {
-    var cachedObject = (state.scopedState[namespace].mappQueue || []).pop();
+    var cachedObject = (state.scopedState[namespace].mappQueue || []).shift();
     while (cachedObject) {
       var fragId = AndroidWrapper.addToContainerList(parseInt(cachedObject.elemId), getIdFromNamespace(namespace));
       cachedObject.fragId = fragId;
@@ -572,18 +576,20 @@ function processMapps(namespace, nam) {
       p.fragmentViewGroups = p.fragmentViewGroups || {};
       p.fragmentViewGroups[cachedObject.viewGroupTag] = fragId;
       state.fragmentIdMap[cachedObject.requestId] = p.fragmentViewGroups[cachedObject.viewGroupTag];
-      var x = {
+      var x = cachedObject.unNestPayload ? p : {
         service: cachedObject.service,
         requestId: cachedObject.requestId,
         payload: p
       };
 
-      if(window.JOS && typeof JOS.isMAppPresent == "function" &&  typeof JOS.isMAppPresent(x.service) == "function" && JOS.isMAppPresent(x.service)()) {
-        JOS.emitEvent(x.service)("onMerchantEvent")(["process", JSON.stringify(x)])(cb)();
+      if (cachedObject.useStartApp) {
+        JOS.startApp(cachedObject.service)(x)(cb)()
+      } else if(window.JOS && typeof JOS.isMAppPresent == "function" &&  typeof JOS.isMAppPresent(cachedObject.service) == "function" && JOS.isMAppPresent(cachedObject.service)()) {
+        JOS.emitEvent(cachedObject.service)("onMerchantEvent")(["process", JSON.stringify(x)])(cb)();
       } else {
         cb(0)("error")()
       }
-      cachedObject = state.scopedState[namespace].mappQueue.pop();
+      cachedObject = state.scopedState[namespace].mappQueue.shift();
     }
   }, 32);
 }
@@ -620,9 +626,13 @@ exports.checkAndDeleteFromHideAndRemoveStacks = function (namespace, screenName)
 exports.setUpBaseState = function (namespace) {
   return function (id) {
     return function () {
-      console.log("InitUI called for ", namespace, id)
       if(typeof state.scopedState[namespace] != "undefined") {
         terminateUIImpl()(namespace);
+      }
+      if (state.currentActivity !== '') {
+        var ns = namespace.substr(0, namespace.length - state.currentActivity.length);
+        state.activityNamespaces[state.currentActivity] = state.activityNamespaces[state.currentActivity] || [];
+        state.activityNamespaces[state.currentActivity].push(ns);
       }
       state.scopedState[namespace] = state.scopedState[namespace] || {}
       state.scopedState[namespace].id = id
@@ -690,6 +700,8 @@ exports.setUpBaseState = function (namespace) {
       state.scopedState[namespace].shouldReplayCallbacks = {}
       state.scopedState[namespace].eventIOs = {}
       state.scopedState[namespace].afterRenderFunctions = {}
+      state.scopedState[namespace].queuedEvents = {}
+      state.scopedState[namespace].pushActive = {}
       
       if (window.__OS == "ANDROID") {
         if (typeof AndroidWrapper.getNewID == "function") { 
@@ -788,8 +800,12 @@ exports.isCached = function (name, namespace) {
 
 exports.cancelExistingActions = function (name, namespace) {
   // Added || false to return false when value is undefined
-  if(state.scopedState[namespace] && state.scopedState[namespace].cancelers && typeof state.scopedState[namespace].cancelers[name] == "function") {
-    state.scopedState[namespace].cancelers[name]();
+  try{
+    if(state.scopedState[namespace] && state.scopedState[namespace].cancelers && typeof state.scopedState[namespace].cancelers[name] == "function") {
+      state.scopedState[namespace].cancelers[name]();
+    }
+  }catch(e){
+    console.error("cancelExistingActions:",e);
   }
 }
 
@@ -830,6 +846,15 @@ function terminateUIImpl (callback) {
       ) {
         AndroidWrapper.removeView(state.scopedState[namespace].root.__ref.__id, getIdFromNamespace(namespace));
       } else {
+        if ( JOS
+          && JOS.parent
+          && state.scopedState[namespace]
+          && state.scopedState[namespace].root
+          && state.scopedState[namespace].root.__ref
+          && state.scopedState[namespace].root.__ref.__id
+          ) {
+          AndroidWrapper.removeView(state.scopedState[namespace].root.__ref.__id, getIdFromNamespace(namespace));
+        }
         AndroidWrapper.runInUI(["removeAllUI"], getIdFromNamespace(namespace));
       }
       delete state.scopedState[namespace] 
@@ -1112,9 +1137,9 @@ exports["replayFragmentCallbacks'"] = function (namespace) {
     return function (push) {
       return function() {
         try {
-          state.scopedState[namespace].shouldReplayCallbacks[nam] = true
+          state.scopedState[namespace + state.currentActivity].shouldReplayCallbacks[nam] = true
           if(window.__OS == "WEB") {
-            (state.scopedState[namespace].fragmentCallbacks[nam] || []).forEach (function(x) {
+            (state.scopedState[namespace + state.currentActivity].fragmentCallbacks[nam] || []).forEach (function(x) {
               x.callback(x.payload)
             })
           }
@@ -1123,7 +1148,11 @@ exports["replayFragmentCallbacks'"] = function (namespace) {
           console.log("Replay fragment Error => ", e)
         }
         return function() {
-          state.scopedState[namespace].shouldReplayCallbacks[nam] = false
+          try {
+            state.scopedState[namespace + state.currentActivity].shouldReplayCallbacks[nam] = false
+          } catch (err) {
+            console.warn("TODO:: Fix this", err);
+          }
         }
       }
     }
@@ -1150,15 +1179,22 @@ exports.updateMicroAppPayloadImpl = function (payload, element, isPatch) {
     var payload = JSON.parse( payload || {})
     payload.fragmentViewGroups = {}
     payload.fragmentViewGroups[element.props.viewGroupTag || "main"] = state.fragmentIdMap[element.requestId]
-    var x = {
+    var x = element.props.unNestPayload ? payload : {
       service : element.service
     , requestId : element.requestId
     , payload : payload
     }
-    var cb = function(){return function(){ return function(){ /* Ignored */ }}}
+    var cb = function(code){return function(message){ return function(){
+      if (typeof element.props.onMicroappResponse == "function"){
+        element.props.onMicroappResponse({
+          code: code,
+          message: message,
+        })
+      }
+    }}}
     setTimeout( function() {
-      if(window.JOS && typeof JOS.isMAppPresent == "function" &&  typeof JOS.isMAppPresent(x.service) == "function" && JOS.isMAppPresent(x.service)()) {
-        JOS.emitEvent(x.service)("onMerchantEvent")(["update", JSON.stringify(x)])(cb)();
+      if(window.JOS && typeof JOS.isMAppPresent == "function" &&  typeof JOS.isMAppPresent(element.service) == "function" && JOS.isMAppPresent(element.service)()) {
+        JOS.emitEvent(element.service)("onMerchantEvent")(["update", JSON.stringify(x)])(cb)();
       } else {
         cb(0)("error")()
       }
@@ -1292,9 +1328,15 @@ exports.getListDataCommands = function (listData, element) {
       var ps = {}
       var backMap = {runInUI : "runInUI" + id}
       for(var prop in keyPropMap[id]) {
-      if(x.indexOf(keyPropMap[id][prop]) != -1) {
-          item[prop] = listData[j][prop]; 
-          continue
+      if(x.indexOf(keyPropMap[id][prop]) != -1 || window.__OS == "WEB") {
+        if(keyPropMap[id][prop] == "imageUrl" && window.__OS != "WEB") {
+          try {
+            new URL(listData[j][prop])
+            listData[j][prop] = "url->" + listData[j][prop] + ","
+          } catch (e) { /** Ignored */ }
+        }
+        item[prop] = listData[j][prop]; 
+        continue
       }
       ps[keyPropMap[id][prop]] = listData[j][prop];
       backMap[keyPropMap[id][prop]] = prop;
@@ -1310,7 +1352,7 @@ exports.getListDataCommands = function (listData, element) {
         y.push(id);
         backMap.inlineAnimation = "inlineAnimation" + id;
       }
-      if(window.__OS == "ANDROID") {
+      if(window.__OS == "ANDROID" || window.__OS == "IOS" ) {
         // TODO add cross platform support
         ps = exports.parseParams("linearLayout", ps, "get")
       }
@@ -1334,6 +1376,54 @@ exports.getListDataCommands = function (listData, element) {
   }
   final.push(item);
   }
-  console.log("final", final);
   return JSON.stringify(final)
+}
+
+exports.updateActivity = function (activityId) {
+  return function () {
+    state.activityNamespaces[state.currentActivity] = state.activityNamespaces[state.currentActivity] || [];
+    state.activityNamespaces[state.currentActivity].map(function(a) {
+      exports.setUpBaseState(a + activityId)()();
+    });
+    state.currentActivity = activityId;
+  }
+}
+
+exports.getCurrentActivity = function () {
+  return state.currentActivity;
+}
+
+exports.cachePushEvents = function(namespace) {
+  return function(screenName) {
+    return function(efn) {
+      return function () {
+        state.scopedState[namespace].queuedEvents = state.scopedState[namespace].queuedEvents || {} 
+        state.scopedState[namespace].queuedEvents[screenName] = state.scopedState[namespace].queuedEvents[screenName] || []
+        state.scopedState[namespace].queuedEvents[screenName].push(efn)
+      }
+    }
+  }
+}
+
+exports.isScreenPushActive = function(namespace) {
+  return function(screenName) {
+    return function () {
+      state.scopedState[namespace] = state.scopedState[namespace] || {}
+      state.scopedState[namespace].pushActive = state.scopedState[namespace].pushActive || {}
+      return state.scopedState[namespace].pushActive[screenName] || false;
+    }
+  }
+}
+
+exports.setScreenPushActive = function(namespace) {
+  return function(screenName) {
+    return function () {
+      state.scopedState[namespace].pushActive = state.scopedState[namespace].pushActive || {}
+      state.scopedState[namespace].queuedEvents = state.scopedState[namespace].queuedEvents || {} 
+      state.scopedState[namespace].pushActive[screenName] = true
+      while(state.scopedState[namespace].queuedEvents[screenName] && state.scopedState[namespace].queuedEvents[screenName][0]) {
+        state.scopedState[namespace].queuedEvents[screenName].shift()();
+      }
+    }
+  }
 }

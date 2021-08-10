@@ -40,9 +40,10 @@ foreign import callbackMapper :: forall a. (EFn.EffectFn1 a Unit) -> String
 foreign import generateCommands :: forall i. VdomTree -> Foreign
 foreign import generateAndCheckRequestId :: Foreign -> Object Foreign -> Effect Unit
 foreign import callMicroAppListItem :: forall a b. String -> a -> (b -> Effect Unit) -> Effect (Effect Unit)
-foreign import callMicroApp :: forall a b. String -> Foreign -> a -> (Foreign -> Effect Unit) -> Effect (Effect Unit)
+foreign import callMicroApp :: forall a b. String -> Foreign -> a -> (Foreign -> Effect Unit) -> Foreign -> String -> String -> Effect (Effect Unit)
 foreign import getLatestListData :: Foreign -> Effect (Array (Array (Object Foreign)))
 foreign import os :: String
+foreign import replayListFragmentCallbacks' :: forall a. String -> String -> (a -> Effect Unit) -> Effect (Effect Unit)
 
 -- hack, should be effect, but behaviour is same, even if gets cached
 foreign import setDebounceToCallback :: String -> String
@@ -175,6 +176,8 @@ extractView ref parentType (NodeTree {props : p, children : c, "type" :t}) = do
     , children : children
     , parentType : encode parentType
     , __ref : Nothing
+    , service : Nothing
+    , requestId : Nothing
     }
 extractView _ _ _ = pure Nothing
 
@@ -269,24 +272,25 @@ verifyImage (Just a) =
           then Just $ encode a
           else Nothing
 
-forkoutListState :: String -> Object Foreign -> Aff (Fiber (Maybe (Array (Object Foreign))))
-forkoutListState "listView" props = do
+forkoutListState :: String -> String -> String -> Object Foreign -> Aff (Fiber (Maybe (Array (Object Foreign))))
+forkoutListState namespace screenName "listView" props = do
   let keys = do
         id <- lookup "id" props
         listData <- extractAndDecode "listData" props
         pure {id, listData}
   let payloads = extractJsonAndDecode "payload" props
+  let mapp = fromMaybe (encode $ unit) $ lookup "onMicroappResponse" props
   case keys, payloads of 
-    Just {id, listData}, Just payloads -> forkAff $ Just <$> callMicroAppsForListState id listData payloads
+    Just {id, listData}, Just payloads -> forkAff $ Just <$> callMicroAppsForListState id namespace screenName listData payloads mapp
     Just {id, listData}, _ -> forkAff $ pure $ Just listData
     Nothing, _ -> forkAff $ pure Nothing
-forkoutListState _ _ = forkAff $ pure Nothing
+forkoutListState _ _ _ _ = forkAff $ pure Nothing
 
 
-callMicroAppsForListState :: Foreign -> (Array (Object Foreign)) -> Object Foreign -> Aff (Array (Object Foreign))
-callMicroAppsForListState id listData microappPayloads = do
+callMicroAppsForListState :: Foreign -> String -> String -> (Array (Object Foreign)) -> Object Foreign -> Foreign -> Aff (Array (Object Foreign))
+callMicroAppsForListState id namespace screenName listData microappPayloads mappCallback = do
   -- generateAndCheckRequestId id microappPayloads
-  Object.foldM (callSingle id) listData microappPayloads
+  Object.foldM (callSingle id mappCallback namespace screenName) listData microappPayloads
   -- GET ID; CREATE REQUESTID AGAINST VIEW ID + MAPP
   -- UPDATE VIEW ID
   -- LOOP ON ALL PAYLOADS TO CALL ALL MAPPS IN PARALLEL
@@ -295,9 +299,9 @@ callMicroAppsForListState id listData microappPayloads = do
   -- MIGHT NEED TO CONSIDER SCOPEING KEYS WITH MAPP NAMES IN BOTH 
   -- LIST ITEM HOLDERS AND LIST ITEM STATE
 
-callSingle :: Foreign -> (Array (Object Foreign)) -> String -> Foreign -> Aff (Array (Object Foreign))
-callSingle id acc service payload = do
-  (response :: Array (Object Foreign)) <- (fromMaybe acc <<< hush <<< runExcept <<< decode) <$> (makeAff (\cb -> callMicroApp service id payload (cb <<< Right) $> nonCanceler))
+callSingle :: Foreign ->  Foreign -> String -> String -> (Array (Object Foreign)) -> String -> Foreign -> Aff (Array (Object Foreign))
+callSingle id mappCallback namespace screenName  acc service payload = do
+  (response :: Array (Object Foreign)) <- (fromMaybe acc <<< hush <<< runExcept <<< decode) <$> (makeAff (\cb -> callMicroApp service id payload (cb <<< Right) mappCallback namespace screenName $> nonCanceler))
   pure $ zipWith union acc response
 
 getListData :: Foreign -> Array (Object Foreign) -> Effect (Array (Object Foreign))

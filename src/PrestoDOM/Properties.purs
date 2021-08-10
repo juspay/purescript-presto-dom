@@ -128,6 +128,8 @@ module PrestoDOM.Properties
     , typeface
 
     , url
+    , useStartApp
+    , unNestPayload
 
     , values
     , visibility
@@ -682,6 +684,12 @@ imeOptions = prop (PropName "imeOptions")
 
 viewGroupTag :: forall i. String -> Prop i
 viewGroupTag = prop (PropName "viewGroupTag")
+
+useStartApp :: forall i. Boolean -> Prop i
+useStartApp = prop (PropName "useStartApp")
+
+unNestPayload :: forall i. Boolean -> Prop i
+unNestPayload = prop (PropName "unNestPayload")
 
 payload :: forall i. String -> Prop i
 payload = Payload

@@ -93,6 +93,8 @@ type VdomTree = {
     , props :: Object Foreign
     , parentType :: Foreign
     , __ref :: Maybe {__id :: Foreign}
+    , service :: Maybe String
+    , requestId :: Maybe String
     }
 
 
