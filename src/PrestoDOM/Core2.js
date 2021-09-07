@@ -668,7 +668,8 @@ exports.setUpBaseState = function (namespace) {
             id : elemRef.__id,
             root: "true",
             height: "match_parent",
-            width: "match_parent"
+            width: "match_parent",
+            visibility : "gone"
           },
           __ref : elemRef,
           children: [
@@ -702,6 +703,7 @@ exports.setUpBaseState = function (namespace) {
       getScopedState(namespace).screenShowCallbacks = {}
       getScopedState(namespace).screenRemoveCallbacks = {}
       getScopedState(namespace).cancelers = {}
+      getScopedState(namespace).rootId = elemRef.__id
       getScopedState(namespace).stackRoot = stackRef.__id
       getScopedState(namespace).cacheRoot = cacheRef.__id
 
@@ -724,6 +726,7 @@ exports.setUpBaseState = function (namespace) {
       getScopedState(namespace).afterRenderFunctions = {}
       getScopedState(namespace).queuedEvents = {}
       getScopedState(namespace).pushActive = {}
+      getScopedState(namespace).rootVisible = false;
       
       if (window.__OS == "ANDROID") {
         if (typeof AndroidWrapper.getNewID == "function") {
@@ -746,6 +749,9 @@ exports.insertDom = function(namespace, name, dom, cache) {
   if(!getScopedState(namespace)) {
     console.error("Call initUI for namespace :: " + namespace + "before triggering run/show screen")
     return;
+  }
+  if(!getScopedState(namespace).rootVisible) {
+    exports.makeRootVisible(namespace);
   }
 
   getScopedState(namespace).animations.entry[name] = {}
@@ -1144,6 +1150,11 @@ function fireManualEvent (namespace, nam) {
 exports.makeCacheRootVisible = function(namespace) {
   getScopedState(namespace).shouldHideCacheRoot = false;
   showViewInNameSpace(getScopedState(namespace).cacheRoot, namespace)();
+}
+
+exports.makeRootVisible = function(namespace) {
+  getScopedState(namespace).rootVisible = true;
+  showViewInNameSpace(getScopedState(namespace).rootId, namespace)();
 }
 
 exports.hideCacheRootOnAnimationEnd = function(namespace) {
