@@ -9,6 +9,7 @@ import Data.Foldable (for_)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (un)
 import Data.Traversable (traverse)
+import Data.String (contains, Pattern(..))
 import Data.Tuple (Tuple(..), fst)
 import Effect (Effect)
 import Effect.Class (liftEffect)
@@ -89,9 +90,9 @@ foreign import parseParams :: forall a b c d. EFn.EffectFn3 a b c d
 foreign import getListDataCommands :: forall a. EFn.EffectFn2 (Array (Object a)) Foreign Foreign
 foreign import setControllerStates :: String -> String -> Effect Unit
 
-foreign import cachePushEvents :: String -> String -> Effect Unit -> Effect Unit
-foreign import isScreenPushActive :: String -> String -> Effect Boolean
-foreign import setScreenPushActive :: String -> String -> Effect Unit
+foreign import cachePushEvents :: String -> String -> Effect Unit -> String -> Effect Unit
+foreign import isScreenPushActive :: String -> String -> String -> Effect Boolean
+foreign import setScreenPushActive :: String -> String -> String -> Effect Unit
 
 updateChildren :: forall a b. String -> String -> EFn.EffectFn1 a Unit
 updateChildren namespace screenName =
@@ -200,8 +201,11 @@ updateMicroAppPayload screenName =
 sanitiseNamespace :: Maybe String -> Effect String
 sanitiseNamespace maybeNS = do
   let ns = fromMaybe "default" maybeNS
-  activityId <- getCurrentActivity
-  pure $ ns <> activityId
+  pure ns
+  -- activityId <- getCurrentActivity
+  -- pure $ if contains (Pattern activityId) ns
+  --   then ns
+  --   else ns -- <> activityId
 
 patchAndRun :: forall w i state. String -> Maybe String -> (state -> VDom (Array (Prop i)) w) -> state -> Effect Unit
 patchAndRun screenName namespace emitter state = do
@@ -250,7 +254,8 @@ getEventIO :: forall action. String -> Maybe String -> Effect (EventIO action)
 getEventIO screenName parent = do
   ns <- sanitiseNamespace parent
   {event, push} <- Efn.runEffectFn3 getAndSetEventFromState ns screenName E.create
-  pure $ {event, push : createPushQueue ns screenName push}
+  activityId <- getCurrentActivity
+  pure $ {event, push : createPushQueue ns screenName push activityId}
 
 renderOrPatch :: forall action state returnType
   . Show action => Loggable action
@@ -315,7 +320,8 @@ controllerActions {event, push} {initialState, eval, name, globalEvents, parent}
   timerRef <- Ref.new Nothing
   let stateBeh = unfold execEval event { previousAction : Nothing, currentAction : Nothing, eitherState : (continue initialState)}
   canceller <- sample_ stateBeh event `subscribe` (\a -> either (onExit a.previousAction a.currentAction timerRef) (onStateChange a.previousAction a.currentAction timerRef) a.eitherState)
-  _ <- setScreenPushActive ns name
+  activityId <- getCurrentActivity
+  _ <- setScreenPushActive ns name activityId
   cancellers <- traverse registerEvents globalEvents
   EFn.runEffectFn3 saveCanceller name ns $ joinCancellers cancellers canceller
   pure $ effectCanceler (EFn.runEffectFn2 cancelExistingActions name ns)
@@ -373,7 +379,7 @@ runScreen :: forall action state returnType
   -> Aff returnType
 runScreen st@{ name, parent, view} json = do
   ns <- liftEffect $ sanitiseNamespace parent
-  liftEffect $ EFn.runEffectFn2 checkAndDeleteFromHideAndRemoveStacks name ns
+  liftEffect $ EFn.runEffectFn2 checkAndDeleteFromHideAndRemoveStacks ns name
   check <- liftEffect $  EFn.runEffectFn2 isInStack name ns <#> not
   eventIO <- liftEffect $ getEventIO name parent
   _ <- liftEffect $ trackScreen T.Screen T.Info L.CURRENT_SCREEN "screen" name json
@@ -383,12 +389,12 @@ runScreen st@{ name, parent, view} json = do
   renderOrPatch eventIO st check false
   makeAff $ controllerActions eventIO st json (patchAndRun name parent (view eventIO.push))
 
-createPushQueue :: forall action. String -> String -> (action -> Effect Unit) -> action -> Effect Unit
-createPushQueue namespace screenName push action = do
-  isScreenPushActive namespace screenName >>=
+createPushQueue :: forall action. String -> String -> (action -> Effect Unit) -> String -> action -> Effect Unit
+createPushQueue namespace screenName push activityId action = do
+  isScreenPushActive namespace screenName activityId >>=
     if _
       then push action
-      else cachePushEvents namespace screenName (push action)
+      else cachePushEvents namespace screenName (push action) activityId
 
 getPushFn :: forall a. Maybe String -> String -> Effect (a -> Effect Unit)
 getPushFn parent name = getEventIO name parent <#> \{push} -> push
@@ -418,14 +424,14 @@ showScreen :: forall action state returnType
   -> Aff returnType
 showScreen st@{name, parent, view} json = do
   ns <- liftEffect $ sanitiseNamespace parent
-  liftEffect $ EFn.runEffectFn2 checkAndDeleteFromHideAndRemoveStacks name ns
+  liftEffect $ EFn.runEffectFn2 checkAndDeleteFromHideAndRemoveStacks ns name
   liftEffect $ Efn.runEffectFn1 makeCacheRootVisible ns
   check <- liftEffect $  EFn.runEffectFn2 isCached name ns <#> not
   eventIO <- liftEffect $ getEventIO name parent
   _ <- liftEffect $ trackScreen T.Screen T.Info L.CURRENT_SCREEN "overlay" name json
   _ <- liftEffect $ trackScreen T.Screen T.Info L.UPCOMING_SCREEN "overlay" name json
   liftEffect $ EFn.runEffectFn2 addToCachedList ns name
-  renderOrPatch eventIO st check false
+  renderOrPatch eventIO st check true
   makeAff $ controllerActions eventIO st json (patchAndRun name parent (view eventIO.push))
 
 updateScreen :: forall action state returnType
