@@ -65,16 +65,16 @@ import PrestoDOM.Core.Utils (callbackMapper, setDebounceToCallback, callMicroApp
 import PrestoDOM.Core.Types (ListItemType)
 import PrestoDOM.Animation (AnimProp, _mergeAnimation)
 
-preComputeListItem :: forall i p. VDom (Array (P.Prop i)) p -> Flow ListItem
+preComputeListItem :: forall i p a. VDom (Array (P.Prop i)) p -> Flow a ListItem
 preComputeListItem = preComputeListItemWithFragment Nothing
 
-createListItem :: forall i p. VDom (Array (P.Prop i)) p -> Flow ListItem
+createListItem :: forall i p a. VDom (Array (P.Prop i)) p -> Flow a ListItem
 createListItem = preComputeListItem
 
 getBaseId :: Effect Int
 getBaseId = (_.__id) <$> unsafeCoerce createPrestoElement
 
-preComputeListItemWithFragment :: forall i p. Maybe String -> VDom (Array (P.Prop i)) p -> Flow ListItem
+preComputeListItemWithFragment :: forall i p a. Maybe String -> VDom (Array (P.Prop i)) p -> Flow a ListItem
 preComputeListItemWithFragment parentType dom = do
   hv <- doAff do liftEffect $ Ref.new []
   kpm <- doAff do liftEffect $ Ref.new empty
@@ -102,7 +102,7 @@ mkListItem = unsafeCoerce
 getValueFromListItem :: ListItem -> ListItemType
 getValueFromListItem = unsafeCoerce
 
-extractView :: forall i p. Ref.Ref (Array (Object Foreign)) -> Ref.Ref (Object (Object String)) -> Ref.Ref (Object String) -> Ref.Ref (Object Foreign) -> Foreign -> VDom (Array (P.Prop i)) p -> Flow (Maybe Foreign)
+extractView :: forall i p a. Ref.Ref (Array (Object Foreign)) -> Ref.Ref (Object (Object String)) -> Ref.Ref (Object String) -> Ref.Ref (Object Foreign) -> Foreign -> VDom (Array (P.Prop i)) p -> Flow a (Maybe Foreign)
 extractView hv kpm klm aim parentType (Elem _ (ElemName name) p c) = do
   children <- catMaybes <$> (extractView hv kpm klm aim (encode $ (Nothing :: Maybe String)) `traverse` c)
   props <- addRunInUI hv =<< foldM (parseProps hv kpm klm aim) {id : Nothing , props : empty} p
@@ -156,13 +156,13 @@ getId kpm Nothing = do
   _ <- Ref.modify (insert (show i) empty) kpm
   pure i
 
-parseProps :: forall i. Ref.Ref (Array (Object Foreign)) -> Ref.Ref (Object (Object String)) -> Ref.Ref (Object String) -> Ref.Ref (Object Foreign)-> {id :: Maybe Int, props :: Object Foreign} -> P.Prop i -> Flow ({id :: Maybe Int, props :: Object Foreign})
+parseProps :: forall i a. Ref.Ref (Array (Object Foreign)) -> Ref.Ref (Object (Object String)) -> Ref.Ref (Object String) -> Ref.Ref (Object Foreign)-> {id :: Maybe Int, props :: Object Foreign} -> P.Prop i -> Flow a ({id :: Maybe Int, props :: Object Foreign})
 parseProps hv kpm klm aim obj a = do
   i <- doAff do liftEffect $ getId kpm obj.id
   let object = obj { props = insert "id" (unsafeToForeign i) obj.props, id = Just i}
   parsePropsw hv kpm klm aim object a
 
-parsePropsw :: forall i. Ref.Ref (Array (Object Foreign)) -> Ref.Ref (Object (Object String)) -> Ref.Ref (Object String) -> Ref.Ref (Object Foreign)-> {id :: Maybe Int, props :: Object Foreign} -> P.Prop i -> Flow ({id :: Maybe Int, props :: Object Foreign})
+parsePropsw :: forall i a. Ref.Ref (Array (Object Foreign)) -> Ref.Ref (Object (Object String)) -> Ref.Ref (Object String) -> Ref.Ref (Object Foreign)-> {id :: Maybe Int, props :: Object Foreign} -> P.Prop i -> Flow a ({id :: Maybe Int, props :: Object Foreign})
 parsePropsw hv kpm klm aim obj (P.Property a b) 
   | a == "holder_inlineAnimation" = do
       i <- doAff do liftEffect $ getId kpm obj.id
@@ -183,7 +183,7 @@ parsePropsw hv kpm klm aim obj (P.Payload a) =
   pure $ obj { props = insert "payload" (unsafeToForeign a) obj.props}
 parsePropsw _ _ _ _ obj _ = pure $ obj
 
-addRunInUI :: Ref.Ref (Array (Object Foreign)) -> {id :: Maybe Int, props :: Object Foreign} -> Flow (Object Foreign)
+addRunInUI :: forall a. Ref.Ref (Array (Object Foreign)) -> {id :: Maybe Int, props :: Object Foreign} -> Flow a (Object Foreign)
 addRunInUI hv {id:(Just i), props} = doAff $ liftEffect do
   -- TODO Add this only if props need runInUI
   arr <- Ref.read hv

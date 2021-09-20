@@ -40,7 +40,6 @@ import Unsafe.Coerce (unsafeCoerce)
 
 import PrestoDOM.Core.Types
 import PrestoDOM.Core.Utils
-import Debug.Trace
 
 foreign import setUpBaseState :: String -> Foreign -> Effect Unit
 foreign import insertDom :: forall a. EFn.EffectFn4 String String a Boolean InsertState

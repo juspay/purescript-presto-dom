@@ -17,6 +17,7 @@ module PrestoDOM.Events
     , onMicroappResponse
     , update
     , registerEvent
+    , onFocus
     ) where
 
 import Prelude
@@ -68,6 +69,8 @@ pushAndLog :: forall a. String -> String -> (a -> Effect Unit) -> Object.Object 
 pushAndLog label value push json a = do
     push a
     debounce (trackAction T.User T.Info L.ON_CLICK) label (encode value) json
+onFocus :: forall a. (a ->  Effect Unit) -> (Boolean -> a) -> Prop (Effect Unit)
+onFocus push f = event (DOM.EventType "onFocus") (Just <<< (makeEvent (push <<< f)))
 
 onChange :: forall a. (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
 onChange push f = event (DOM.EventType "onChange") (Just <<< (makeEvent (push <<< f)))

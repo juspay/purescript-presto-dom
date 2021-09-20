@@ -29,8 +29,6 @@ import Unsafe.Coerce (unsafeCoerce)
 import Web.DOM.Node (Node) as DOM
 import Effect.Uncurried as EFn
 
-import Debug.Trace
-
 foreign import saveRefToStateImpl :: forall w i. String -> Ref (NameSpaceState w i) -> Effect Unit
 foreign import loadRefFromStateImpl :: forall w i.  String -> (Maybe (Ref (NameSpaceState w i))) -> ((Ref (NameSpaceState w i)) -> Maybe (Ref (NameSpaceState w i))) -> Effect (Maybe (Ref (NameSpaceState w i)))
 foreign import createPrestoElement :: forall a. Effect {__id :: Int}
