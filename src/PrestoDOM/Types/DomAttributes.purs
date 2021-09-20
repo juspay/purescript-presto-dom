@@ -284,7 +284,7 @@ data InputType
 derive instance genericInputType:: Generic InputType _
 instance decodeInputType :: Decode InputType where decode = decodeInputTypeUtil <<< toSafeString <<< unsafeFromForeign
 instance showInputType :: Show InputType where show = genericShow
-instance encodeInputType :: Encode InputType where encode = renderInputType >>> unsafeToForeign
+instance encodeInputType :: Encode InputType where encode = encodeInputTypeUtil >>> unsafeToForeign
 
 decodeInputTypeUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a InputType
 decodeInputTypeUtil json =
@@ -310,6 +310,14 @@ renderInputType = case _ of
     TypeText -> "text"
     Telephone -> "telephone"
 
+encodeInputTypeUtil :: InputType -> String
+encodeInputTypeUtil = case _ of
+    Password -> "password"
+    Numeric -> "numeric"
+    NumericPassword -> "numericPassword"
+    Disabled -> "disabled"
+    TypeText -> "typeText"
+    Telephone -> "telephone"
 
 -- orientation:
 
