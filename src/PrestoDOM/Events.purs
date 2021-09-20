@@ -21,6 +21,7 @@ module PrestoDOM.Events
     , onScroll
     , onScrollStateChange
     , globalOnScroll
+    , ScrollState
     ) where
 
 import Prelude
@@ -29,6 +30,7 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Effect (Effect)
 import PrestoDOM.Utils (storeToWindow, getFromWindow, debounce)
 import Foreign.Class (encode)
+import Foreign.Object
 import Halogen.VDom.DOM.Prop (Prop(..))
 import Tracker.Labels (Label(..)) as L
 import Tracker (trackAction)
@@ -37,6 +39,11 @@ import Unsafe.Coerce as U
 import Web.Event.Event (EventType(..), Event) as DOM
 import Foreign.Object as Object
 import Foreign(Foreign)
+import FRP.Event as E
+import FRP.Behavior (sample_, unfold)
+import FRP.Event (subscribe)
+
+import Debug.Trace (spy)
 {-- foreign import dummyEvent :: E.Event Int --}
 foreign import backPressHandlerImpl :: Effect Unit
 
@@ -55,6 +62,15 @@ foreign import setLastTimeStamp :: String -> Effect Unit
 {--      . String --}
 {--     -> (Eff (frp :: FRP, ref :: REF, dom :: DOM | eff) Unit) --}
 {--     -> Effect Unit --}
+
+data ScrollState = SCROLL_STATE_FLING | SCROLL_STATE_IDLE  | SCROLL_STATE_TOUCH_SCROLL
+
+mapScrollState :: Int -> ScrollState
+mapScrollState value = case value of 
+    0 -> SCROLL_STATE_IDLE
+    1 -> SCROLL_STATE_TOUCH_SCROLL
+    2 -> SCROLL_STATE_FLING
+    _ -> SCROLL_STATE_IDLE
 
 event :: forall a. DOM.EventType -> (DOM.Event → Maybe a) -> Prop a
 event = Handler
