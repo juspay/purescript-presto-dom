@@ -13,6 +13,7 @@ module PrestoDOM.Types.DomAttributes
     , Corners(..)
     , Font(..)
     , LineSpacing(..)
+    , isUndefined
     , renderFont
     , renderMargin
     , renderPadding
@@ -27,20 +28,83 @@ module PrestoDOM.Types.DomAttributes
     , renderShadow
     , renderCorners
     , renderLineSpacing
+    , toSafeString
+    , toSafeArray
+    , toSafeObject
+    , toSafeInt
     , __IS_ANDROID
     ) where
 
-import Prelude (show, (<>))
+import Prelude
+
+
+import Control.Monad.Except.Trans (ExceptT, except)
 import Data.Function.Uncurried (Fn3, runFn3)
+import Data.Either (Either(..))
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
+import Data.Int (fromString)
+import Data.List.NonEmpty (NonEmptyList, singleton)
+import Data.Maybe (fromMaybe)
+import Data.String.Common (toLower)
+import Foreign (Foreign, ForeignError(..), unsafeFromForeign, unsafeToForeign)
+import Foreign.Class (class Decode, class Encode)
+
 
 foreign import stringifyGradient :: Fn3 String Number (Array String) String
 foreign import __IS_ANDROID :: Boolean
 
-data Length
-    = MATCH_PARENT
-    | WRAP_CONTENT
-    | V Int
+foreign import isUndefined :: forall a. a -> Boolean
+foreign import toSafeString :: forall a. a -> String
 
+foreign import toSafeInt
+  :: forall a dataConstructor. dataConstructor
+  -> String -- foreign string
+  -> (String -> Either (NonEmptyList ForeignError) a) -- error constructor
+  -> (a -> Either (NonEmptyList ForeignError) a) -- data constructor
+  -> Either (NonEmptyList ForeignError) a
+
+foreign import toSafeObject
+  :: forall a. String -- foreign string
+  -> (String -> Either (NonEmptyList ForeignError) a) -- error constructor
+  -> (a -> Either (NonEmptyList ForeignError) a) -- data constructor
+  -> Either (NonEmptyList ForeignError) a
+
+foreign import toSafeArray
+  :: forall dataType dataConstructor foreignType. dataConstructor
+  -> foreignType
+  -> (String -> Either (NonEmptyList ForeignError) dataType) -- error constructor
+  -> (dataType -> Either (NonEmptyList ForeignError) dataType) -- data constructor
+  -> (Array String) -- array of dataConstructor argument types
+  -> (Either (NonEmptyList ForeignError) dataType)
+
+foreign import toSafeGradientType
+  :: String
+  -> (String -> Either (NonEmptyList ForeignError) GradientType)
+  -> (GradientType -> Either (NonEmptyList ForeignError) GradientType)
+  -> Either (NonEmptyList ForeignError) GradientType
+
+
+data Length
+  = MATCH_PARENT
+  | WRAP_CONTENT
+  | V Int
+
+derive instance genericLength:: Generic Length _
+instance decodeLength :: Decode Length where decode = decodeLengthUtil <<< toSafeString <<< unsafeFromForeign
+instance showLength :: Show Length where show = genericShow
+instance encodeLength :: Encode Length where encode = renderLength >>> unsafeToForeign
+
+decodeLengthUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Length
+decodeLengthUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "Length is undefined"
+  else
+    except $
+    case toLower json of
+      "match_parent" -> Right MATCH_PARENT
+      "wrap_content" -> Right WRAP_CONTENT
+      other -> toSafeInt V other (Left <<< singleton <<< ForeignError) Right
 
 renderLength :: Length -> String
 renderLength = case _ of
@@ -49,11 +113,30 @@ renderLength = case _ of
     V n -> show n
 
 data Position
-    = ABSOLUTE
-    | RELATIVE
-    | FIXED
-    | STATIC
-    | STICKY
+  = ABSOLUTE
+  | RELATIVE
+  | FIXED
+  | STATIC
+  | STICKY
+
+derive instance genericPosition :: Generic Position _
+instance decodePosition :: Decode Position where decode = decodePositionUtil <<< toSafeString <<< unsafeFromForeign
+instance showPosition :: Show Position where show = genericShow
+instance encodePosition :: Encode Position where encode = renderPosition >>> unsafeToForeign
+
+decodePositionUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Position
+decodePositionUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "position is not defined"
+  else
+    except $
+    case toLower json of
+        "absolute"  -> Right ABSOLUTE
+        "relative"  -> Right RELATIVE
+        "fixed"     -> Right FIXED
+        "static"    -> Right STATIC
+        "sticky"    -> Right STICKY
+        _           -> (Left <<< singleton <<< ForeignError) "Position is not supported"
 
 renderPosition :: Position -> String
 renderPosition = case _ of
@@ -72,6 +155,27 @@ data Margin
     | MarginRight Int
     | MarginTop Int
     | MarginVertical Int Int
+
+derive instance genericMargin:: Generic Margin _
+instance decodeMargin :: Decode Margin where decode = decodeMarginUtil <<< unsafeFromForeign
+instance encodeMargin :: Encode Margin where encode = encodeMarginUtil
+instance showMargin :: Show Margin where show = genericShow
+
+decodeMarginUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Margin
+decodeMarginUtil json =
+  except $ toSafeArray
+    Margin json (Left <<< singleton <<< ForeignError) Right ["int", "int", "int", "int"]
+
+encodeMarginUtil :: Margin -> Foreign
+encodeMarginUtil margin =
+  case margin of
+    Margin a b c d       -> unsafeToForeign [a,b,c,d]
+    MarginBottom b       -> unsafeToForeign [0,0,0,b]
+    MarginLeft l         -> unsafeToForeign [l,0,0,0]
+    MarginRight r        -> unsafeToForeign [0,0,r,0]
+    MarginTop t          -> unsafeToForeign [0,t,0,0]
+    MarginHorizontal l r -> unsafeToForeign [l,0,r,0]
+    MarginVertical t b   -> unsafeToForeign [0,t,0,b]
 
 -- | Margin : left, top, right and bottom
 -- | MarginBottom : bottom
@@ -100,6 +204,27 @@ data Padding
     | PaddingTop Int
     | PaddingVertical Int Int
 
+derive instance genericPadding :: Generic Padding _
+instance decodePadding :: Decode Padding where decode = decodePaddingUtil <<< unsafeFromForeign
+instance encodePadding :: Encode Padding where encode = encodePaddingUtil
+instance showPadding :: Show Padding where show = genericShow
+
+decodePaddingUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Padding
+decodePaddingUtil json =
+  except $ toSafeArray
+    Padding json (Left <<< singleton <<< ForeignError) Right ["int", "int", "int", "int"]
+
+encodePaddingUtil :: Padding -> Foreign
+encodePaddingUtil padding =
+  case padding of
+    Padding a b c d        -> unsafeToForeign [a,b,c,d]
+    PaddingBottom b        -> unsafeToForeign [0,0,0,b]
+    PaddingLeft l          -> unsafeToForeign [l,0,0,0]
+    PaddingRight r         -> unsafeToForeign [0,0,r,0]
+    PaddingTop t           -> unsafeToForeign [0,t,0,0]
+    PaddingHorizontal l r  -> unsafeToForeign [l,0,r,0]
+    PaddingVertical t b    -> unsafeToForeign [0,t,0,b]
+
 -- | Padding : left, top, right and bottom
 -- | PaddingBottom : bottom
 -- | PaddingHorizontal : left and right
@@ -107,6 +232,7 @@ data Padding
 -- | PaddingRight : right
 -- | PaddingTop : top
 -- | PaddingVertical : top and bottom
+
 renderPadding :: Padding -> String
 renderPadding = case _ of
     Padding l t r b       -> show l <> "," <> show t <> "," <> show r <> "," <> show b
@@ -116,7 +242,6 @@ renderPadding = case _ of
     PaddingRight r        -> "0"    <> "," <> "0"    <> "," <> show r <> "," <> "0"
     PaddingTop t          -> "0"    <> "," <> show t <> "," <> "0"    <> "," <> "0"
     PaddingVertical t b   -> "0"    <> "," <> show t <> "," <> "0"    <> "," <> show b
-
 
 
 --  "inputType": {
@@ -134,6 +259,27 @@ data InputType
     | NumericPassword
     | Disabled
     | TypeText
+    | Telephone
+
+derive instance genericInputType:: Generic InputType _
+instance decodeInputType :: Decode InputType where decode = decodeInputTypeUtil <<< toSafeString <<< unsafeFromForeign
+instance showInputType :: Show InputType where show = genericShow
+instance encodeInputType :: Encode InputType where encode = renderInputType >>> unsafeToForeign
+
+decodeInputTypeUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a InputType
+decodeInputTypeUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "inputType is not defined"
+  else
+    except $
+      case toLower json of
+        "password"        -> Right Password
+        "numeric"         -> Right Numeric
+        "numericpassword" -> Right NumericPassword
+        "disabled"        -> Right Disabled
+        "typetext"        -> Right TypeText
+        "telephone"       -> Right Telephone
+        _                 -> (Left <<< singleton <<< ForeignError) "Input Type is not supported"
 
 renderInputType :: InputType -> String
 renderInputType = case _ of
@@ -142,7 +288,7 @@ renderInputType = case _ of
     NumericPassword -> "numericPassword"
     Disabled -> "disabled"
     TypeText -> "text"
-
+    Telephone -> "telephone"
 
 
 -- orientation:
@@ -153,6 +299,22 @@ renderInputType = case _ of
 data Orientation
     = HORIZONTAL
     | VERTICAL
+
+derive instance genericOrientation:: Generic Orientation _
+instance decodeOrientation :: Decode Orientation where decode = decodeOrientationUtil <<< toSafeString <<< unsafeFromForeign
+instance showOrientation:: Show Orientation where show = genericShow
+instance encodeOrientation :: Encode Orientation where encode = renderOrientation >>> unsafeToForeign
+
+decodeOrientationUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Orientation
+decodeOrientationUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "Orientation is not defined"
+  else
+    except $
+    case toLower json of
+      "horizontal"  -> Right HORIZONTAL
+      "vertical"    -> Right VERTICAL
+      _             -> (Left <<< singleton <<< ForeignError) "Orientation is not supported"
 
 renderOrientation :: Orientation -> String
 renderOrientation = case _ of
@@ -173,6 +335,24 @@ data Typeface
     | ITALIC
     | BOLD_ITALIC
 
+derive instance genericTypeface :: Generic Typeface _
+instance decodeTypeface :: Decode Typeface where decode = decodeTypefaceUtil <<< toSafeString <<< unsafeFromForeign
+instance showTypeface :: Show Typeface where show = genericShow
+instance encodeTypeface :: Encode Typeface where encode = renderTypeface >>> unsafeToForeign
+
+decodeTypefaceUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Typeface
+decodeTypefaceUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "Typeface is not defined"
+  else
+    except $
+    case toLower json of
+      "normal"        -> Right NORMAL
+      "bold"          -> Right BOLD
+      "italic"        -> Right ITALIC
+      "bold_italic"   -> Right BOLD_ITALIC
+      _              -> (Left <<< singleton <<< ForeignError) "Type face is not supported"
+
 renderTypeface :: Typeface -> String
 renderTypeface = case _ of
     NORMAL -> "normal"
@@ -192,6 +372,22 @@ data Visibility
     | INVISIBLE
     | GONE
 
+derive instance genericVisibility:: Generic Visibility _
+instance decodeVisibility :: Decode Visibility where decode = decodeVisibilityUtil <<< toSafeString <<< unsafeFromForeign
+instance showVisibility:: Show Visibility where show = genericShow
+instance encodeVisibility :: Encode Visibility where encode = renderVisibility >>> unsafeToForeign
+
+decodeVisibilityUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Visibility
+decodeVisibilityUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "Visibility is not defined"
+  else
+    except $
+    case toLower json of
+      "visible"     -> Right VISIBLE
+      "invisible"   -> Right INVISIBLE
+      "gone"        -> Right GONE
+      x             -> (Left <<< singleton <<< ForeignError) "Visibility is not supported"
 
 renderVisibility :: Visibility -> String
 renderVisibility = case _ of
@@ -223,6 +419,31 @@ data Gravity
     | END
     | STRETCH
 
+derive instance genericGravity:: Generic Gravity _
+instance decodeGravity :: Decode Gravity where decode = decodeGravityUtil <<< toSafeString <<< unsafeFromForeign
+instance encodeGravity :: Encode Gravity where encode = renderGravity >>> unsafeToForeign
+instance showGravity:: Show Gravity where show = genericShow
+
+decodeGravityUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Gravity
+decodeGravityUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "gravity is not defined"
+  else
+    except $
+    case toLower json of
+      "center_horizontal"   -> Right CENTER_HORIZONTAL
+      "center_vertical"     -> Right CENTER_VERTICAL
+      "left"                -> Right LEFT
+      "right"               -> Right RIGHT
+      "center"              -> Right CENTER
+      "bottom"              -> Right BOTTOM
+      "top_vertical"        -> Right TOP_VERTICAL
+      "start"               -> Right START
+      "end"                 -> Right END
+      "stretch"             -> Right STRETCH
+      _                     -> (Left <<< singleton <<< ForeignError) "Gravity is not supported"
+
+
 renderGravity :: Gravity -> String
 renderGravity = case _ of
     CENTER_HORIZONTAL -> "center_horizontal"
@@ -240,6 +461,31 @@ data Gradient
   = Radial (Array String)
   | Linear Number (Array String)
 
+type GradientType = { angle :: Number, values :: Array String }
+
+
+derive instance genericGradient:: Generic Gradient _
+instance showGradient:: Show Gradient where show = genericShow
+instance decodeGradient :: Decode Gradient where decode = decodeGradientUtil <<< unsafeFromForeign
+instance encodeGradient :: Encode Gradient where encode = encodeGradientUtil >>> unsafeToForeign
+
+decodeGradientUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Gradient
+decodeGradientUtil json = let
+  (gEither :: Either (NonEmptyList ForeignError) GradientType) = toSafeGradientType json (Left <<< singleton <<< ForeignError) Right
+  in
+  except $
+  case gEither of
+    Right g ->
+      if g.angle > 0.0 then Right $ Radial g.values
+      else Right $ Linear g.angle g.values
+    Left err -> Left err
+
+encodeGradientUtil :: Gradient -> GradientType
+encodeGradientUtil = case _ of
+  Radial arr       -> {angle : 0.0, values : arr }
+  Linear angle arr -> {angle : angle, values : arr}
+
+
 renderGradient :: Gradient -> String
 renderGradient = case _ of
   Radial arr       -> runFn3 stringifyGradient "radial" 0.0 arr
@@ -248,12 +494,41 @@ renderGradient = case _ of
 
 data Shadow = Shadow Number Number Number Number String Number
 
+derive instance genericShadow :: Generic Shadow _
+instance decodeShadow :: Decode Shadow where decode = decodeShadowUtil <<< unsafeFromForeign
+instance encodeShadow:: Encode Shadow where encode = encodeShadowUtil >>> unsafeToForeign
+instance showShadow :: Show Shadow where show = genericShow
+
+decodeShadowUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Shadow
+decodeShadowUtil json =
+  except $ toSafeArray
+    Shadow json (Left <<< singleton <<< ForeignError) Right ["number", "number", "number", "number", "string", "number"]
+
+encodeShadowUtil :: Shadow -> Foreign
+encodeShadowUtil (Shadow x y blur spread color opacity) = unsafeToForeign [show x, show y, show blur, show spread, color, show opacity]
+
 renderShadow :: Shadow -> String
 renderShadow (Shadow x y blur spread color opacity) = show x <> "," <> show y <> "," <> show blur <> "," <> show spread <> "," <> color <> "," <> show opacity
 
 data Corners
  = Corners Number Boolean Boolean Boolean Boolean
  | Corner Number
+
+derive instance genericCorners :: Generic Corners _
+instance decodeCorners :: Decode Corners where decode = decodeCornersUtil <<< unsafeFromForeign
+instance encodeCorners :: Encode Corners where encode = encodeCornersUtil >>> unsafeToForeign
+instance showCorners :: Show Corners where show = genericShow
+
+decodeCornersUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Corners
+decodeCornersUtil json =
+  except $ toSafeArray
+    Corners json (Left <<< singleton <<< ForeignError) Right ["number", "boolean", "boolean", "boolean", "boolean"]
+
+encodeCornersUtil :: Corners -> Foreign
+encodeCornersUtil =
+  case _ of
+    Corners n a b c d -> unsafeToForeign [show n, show a, show b, show c, show d]
+    Corner n          -> unsafeToForeign [show n, "true", "true", "true", "true"]
 
 renderCorners :: Corners -> String
 renderCorners (Corners r tl tr br bl) = show r <> "," <> boolString tl <> "," <> boolString tr <> "," <> boolString br <> "," <> boolString bl
@@ -263,15 +538,46 @@ boolString :: Boolean -> String
 boolString true = "1"
 boolString _ = "0"
 
-data Font =
-   Url String
- | Res Int
- | FontName String
- | Font String
- | Default String
+data Font
+  = Url String
+  | Res Int
+  | FontName String
+  | Font String
+  | Default String
+
+type FontType = {type :: String, value :: String}
+
+derive instance genericFont:: Generic Font _
+instance decodeFont :: Decode Font where decode = decodeFontUtil <<< unsafeFromForeign
+instance showFont:: Show Font where show = genericShow
+instance encodeFont :: Encode Font where encode = encodeFontUtil >>> unsafeToForeign
+
+decodeFontUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Font
+decodeFontUtil json = let
+  (parsedFont :: Either (NonEmptyList ForeignError) FontType) = toSafeObject json (Left <<< singleton <<< ForeignError) Right in
+  except $
+  case parsedFont of
+    Left err    -> Left err
+    Right font  ->
+      case toLower font.type of
+        "res"       -> Right (Res (fromMaybe 0 (fromString font.value)))
+        "url"       -> Right (Url font.value)
+        "fontname"  -> Right (FontName font.value)
+        "default"   -> Right (Default font.value)
+        "font"      -> Right (Font font.value)
+        _           -> (Left <<< singleton <<< ForeignError) "Font type is not supported"
+
+encodeFontUtil :: Font -> FontType
+encodeFontUtil font =
+  case font of
+    FontName nm   -> {type : "fontname", value : nm}
+    Font path     -> {type : "font", value : path}
+    Res id        -> {type : "res", value : show id}
+    Url url       -> {type : "url", value : url}
+    Default d     -> {type : "default", value : d}
 
 renderFont :: Font -> String
-renderFont = case _ of 
+renderFont = case _ of
     Url url -> url
     Res id -> "resId," <> show id
     FontName fname -> fname

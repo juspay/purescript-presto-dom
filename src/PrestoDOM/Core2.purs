@@ -24,7 +24,6 @@ import FRP.Event as E
 import Foreign (Foreign, unsafeToForeign)
 import Foreign.Generic (encode, decode, class Decode, decodeJSON)
 import Foreign.Object (update, insert, fromHomogeneous, delete, isEmpty, lookup)
-import Foreign.Object as Object
 import Halogen.VDom (Step, VDom, VDomSpec(..), buildVDom, extract, step)
 import Halogen.VDom.DOM.Prop (buildProp)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
@@ -39,7 +38,7 @@ import Foreign.Object (Object)
 import Unsafe.Coerce (unsafeCoerce)
 
 import PrestoDOM.Core.Types
-import PrestoDOM.Core.Utils
+import PrestoDOM.Core.Utils (callMicroAppsForListState, extractAndDecode, extractJsonAndDecode, forkoutListState, generateCommands, getListData, replayListFragmentCallbacks', verifyFont, verifyImage)
 
 foreign import setUpBaseState :: String -> Foreign -> Effect Unit
 foreign import insertDom :: forall a. EFn.EffectFn4 String String a Boolean InsertState
@@ -309,7 +308,7 @@ controllerActions :: forall action state returnType a
   . Show action => Loggable action
   => EventIO action
   -> ScreenBase action state returnType (parent :: Maybe String| a)
-  -> (Object.Object Foreign)
+  -> (Object Foreign)
   -> (state -> Effect Unit)
   -> (Either Error returnType -> Effect Unit)
   -> Effect Canceler
@@ -374,7 +373,7 @@ initUIWithScreen namespace id screen = do
 runScreen :: forall action state returnType
   . Show action => Loggable action
   => ScopedScreen action state returnType
-  -> (Object.Object Foreign)
+  -> (Object Foreign)
   -> Aff returnType
 runScreen st@{ name, parent, view} json = do
   ns <- liftEffect $ sanitiseNamespace parent
@@ -401,7 +400,7 @@ getPushFn parent name = getEventIO name parent <#> \{push} -> push
 runController :: forall action state returnType
   . Show action => Loggable action
   => Controller action state returnType
-  -> (Object.Object Foreign) -> Aff returnType
+  -> (Object Foreign) -> Aff returnType
 runController st@{name, parent, eval, initialState, globalEvents, emitter} json = do
   ns <- liftEffect $ sanitiseNamespace parent
   _ <- liftEffect $ setControllerStates ns name
@@ -419,7 +418,7 @@ runController st@{name, parent, eval, initialState, globalEvents, emitter} json 
 showScreen :: forall action state returnType
   . Show action => Loggable action
   => ScopedScreen action state returnType
-  -> (Object.Object Foreign)
+  -> (Object Foreign)
   -> Aff returnType
 showScreen st@{name, parent, view} json = do
   ns <- liftEffect $ sanitiseNamespace parent

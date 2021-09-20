@@ -33,9 +33,9 @@ exports.createPrestoElement = function () {
       };
   } else {
       window.__ui_id_sequence =
-          typeof Android.getNewID == "function" ?
-          parseInt(Android.getNewID()) * 1000000 :
-          window.__PRESTO_ID || getPrestoID() * 1000000;
+        typeof Android.getNewID == "function" ?
+        (parseInt(Android.getNewID()) * 1000000) % 100000000 :
+        (window.__PRESTO_ID || getPrestoID() * 1000000) % 100000000;
       return {
           __id: ++window.__ui_id_sequence
       };
@@ -71,7 +71,7 @@ exports.generateCommands = function (elem) {
       elem.children
     );
   }
-  return prestoDayum(type, props, elem.children);;
+  return prestoDayum(type, props, elem.children);
 }
 
 exports.callMicroAppListItem = function (service) {
@@ -131,14 +131,14 @@ exports.callMicroApp = function (service) {
                                   payload : a,
                                   service : service
                               }
-          
+
                               // GENERATE requestId
                               // Add a callback
                               state.mappCallbacks = state.mappCallbacks || {}
                               state.mappCallbacks[service] = state.mappCallbacks[service] || {}
                               state.mappCallbacks[service][requestId] = callback
                               state.pendingRequests.push(requestId)
-                              
+
                               var success = function (code) {
                                   return function (status) {
                                       return function () {

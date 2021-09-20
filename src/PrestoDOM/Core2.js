@@ -244,7 +244,7 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
     elem.__ref = {__id: id };
     if (VALIDATE_ID.hasOwnProperty(id)){
       console.warn("Found duplicate ID! ID: "+ id +
-        " maybe caused because of overiding `id` prop. This may produce unwanted behvior. Please fix..");
+        " maybe caused because of overriding `id` prop. This may produce unwanted behavior. Please fix..");
     } else {
       VALIDATE_ID[id] = 'used';
     }
@@ -727,7 +727,7 @@ exports.setUpBaseState = function (namespace) {
       getScopedState(namespace).queuedEvents = {}
       getScopedState(namespace).pushActive = {}
       getScopedState(namespace).rootVisible = false;
-      
+
       if (window.__OS == "ANDROID") {
         if (typeof AndroidWrapper.getNewID == "function") {
           // TODO change this to mystique version check.
@@ -886,7 +886,9 @@ function terminateUIImpl (callback) {
           ) {
           AndroidWrapper.removeView(getScopedState(namespace).root.__ref.__id, getIdFromNamespace(namespace));
         }
-        AndroidWrapper.runInUI(["removeAllUI"], getIdFromNamespace(namespace));
+        if (namespace.indexOf("default") !== -1){
+          AndroidWrapper.runInUI(["removeAllUI"], getIdFromNamespace(namespace));
+        }
       }
       deleteScopedState(namespace)
     }
@@ -1026,7 +1028,7 @@ exports.replaceView = function (namespace) {
       "frameLayout",
       "horizontalScrollView"
     ];
-  
+
     if (viewGroups.indexOf(element.type) != -1) {
       props.root = true;
       rep = prestoDayum(element.type, props, []);
@@ -1057,7 +1059,7 @@ exports.replaceView = function (namespace) {
       }
     }
   }
-} 
+}
 
 exports.cancelBehavior = function (ty) {
   var canceler = window.__CANCELER[ty];
@@ -1256,7 +1258,6 @@ exports.updateMicroAppPayloadImpl = function (payload, element, isPatch) {
 exports.incrementPatchCounter = function(namespace) {
   return function(screenName) {
     return function() {
-      window.zzz = state.patchState;
       state.patchState = state.patchState || {}
       state.patchState[namespace] = state.patchState[namespace] || {}
       state.patchState[namespace][screenName] = state.patchState[namespace][screenName] || {}
@@ -1276,7 +1277,6 @@ exports.decrementPatchCounter = function(namespace) {
         state.patchState[namespace][screenName].counter--;
       }
       if(state.patchState[namespace][screenName].counter === 0 && state.patchState[namespace][screenName].active) {
-        window.abcd = Date.now();
         triggerPatchQueue(namespace, screenName)
       }
     }
@@ -1287,7 +1287,6 @@ function triggerPatchQueue(namespace, screenName) {
   state.patchState[namespace][screenName].active = false;
   var nextPatch = state.patchState[namespace][screenName].queue.shift();
   if(typeof nextPatch == "function") {
-    window.abc = Date.now();
     nextPatch();
   } else {
     state.patchState[namespace][screenName].started = false;
@@ -1310,7 +1309,7 @@ exports.addToPatchQueue = function(namespace) {
       }
     }
   }
-} 
+}
 
 exports.setPatchToActive = function(namespace) {
   return function(screenName) {
@@ -1321,7 +1320,6 @@ exports.setPatchToActive = function(namespace) {
       if(state.patchState[namespace][screenName].counter > 0) {
         state.patchState[namespace][screenName].active = true;
       } else {
-        window.abcd = Date.now();
         triggerPatchQueue(namespace, screenName)
       }
     }
@@ -1386,7 +1384,7 @@ exports.getListDataCommands = function (listData, element) {
             listData[j][prop] = "url->" + listData[j][prop] + ","
           } catch (e) { /** Ignored */ }
         }
-        item[prop] = listData[j][prop]; 
+        item[prop] = listData[j][prop];
         continue
       }
       ps[keyPropMap[id][prop]] = listData[j][prop];

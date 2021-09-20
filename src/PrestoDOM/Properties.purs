@@ -60,6 +60,8 @@ module PrestoDOM.Properties
     , height
     , hint
     , hintColor
+    , hoverBg
+    , hoverColor
 
     , imageUrl
     , inputType
@@ -159,8 +161,8 @@ prop (PropName name) = Property name <<< toPropValue
 id :: forall i. String -> Prop i
 id = prop (PropName "id")
 
-retFontFamilyAndroid :: forall i. String -> Prop i 
-retFontFamilyAndroid str = case (toLower str) of 
+retFontFamilyAndroid :: forall i. String -> Prop i
+retFontFamilyAndroid str = case (toLower str) of
   "regular" -> fontFamily "sans-serif,normal"
   "bold" -> fontFamily "sans-serif,bold"
   _ -> fontFamily "sans-serif-medium,normal"
@@ -327,7 +329,7 @@ fontStyle = prop (PropName "fontStyle")
 -- | Font
 font :: forall i. Font -> Prop i
 font fontVal = case fontVal of
-    Default str -> (if __IS_ANDROID then retFontFamilyAndroid str else fontFamily str)  
+    Default str -> (if __IS_ANDROID then retFontFamilyAndroid str else fontFamily str)
     FontName str -> fontStyle str
     _ -> (prop (PropName "font")) fontVal
 
@@ -362,6 +364,13 @@ hint = prop (PropName "hint")
 hintColor :: forall i. String -> Prop i
 hintColor = prop (PropName "hintColor")
 
+-- | String
+hoverBg :: forall i. String -> Prop i
+hoverBg = prop (PropName "hoverBg")
+
+-- | String
+hoverColor :: forall i. String -> Prop i
+hoverColor = prop (PropName "hoverColor")
 
 
 -- | String
