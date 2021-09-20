@@ -35,3 +35,22 @@ exports._mergeAnimation = function (animations) {
 	return JSON.stringify(animations.map(createAnimationObject));
 }
 
+exports["toSafeInterpolator"] = function (json) {
+	return function (left) {
+	  return function (right) {
+		if (
+		  json != undefined &&
+		  typeof json == "object" &&
+		  json.type != undefined &&
+		  typeof json.type == "string" &&
+		  json.value != undefined &&
+		  Array.isArray(json.value)
+		) {
+		  return right(json);
+		} else {
+		  console.error(json);
+		  return left("Unsupported Interpolator format");
+		}
+	  };
+	};
+  };

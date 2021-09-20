@@ -35,15 +35,14 @@ import Data.Maybe (Maybe(..))
 import Data.Either (Either(..), hush)
 import Data.Foldable (foldr, foldM)
 import Effect.Uncurried as EFn
-import Data.Array (catMaybes, cons, length)
+import Data.Array (catMaybes, cons)
 import Effect (Effect)
-import Global.Unsafe (unsafeStringify)
 import PrestoDOM (PropName(..))
 import Halogen.VDom.Types(VDom(..), ElemName(..))
 import Data.Tuple (snd)
 import Data.String.CodePoints (drop, contains)
 import Data.String.Pattern (Pattern(..))
-import Effect.Ref (Ref, new, read, modify, write) as Ref
+import Effect.Ref (Ref, new, read, modify) as Ref
 import Effect.Class (liftEffect)
 import Foreign (Foreign, unsafeToForeign)
 import Foreign.Class (encode, decode)
@@ -63,7 +62,7 @@ import Web.Event.Event (EventType(..)) as DOM
 import Unsafe.Coerce (unsafeCoerce)
 import PrestoDOM.Core.Utils (callbackMapper, setDebounceToCallback, callMicroAppList, generateCommands)
 import PrestoDOM.Core.Types (ListItemType)
-import PrestoDOM.Animation (AnimProp, _mergeAnimation)
+import PrestoDOM.Animation (AnimProp)
 
 preComputeListItem :: forall i p a. VDom (Array (P.Prop i)) p -> Flow a ListItem
 preComputeListItem = preComputeListItemWithFragment Nothing
@@ -129,8 +128,8 @@ extractView hv kpm klm aim parentType (Keyed _ (ElemName name) p c) = do
     }
 extractView hv kpm klm aim parentType (Microapp s p) = do
   props <- addRunInUI hv =<< foldM (parseProps hv kpm klm aim) {id : Nothing , props : empty} p
-  listItem <- hush <<< runExcept <<< decode <$> (doAff $ makeAff $ \cb -> callMicroAppList s props (cb <<< Right) <#> effectCanceler)
-  children <- case listItem of
+  listItem_ <- hush <<< runExcept <<< decode <$> (doAff $ makeAff $ \cb -> callMicroAppList s props (cb <<< Right) <#> effectCanceler)
+  children <- case listItem_ of
     Just ({holderViews, itemView, keyPropMap, keyIdMap, animationIdMap} :: ListItemType) -> do
         _ <- doAff $ liftEffect $ Ref.modify (flip append holderViews ) hv
         _ <- doAff $ liftEffect $ Ref.modify (flip append keyPropMap ) kpm
@@ -138,7 +137,7 @@ extractView hv kpm klm aim parentType (Microapp s p) = do
         _ <- doAff $ liftEffect $ Ref.modify (union animationIdMap ) aim
         pure [itemView]
     _ -> pure []
-  pure $ Just $ generateCommands 
+  pure $ Just $ generateCommands
     { "type" : "relativeLayout"
     , props : props
     , children : children
@@ -163,7 +162,7 @@ parseProps hv kpm klm aim obj a = do
   parsePropsw hv kpm klm aim object a
 
 parsePropsw :: forall i a. Ref.Ref (Array (Object Foreign)) -> Ref.Ref (Object (Object String)) -> Ref.Ref (Object String) -> Ref.Ref (Object Foreign)-> {id :: Maybe Int, props :: Object Foreign} -> P.Prop i -> Flow a ({id :: Maybe Int, props :: Object Foreign})
-parsePropsw hv kpm klm aim obj (P.Property a b) 
+parsePropsw hv kpm klm aim obj (P.Property a b)
   | a == "holder_inlineAnimation" = do
       i <- doAff do liftEffect $ getId kpm obj.id
       _ <- doAff do liftEffect $ Ref.modify (insert (unsafeCoerce b) (show i)) klm

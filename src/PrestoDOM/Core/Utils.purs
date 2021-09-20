@@ -5,7 +5,7 @@ import Prelude
 import Data.Array (catMaybes, snoc, zipWith)
 import Data.Either (hush, Either(..))
 import Data.Maybe (Maybe (..), fromMaybe)
-import Data.Foldable (foldM, foldl)
+import Data.Foldable (foldl)
 import Data.Traversable (traverse)
 import Data.Tuple (snd)
 import Effect (Effect)
@@ -31,14 +31,14 @@ import Effect.Uncurried as EFn
 
 foreign import saveRefToStateImpl :: forall w i. String -> Ref (NameSpaceState w i) -> Effect Unit
 foreign import loadRefFromStateImpl :: forall w i.  String -> (Maybe (Ref (NameSpaceState w i))) -> ((Ref (NameSpaceState w i)) -> Maybe (Ref (NameSpaceState w i))) -> Effect (Maybe (Ref (NameSpaceState w i)))
-foreign import createPrestoElement :: forall a. Effect {__id :: Int}
+foreign import createPrestoElement :: Effect {__id :: Int}
 
 
 foreign import callbackMapper :: forall a. (EFn.EffectFn1 a Unit) -> String
-foreign import generateCommands :: forall i. VdomTree -> Foreign
+foreign import generateCommands :: VdomTree -> Foreign
 foreign import generateAndCheckRequestId :: Foreign -> Object Foreign -> Effect Unit
 foreign import callMicroAppListItem :: forall a b. String -> a -> (b -> Effect Unit) -> Effect (Effect Unit)
-foreign import callMicroApp :: forall a b. String -> Foreign -> a -> (Foreign -> Effect Unit) -> Foreign -> String -> String -> Effect (Effect Unit)
+foreign import callMicroApp :: forall a. String -> Foreign -> a -> (Foreign -> Effect Unit) -> Foreign -> String -> String -> Effect (Effect Unit)
 foreign import getLatestListData :: Foreign -> Effect (Array (Array (Object Foreign)))
 foreign import os :: String
 foreign import replayListFragmentCallbacks' :: forall a. String -> String -> (a -> Effect Unit) -> Effect (Effect Unit)
@@ -53,7 +53,7 @@ saveRefToState :: forall w i. String -> Ref (NameSpaceState w i) -> Effect Unit
 saveRefToState = saveRefToStateImpl
 
 loadRefFromState :: forall w i. String -> Effect (Maybe (Ref (NameSpaceState w i)))
-loadRefFromState key = loadRefFromStateImpl key Nothing Just 
+loadRefFromState key = loadRefFromStateImpl key Nothing Just
 
 sanitiseNamespace :: Maybe String -> String
 sanitiseNamespace = fromMaybe "default"
@@ -61,7 +61,7 @@ sanitiseNamespace = fromMaybe "default"
 createNameSpaceState :: forall w i. String -> Maybe String -> Effect (NameSpaceState w i)
 createNameSpaceState namespace id = do
   root <- createRoot
-  pure $ 
+  pure $
     { id : id
     , root : root.root
     , machineMap : empty
@@ -102,7 +102,7 @@ createRoot = do
   pure $
     { stackRoot : stackRoot.__id
     , cacheRoot : cacheRoot.__id
-    , root : 
+    , root :
         relativeLayout
           [ id $ show rootElem.__id
           , root true
@@ -130,13 +130,13 @@ setUpBaseState nameSpace id =
         -- Ignore; initUI was done before
         pure unit
       Nothing ->
-        createNameSpaceState nameSpace id 
-          >>= new 
+        createNameSpaceState nameSpace id
+          >>= new
           >>= saveRefToState nameSpace
 
 
--- TODO Make Root into VDOM 
-domAll :: forall w i. DOM.Node -> String -> String -> Effect Unit
+-- TODO Make Root into VDOM
+domAll :: DOM.Node -> String -> String -> Effect Unit
 domAll vdom screenName namespace = do
   stateRef <- loadRefFromState namespace
   _ <- case stateRef, hush $ runExcept $ decode $ unsafeToForeign vdom of
@@ -160,13 +160,13 @@ domAll vdom screenName namespace = do
 
 
 extractView :: forall i w. Ref (NameSpaceState w i) -> Maybe String -> NodeTree -> Effect (Maybe Foreign)
-extractView ref parentType (NodeTree nd@{props : p, children : c, "type" : "microapp"}) = do 
+extractView ref parentType (NodeTree nd@{props : p, children : c, "type" : "microapp"}) = do
   cacheMappPayload ref (NodeTree nd)
   extractView ref parentType $ NodeTree $ nd { "type" = "relativeLayout" }
 extractView ref parentType (NodeTree {props : p, children : c, "type" :t}) = do
   children <- catMaybes <$> (extractView ref (Just t) `traverse` c)
-  props <- p # checkAndAddRoot parentType 
-    # checkAndAddId 
+  props <- p # checkAndAddRoot parentType
+    # checkAndAddId
     <#> checkAndDeleteFocus
   pure $ Just $ generateCommands
     { "type" : t
@@ -204,7 +204,7 @@ checkAndAddId object = do
           pure $ insert "id" (encode id.__id) object
 
 checkAndDeleteFocus :: Object Foreign -> Object Foreign
-checkAndDeleteFocus object 
+checkAndDeleteFocus object
   | os == "ANDROID" = do
       extractAndDecode "focus" object
         # case _ of
@@ -213,7 +213,7 @@ checkAndDeleteFocus object
   | otherwise = object
 
 checkAndDeleteAfterRender :: Object Foreign -> Object Foreign
-checkAndDeleteAfterRender object 
+checkAndDeleteAfterRender object
   | os == "WEB" = object
   | otherwise = delete "afterRender" object
 
@@ -233,7 +233,7 @@ cacheMappPayload ref (NodeTree {requestId: (Just req), service: (Just ser), prop
               , service : ser
               , elemId : id
               , callback : fromMaybe (unsafeCoerce $ (\_ -> pure unit :: Effect Unit)) $ unsafeCoerce <$> lookup "onMicroappResponse" p
-              -- TODO 
+              -- TODO
               -- 1) Make optional -- DONE
               -- 2) Make safe -- HALF DONE :thinkingface
               }
@@ -278,8 +278,8 @@ forkoutListState namespace screenName "listView" props = do
         pure {id, listData}
   let payloads = extractJsonAndDecode "payload" props
   let mapp = fromMaybe (encode $ unit) $ lookup "onMicroappResponse" props
-  case keys, payloads of 
-    Just {id, listData}, Just payloads -> forkAff $ Just <$> callMicroAppsForListState id namespace screenName listData payloads mapp
+  case keys, payloads of
+    Just {id, listData}, Just justPayloads -> forkAff $ Just <$> callMicroAppsForListState id namespace screenName listData justPayloads mapp
     Just {id, listData}, _ -> forkAff $ pure $ Just listData
     Nothing, _ -> forkAff $ pure Nothing
 forkoutListState _ _ _ _ = forkAff $ pure Nothing
@@ -294,7 +294,7 @@ callMicroAppsForListState id namespace screenName listData microappPayloads mapp
   -- LOOP ON ALL PAYLOADS TO CALL ALL MAPPS IN PARALLEL
   -- AWAIT ALL RESULTS TO COMPLETE THE AFF EXECUTION
   -- MERGE ALL RECIEVED OBJECTS INTO THE LIST:DATA
-  -- MIGHT NEED TO CONSIDER SCOPEING KEYS WITH MAPP NAMES IN BOTH 
+  -- MIGHT NEED TO CONSIDER SCOPEING KEYS WITH MAPP NAMES IN BOTH
   -- LIST ITEM HOLDERS AND LIST ITEM STATE
 
 callSingle :: Foreign ->  Foreign -> String -> String -> (Array (Object Foreign)) -> String -> Foreign -> Aff (Array (Object Foreign))

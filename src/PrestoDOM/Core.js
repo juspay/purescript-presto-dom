@@ -1,19 +1,19 @@
-/* 
+/*
 
-The PrestoDOM is most likely loaded as a micro-app in jOS architure. 
-Meaning, in Web, PrestoDOM is loaded in a nested iframe. 
-The parent iframe holds the presto-ui. 
+The PrestoDOM is most likely loaded as a micro-app in jOS architure.
+Meaning, in Web, PrestoDOM is loaded in a nested iframe.
+The parent iframe holds the presto-ui.
 
 
-Hence, it is necessary to fetch the Android and JBridge objects from the parent.  
+Hence, it is necessary to fetch the Android and JBridge objects from the parent.
 
-If jOS is not being used, this would still work. 
+If jOS is not being used, this would still work.
 Then it is safe to assume, the scope of all the objects is same (one window)
 And the corrosponding Android and JBridge objects are fetched from the same window.
 
 */
-const prestoUI = require("presto-ui"); 
-const prestoDayum = prestoUI.doms; 
+const prestoUI = require("presto-ui");
+const prestoDayum = prestoUI.doms;
 
 var webParseParams, iOSParseParams, parseParams;
 
@@ -40,7 +40,7 @@ exports.terminateUI = function (){
   if(window.__OS == "ANDROID" && Android.runInUI && window.__ROOTSCREEN && window.__ROOTSCREEN.idSet) {
     Android.runInUI(";set_v=ctx->findViewById:i_" + window.__ROOTSCREEN.idSet.root + ";set_p=get_v->getParent;get_p->removeView:get_v;", null);
   } else if(JOS && JOS.parent && JOS.parent != "java" && window.__ROOTSCREEN && window.__ROOTSCREEN.idSet) {
-    Android.removeView(window.__ROOTSCREEN.idSet.root);
+    Android.removeView(window.__ROOTSCREEN.idSet.root, namespace);
   } else {
     Android.runInUI(["removeAllUI"], null);
   }
@@ -195,8 +195,8 @@ function getPrestoID() {
 
 window.__PRESTO_ID = window.__ui_id_sequence =
   typeof Android.getNewID == "function"
-    ? parseInt(Android.getNewID()) * 1000000
-    : getPrestoID() * 1000000;
+    ? (parseInt(Android.getNewID()) * 1000000) % 100000000
+    : (getPrestoID() * 1000000 )% 100000000 ;
 
 function domAll(elem){
   return domAllImpl(elem, window.__dui_screen, {});
@@ -420,7 +420,7 @@ function hideOldScreenNow(tag) {
   var clearCache = window.cacheClearCache;
   window.cacheClearCache = undefined;
   holdArray.forEach(function(obj) {
-    Android.removeView(obj);
+    Android.removeView(obj, namespace);
   });
   if (clearCache) {
     clearCache();
@@ -483,7 +483,7 @@ function applyProp(element, attribute, set) {
   } else if (window.__OS == "IOS") {
     Android.runInUI(prop);
   } else {
-    Android.runInUI(webParseParams("linearLayout", prop, "set"));
+    Android.runInUI(webParseParams("linearLayout", prop, "set"), namespace);
   }
   // Android.runInUI(parseParams("linearLayout", prop, "set"));
 }
@@ -541,8 +541,8 @@ function createPrestoElement() {
   } else {
     window.__ui_id_sequence =
       typeof Android.getNewID == "function"
-        ? parseInt(Android.getNewID()) * 1000000
-        : window.__PRESTO_ID || getPrestoID() * 1000000;
+        ? (parseInt(Android.getNewID()) * 1000000) % 100000000
+        : (window.__PRESTO_ID || getPrestoID() * 1000000) % 100000000;
     return {
       __id: ++window.__ui_id_sequence
     };
@@ -648,7 +648,7 @@ exports.setRootNode = function(nothing) {
   root.props.id = elemRef.__id;
   root.__ref = elemRef;
 
-  window.PrestoDOM_Version = "1.0.1" // UPDATE THIS ON EACH NEW BUILD FOR MASTER 
+  window.PrestoDOM_Version = "1.0.1" // UPDATE THIS ON EACH NEW BUILD FOR MASTER
   window.N = root;
   window.__CACHELIMIT = 50;
   window.__psNothing = nothing;
@@ -727,12 +727,12 @@ function makeVisible(cache, _id) {
     Android.runInUI(prop);
   } else {
     // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-    var ele = Android.getUIElement(prop.id); 
+    var ele = Android.getUIElement(prop.id);
     if (ele) {
       ele.style.display = "flex";
     }
     else {
-      console.error("cache - visible failed"); 
+      console.error("cache - visible failed");
     }
   }
 }
@@ -900,12 +900,12 @@ function hideCachedScreen() {
       } else if (window.__OS == "IOS") {
         Android.runInUI(prop);
       } else {
-        var ele = Android.getUIElement(prop.id); 
-        if (ele) { 
-          ele.style.display = "none"; 
+        var ele = Android.getUIElement(prop.id);
+        if (ele) {
+          ele.style.display = "none";
         }
         else {
-          console.error("cache - hide failed");  
+          console.error("cache - hide failed");
         }
       }
     };
@@ -943,11 +943,11 @@ function insertDom(root, dom) {
   if (window.__screenNothing) {
         window.__stashScreen.push(dom.__ref.__id);
         window.__screenNothing = false;
-  } 
+  }
   else {
-    
+
     var screenName = window.__currScreenName;
-    
+
     var length = window.__ROOTSCREEN.idSet.child.push({
       id: dom.__ref.__id,
       name: screenName
@@ -974,11 +974,11 @@ function insertDom(root, dom) {
           Android.runInUI(prop);
         } else if (length > 1) {
           // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-          var ele = Android.getUIElement(prop.id); 
+          var ele = Android.getUIElement(prop.id);
           if (ele) {
-            ele.style.display = "none"; 
+            ele.style.display = "none";
           } else {
-            console.error("cache - hide old failed"); 
+            console.error("cache - hide old failed");
           }
         }
       };
@@ -1148,7 +1148,7 @@ function callAnimation(tag) {
 }
 
 function executePostProcess(cache) {
-  // console.log("executePostProcess - PrestoDOM - Document Location",document.location); 
+  // console.log("executePostProcess - PrestoDOM - Document Location",document.location);
   return function() {
     callAnimation__(window.__dui_screen) (cache) ();
     if (window.__dui_screen && window["afterRender"] && window["afterRender"][window.__dui_screen] && !window["afterRender"][window.__dui_screen].executed) {
@@ -1241,7 +1241,7 @@ function callAnimation__ (screenName) {
           state.animationStack.push(screenName);
         }
       }
-      callAnimation_(animationArray, false) // hide screen in this 
+      callAnimation_(animationArray, false) // hide screen in this
       state.lastAnimatedScreen = screenName;
     }
   }

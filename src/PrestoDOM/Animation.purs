@@ -38,14 +38,28 @@ module PrestoDOM.Animation
 
 import Prelude
 
+import Control.Monad.Except.Trans (ExceptT, except)
 import Data.Array (length)
 import Data.Foldable (foldr)
 import Data.Generic.Rep (class Generic)
+import Data.Either (Either(..))
+import Data.String.Common (toLower)
+import Foreign.Class (class Decode)
+import Foreign (ForeignError(..), unsafeFromForeign)
+import Data.List.NonEmpty (NonEmptyList, singleton)
 import Effect (Effect)
+
 import PrestoDOM.Properties (prop)
 import PrestoDOM.Types.Core (PropName(PropName), VDom(Keyed, Elem), PrestoDOM)
+import PrestoDOM.Types.DomAttributes(isUndefined, toSafeString, toSafeArray, toSafeObject, toSafeInt)
 
 foreign import _mergeAnimation :: forall a. a -> String
+
+foreign import toSafeInterpolator
+  :: forall a. String -- foreign string
+  -> (String -> Either (NonEmptyList ForeignError) a) -- error constructor
+  ->  (a -> Either (NonEmptyList ForeignError) a) -- data constructor
+  -> Either (NonEmptyList ForeignError) a
 
 -- | Animation data constructor
 -- | Boolean indicates if the animation must be appplied on the view
@@ -89,6 +103,62 @@ instance showRepeatCount :: Show RepeatCount where
            NoRepeat -> "0"
            Infinite -> "-1"
            Repeat n -> show n
+
+-- | Foreign to Type Decoding Utils
+
+-- | Interpolator Type
+
+type InterpolatorType = {type :: String, value :: Array Number}
+instance decodeInterpolator :: Decode Interpolator where decode = decodeInterpolatorUtil <<< unsafeFromForeign
+
+decodeInterpolatorUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Interpolator
+decodeInterpolatorUtil json = let
+  (parsedFont :: Either (NonEmptyList ForeignError) InterpolatorType) = toSafeInterpolator json (Left <<< singleton <<< ForeignError) Right
+  in
+  except $
+    case parsedFont of
+      Left err -> Left err
+      Right obj ->
+        case toLower obj.type of
+          "bezier"    -> toSafeArray Bezier obj.value (Left <<< singleton <<< ForeignError) Right ["number", "number", "number", "number"]
+          "easein"    -> Right EaseIn
+          "easeout"   -> Right EaseOut
+          "easeinout" -> Right EaseInOut
+          "linear"    -> Right Linear
+          "bounce"    -> Right Bounce
+          _           -> (Left <<< singleton <<< ForeignError) $ "Interpolator is not supported"
+
+-- | Repeat Mode
+instance decodeRepeatMode :: Decode RepeatMode where decode = decodeRepeatModeUtil <<< toSafeString <<< unsafeFromForeign
+
+decodeRepeatModeUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a RepeatMode
+decodeRepeatModeUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "Repeat Mode is not defined"
+  else
+    except $
+      case toLower json of
+        "restart" -> Right Restart
+        "reverse" -> Right Reverse
+        _         -> (Left <<< singleton <<< ForeignError) $ "Repeat Mode is not supported"
+
+-- | Repeat Count
+type RepeatCountType = {type :: String, value :: String}
+
+instance decodeRepeatCount :: Decode RepeatCount where decode = decodeRepeatCountUtil <<< unsafeFromForeign
+
+decodeRepeatCountUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a RepeatCount
+decodeRepeatCountUtil json = let
+  (parsedFont :: Either (NonEmptyList ForeignError) RepeatCountType) = toSafeObject json (Left <<< singleton <<< ForeignError) Right in
+  except $
+    case parsedFont of
+      Left err -> Left err
+      Right obj ->
+        case toLower obj.type of
+          "repeat"    -> toSafeInt Repeat obj.value (Left <<< singleton <<< ForeignError) Right
+          "norepeat"  -> Right NoRepeat
+          "infinite"  -> Right Infinite
+          _           -> (Left <<< singleton <<< ForeignError) $ "Repeat Count is not supported"
 
 -- | Base animation prop handler
 animProp :: forall a. Show a => String -> a -> AnimProp
