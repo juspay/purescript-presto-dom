@@ -13,6 +13,60 @@
 //   }
 // }
 
+const scrollState = {};
+exports.getTimeStamp = function(){
+  return Date.now();
+}
+
+exports.saveScrollPush = function(scrollPush){
+  return function (identifier){
+    return function (){
+      scrollState.push = scrollState.push || {}
+      scrollState.push[identifier] = scrollPush
+    }
+  }
+}
+
+exports.getScrollPush = function(identifier){
+  return function(){
+    scrollState.push = scrollState.push || {}
+    return scrollState.push[identifier] || function () {return function() {return function() {}}}
+    }
+  }
+
+  exports.timeOutScroll = function(identifier){
+    return function(scrollPush){
+      return function (){
+        // console.log(scrollState)
+        scrollState.timeOut = scrollState.timeOut || {}
+        clearTimeout(scrollState.timeOut[identifier])
+        scrollState.timeOut[identifier] = setTimeout(scrollPush,200)
+      }
+    }
+  }
+
+exports.getLastTimeStamp = function (identifier){
+  return function(){
+    scrollState.lastTimeOut = scrollState.lastTimeOut || {}
+    return scrollState.lastTimeOut[identifier] || Date.now()
+  }
+}
+
+exports.setLastTimeStamp = function (identifier){
+  return function(){
+    scrollState.lastTimeOut = scrollState.lastTimeOut || {}
+    scrollState.lastTimeOut[identifier] = Date.now()
+  }
+}
+
+
+exports.backPressHandlerImpl = function () {
+  return function(e) {
+    window.onBackPressed();
+  }
+}
+
+
 exports.backPressHandlerImpl = function () {
   return function(e) {
     window.onBackPressed();
