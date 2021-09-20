@@ -116,7 +116,7 @@ var getIdFromNamespace = function(namespace) {
   return ns;
 }
 
-exports.getIdFromNamespace = function(namespace) {
+getIdFromNamespace = function(namespace) {
   return function() {
     return getIdFromNamespace(id)
   }
@@ -751,7 +751,7 @@ exports.insertDom = function(namespace, name, dom, cache) {
     return;
   }
   if(!getScopedState(namespace).rootVisible) {
-    exports.makeRootVisible(namespace);
+    makeRootVisible(namespace);
   }
 
   getScopedState(namespace).animations.entry[name] = {}
@@ -1154,7 +1154,7 @@ exports.makeCacheRootVisible = function(namespace) {
   showViewInNameSpace(getScopedState(namespace).cacheRoot, namespace)();
 }
 
-exports.makeRootVisible = function(namespace) {
+makeRootVisible = function(namespace) {
   getScopedState(namespace).rootVisible = true;
   showViewInNameSpace(getScopedState(namespace).rootId, namespace)();
 }

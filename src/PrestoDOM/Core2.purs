@@ -9,7 +9,6 @@ import Data.Foldable (for_)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (un)
 import Data.Traversable (traverse)
-import Data.String (contains, Pattern(..))
 import Data.Tuple (Tuple(..), fst)
 import Effect (Effect)
 import Effect.Class (liftEffect)
@@ -22,8 +21,8 @@ import FRP.Behavior (sample_, unfold)
 import FRP.Event (EventIO, subscribe)
 import FRP.Event as E
 import Foreign (Foreign, unsafeToForeign)
-import Foreign.Generic (encode, decode, class Decode, decodeJSON)
-import Foreign.Object (update, insert, fromHomogeneous, delete, isEmpty, lookup)
+import Foreign.Generic (encode, decode, class Decode)
+import Foreign.Object (Object, update, insert, delete, isEmpty, lookup)
 import Halogen.VDom (Step, VDom, VDomSpec(..), buildVDom, extract, step)
 import Halogen.VDom.DOM.Prop (buildProp)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
@@ -34,16 +33,15 @@ import PrestoDOM.Utils (continue, logAction)
 import Tracker (trackScreen)
 import Tracker.Labels as L
 import Tracker.Types (Level(..), Screen(..)) as T
-import Foreign.Object (Object)
 import Unsafe.Coerce (unsafeCoerce)
 
-import PrestoDOM.Core.Types
+import PrestoDOM.Core.Types (InsertState, UpdateActions, VdomTree)
 import PrestoDOM.Core.Utils (callMicroAppsForListState, extractAndDecode, extractJsonAndDecode, forkoutListState, generateCommands, getListData, replayListFragmentCallbacks', verifyFont, verifyImage)
 
 foreign import setUpBaseState :: String -> Foreign -> Effect Unit
 foreign import insertDom :: forall a. EFn.EffectFn4 String String a Boolean InsertState
-foreign import addViewToParent :: forall a. EFn.EffectFn1 InsertState Unit
-foreign import parseProps :: forall a. EFn.EffectFn4 Foreign String Foreign String {ids :: Foreign, dom :: Foreign}
+foreign import addViewToParent :: EFn.EffectFn1 InsertState Unit
+foreign import parseProps :: EFn.EffectFn4 Foreign String Foreign String {ids :: Foreign, dom :: Foreign}
 foreign import storeMachine :: forall a b . EFn.EffectFn3 (Step a b) String String Unit
 foreign import getLatestMachine :: forall a b . EFn.EffectFn2 String String (Step a b)
 foreign import isInStack :: EFn.EffectFn2 String String Boolean
@@ -92,7 +90,7 @@ foreign import cachePushEvents :: String -> String -> Effect Unit -> String -> E
 foreign import isScreenPushActive :: String -> String -> String -> Effect Boolean
 foreign import setScreenPushActive :: String -> String -> String -> Effect Unit
 
-updateChildren :: forall a b. String -> String -> EFn.EffectFn1 a Unit
+updateChildren :: forall a. String -> String -> EFn.EffectFn1 a Unit
 updateChildren namespace screenName =
   Efn.mkEffectFn1
     $ \rawActions -> do
