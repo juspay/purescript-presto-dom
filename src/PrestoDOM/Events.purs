@@ -115,31 +115,31 @@ onScroll identifier globalEventsIdentifier push f = event (DOM.EventType "onScro
     )))
 
 globalOnScroll :: forall a. String -> (a -> Effect Unit) -> Effect (Effect Unit)
-globalOnScroll identifier _ =  pure $ pure unit
-  -- do
-    --     { event, push } <- E.create
-    --     _ <- saveScrollPush push identifier
-    --     let stateBehaviour = unfold (scrollStateUpdate identifier) event ( {scrollState : empty, lastIdentifier : ""})
-    --     canceller <- sample_ stateBehaviour event `subscribe` (scrollListner push)
-    --     pure canceller
-    -- where
-    -- scrollListner :: (PushState -> Effect Unit) -> ScrollS -> Effect Unit
-    -- scrollListner push st = do
-    --         oldTime <- getLastTimeStamp identifier
-    --         _ <- setLastTimeStamp identifier
-    --         newTime <- getLastTimeStamp identifier
-    --         -- st <- state
-    --         let currentState = lookup st.lastIdentifier st.scrollState
-    --         case currentState of
-    --             Just item   -> do
-    --                 if item.isTimeOut
-    --                     then do
-    --                         if newTime - oldTime >= 200.0
-    --                             then item.push item.oldScroll
-    --                             else pure unit
-    --                     else timeOutScroll st.lastIdentifier (push $ {isTimeOut : true, identifier : st.lastIdentifier, newScroll : item.oldScroll, push : item.push})
-    --             Nothing     -> pure unit
-    --         pure unit
+globalOnScroll identifier _ =  --pure $ pure unit
+  do
+        { event, push } <- E.create
+        _ <- saveScrollPush push identifier
+        let stateBehaviour = unfold (scrollStateUpdate identifier) event ( {scrollState : empty, lastIdentifier : ""})
+        canceller <- sample_ stateBehaviour event `subscribe` (scrollListner push)
+        pure canceller
+    where
+    scrollListner :: (PushState -> Effect Unit) -> ScrollS -> Effect Unit
+    scrollListner push st = do
+            oldTime <- getLastTimeStamp identifier
+            _ <- setLastTimeStamp identifier
+            newTime <- getLastTimeStamp identifier
+            -- st <- state
+            let currentState = lookup st.lastIdentifier st.scrollState
+            case currentState of
+                Just item   -> do
+                    if item.isTimeOut
+                        then do
+                            if newTime - oldTime >= 200.0
+                                then item.push item.oldScroll
+                                else pure unit
+                        else timeOutScroll st.lastIdentifier (push $ {isTimeOut : true, identifier : st.lastIdentifier, newScroll : item.oldScroll, push : item.push})
+                Nothing     -> pure unit
+            pure unit
 
 type ScrollS =
   { scrollState :: Object (ScrollHolder)
@@ -182,8 +182,8 @@ scrollStateUpdate gID newScroll st= do
             let scrollState = insert newScroll.identifier {hasChanged : false, isTimeOut : false, oldScroll : newScroll.newScroll, push : newScroll.push} st.scrollState
             { scrollState, lastIdentifier : newScroll.identifier }
 
--- onScrollStateChange :: forall a. (a -> Effect Unit ) -> (ScrollState -> a) -> Prop (Effect Unit)
--- onScrollStateChange push f = event (DOM.EventType "onScrollStateChange") (Just <<< (makeEvent (push <<< f <<< mapScrollState)))
+onScrollStateChange :: forall a. (a -> Effect Unit ) -> (ScrollState -> a) -> Prop (Effect Unit)
+onScrollStateChange push f = event (DOM.EventType "onScrollStateChange") (Just <<< (makeEvent (push <<< f <<< mapScrollState)))
 
 
 
