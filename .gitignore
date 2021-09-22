@@ -5,3 +5,5 @@ output/
 src/.DS_Store
 dist/
 .psc-ide-port
+.idea
+/**/*.ast

@@ -12,7 +12,7 @@ import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst)
 import Effect (Effect)
 import Effect.Class (liftEffect)
-import Effect.Aff (Canceler, effectCanceler, Aff, makeAff, forkAff, joinFiber, launchAff_)
+import Effect.Aff (Canceler, effectCanceler, Aff, makeAff, forkAff, joinFiber, launchAff_, nonCanceler)
 import Effect.Exception (Error)
 import Effect.Ref as Ref
 import Effect.Uncurried as EFn
@@ -89,6 +89,16 @@ foreign import setControllerStates :: String -> String -> Effect Unit
 foreign import cachePushEvents :: String -> String -> Effect Unit -> String -> Effect Unit
 foreign import isScreenPushActive :: String -> String -> String -> Effect Boolean
 foreign import setScreenPushActive :: String -> String -> String -> Effect Unit
+
+foreign import canPreRender :: Unit -> Boolean
+foreign import cacheMachine :: forall a b . EFn.EffectFn3 (Step a b) String String Unit
+foreign import prepareDom :: forall a. EFn.EffectFn3 a String String Foreign
+foreign import getCachedMachineImpl :: forall a b . EFn.EffectFn4 ((Step a b) -> Maybe (Step a b)) (Maybe (Step a b)) String String (Maybe (Step a b))
+foreign import prepareAndStoreView :: EFn.EffectFn3 (Effect Unit) Foreign String Unit
+foreign import attachScreen :: EFn.EffectFn3 String String Foreign Unit
+foreign import render :: EFn.EffectFn1 String Unit
+
+foreign import addScreenWithAnim :: EFn.EffectFn3 Foreign String String Unit
 
 updateChildren :: forall a. String -> String -> EFn.EffectFn1 a Unit
 updateChildren namespace screenName =
@@ -246,6 +256,9 @@ spec namespace screen =
         , parseParams : parseParams
         }
 
+getCachedMachine :: ∀ a b. String -> String → Aff (Maybe (Step a b))
+getCachedMachine namespace name = liftEffect $ EFn.runEffectFn4 getCachedMachineImpl Just Nothing namespace name
+
 getEventIO :: forall action. String -> Maybe String -> Effect (EventIO action)
 getEventIO screenName parent = do
   ns <- sanitiseNamespace parent
@@ -261,14 +274,23 @@ renderOrPatch :: forall action state returnType
 renderOrPatch {event, push} st@{ initialState, view, eval, name , globalEvents, parent } true isCache = do
   let myDom = view push initialState
   ns <- liftEffect $ sanitiseNamespace parent
-  machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns name)) myDom
-  insertState <- liftEffect $ EFn.runEffectFn4 insertDom ns name (extract machine) isCache
-  -- DO NOT CHANGE THIS TO ENCODE,
-  -- THE JSON IN THIS BLOCK IS MODIFIED IN JS
-  -- AND CAN IMPACT ALL ENCODE USAGES
-  domAllOut <- domAll st (unsafeToForeign {}) insertState.dom
-  liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
-  liftEffect $ EFn.runEffectFn3 storeMachine machine name ns
+  prMachine <- if isCache then pure Nothing else getCachedMachine ns name
+  case prMachine of
+    Just machine -> liftEffect do
+      EFn.runEffectFn3 attachScreen ns name (extract machine)
+      newMachine <- EFn.runEffectFn2 step machine myDom
+      EFn.runEffectFn3 storeMachine newMachine name ns
+      EFn.runEffectFn3 addScreenWithAnim (extract newMachine) name ns
+      setPatchToActive ns name
+    Nothing -> do
+      machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns name)) myDom
+      insertState <- liftEffect $ EFn.runEffectFn4 insertDom ns name (extract machine) isCache
+      -- DO NOT CHANGE THIS TO ENCODE,
+      -- THE JSON IN THIS BLOCK IS MODIFIED IN JS
+      -- AND CAN IMPACT ALL ENCODE USAGES
+      domAllOut <- domAll st (unsafeToForeign {}) insertState.dom
+      liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
+      liftEffect $ EFn.runEffectFn3 storeMachine machine name ns
 renderOrPatch {event, push} { initialState, view, eval, name , globalEvents, parent }false isCache = liftEffect do
   patchAndRun name parent (view push) initialState
   ns <- sanitiseNamespace parent
@@ -344,8 +366,9 @@ controllerActions {event, push} {initialState, eval, name, globalEvents, parent}
 -- createState in local state variable for the same
 
 initUIWithNameSpace :: String -> Maybe String -> Effect Unit
-initUIWithNameSpace namespace id =
+initUIWithNameSpace namespace id = do
   setUpBaseState namespace $ encode id
+  EFn.runEffectFn1 render namespace
 
 initUIWithScreen ::
   forall action state returnType.
@@ -439,6 +462,37 @@ updateScreen { initialState, view, eval, name , globalEvents, parent } = do
   -- ADD LOGIC TO IDENTIFY; IF SCREEN IS RUN OR SHOW SCREEN
   -- MAKE POSSIBLE TO MOVE SCREENS BETWEEN RUN AND SHOW (EXTREMELY EXPERIMENTAL)
   patchAndRun name parent (view (\_ -> pure unit )) initialState
+
+prepareScreen :: forall action state returnType
+  . Show action => Loggable action
+  => ScopedScreen action state returnType
+  -> Object Foreign
+  -> Aff Unit
+prepareScreen screen@{name, parent, view} json = do
+  if not (canPreRender unit)
+    then pure unit
+    else do 
+      liftEffect $ trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" screen.name json
+      ns <- liftEffect $ sanitiseNamespace parent
+      liftEffect <<< setUpBaseState ns $ encode (Nothing :: Maybe String )
+      eventIO <- liftEffect $ getEventIO name parent
+      let myDom = view (\_ -> pure unit) screen.initialState
+
+      machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns name)) myDom
+      liftEffect $ EFn.runEffectFn3 cacheMachine machine name ns
+      dom <- liftEffect $ EFn.runEffectFn3 prepareDom (extract machine) name ns
+      -- DO NOT CHANGE THIS TO ENCODE,
+      -- THE JSON IN THIS BLOCK IS MODIFIED IN JS
+      -- AND CAN IMPACT ALL ENCODE USAGES
+      domAllOut <- domAll screen (unsafeToForeign {}) dom
+      makeAff $ \cB -> do
+         EFn.runEffectFn3 prepareAndStoreView (callBack cB) domAllOut (ns <> name)
+         pure nonCanceler
+  where
+  callBack cb = do
+    trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_finished" screen.name json
+    cb (Right unit)
+
 
 terminateUI :: Maybe String -> Effect Unit
 terminateUI nameSpace = EFn.runEffectFn1 terminateUIImpl =<< sanitiseNamespace nameSpace

@@ -14,7 +14,9 @@ import PrestoDOM.Core2 as PrestoDOM2
 import PrestoDOM.Types.Core (class Loggable, ScopedScreen, Controller, Screen)
 
 initUI :: forall a. Flow a Unit
-initUI  = doAff do liftEffect $ PrestoDOM2.initUIWithNameSpace "default" Nothing
+initUI  = do
+  ns <- doAff do liftEffect $ PrestoDOM2.sanitiseNamespace $ Just "default"
+  doAff do liftEffect $ PrestoDOM2.initUIWithNameSpace ns Nothing
 
 initUIWithNameSpace :: String -> Maybe String -> Effect Unit
 initUIWithNameSpace = PrestoDOM2.initUIWithNameSpace
@@ -37,13 +39,17 @@ runScreenWithNameSpace screen = do
   json <- getLogFields
   doAff $ PrestoDOM2.runScreen screen json
 
+prepareScreenWithNameSpace
+  :: forall action state retType a.  Show action => Loggable action => ScopedScreen action state retType -> Flow a Unit
+prepareScreenWithNameSpace screen = do
+  json <- getLogFields
+  doAff $ PrestoDOM2.prepareScreen screen json
+
 prepareScreen
-  :: forall action state retType a
-   . Screen action state retType
-  -> Flow a Unit
+  :: forall action state retType a. Show action => Loggable action => Screen action state retType -> Flow a Unit
 prepareScreen screen = do
   json <- getLogFields
-  doAff (makeAff \cb -> PrestoDOM.prepareScreen screen cb json)
+  doAff $ PrestoDOM2.prepareScreen (mapToScopedScreen screen) json
 
 showScreen :: forall action state retType a. Show action => Loggable action => Screen action state retType -> Flow a retType
 showScreen screen = do
