@@ -6,7 +6,10 @@ module PrestoDOM.Elements.Elements
 
     , linearLayout_
     , relativeLayout_
-
+    
+    , bottomSheetLayout
+    , coordinatorLayout
+    , swipeRefreshLayout
     , linearLayout
     , mapp
     , relativeLayout
@@ -36,7 +39,6 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
 import Halogen.VDom.DOM.Prop (Prop)
 import PrestoDOM.Types.Core (ElemName(..), VDom(..), Namespace)
-
 
 type Node i p
    = Array i
@@ -80,6 +82,15 @@ relativeLayout_ screenName = rootElement screenName (ElemName "relativeLayout")
 
 linearLayout :: forall i p. Node (Prop i) p
 linearLayout = node "linearLayout"
+
+coordinatorLayout :: forall i p. Node (Prop i) p
+coordinatorLayout = node "coordinatorLayout"
+
+bottomSheetLayout :: forall i p. Node (Prop i) p
+bottomSheetLayout = node "bottomSheetLayout"
+
+swipeRefreshLayout :: forall i p. Node (Prop i) p
+swipeRefreshLayout = node "swipeRefreshLayout"
 
 relativeLayout :: forall i p. Node (Prop i) p
 relativeLayout = node "relativeLayout"

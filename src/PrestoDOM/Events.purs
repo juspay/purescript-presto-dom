@@ -7,6 +7,11 @@ module PrestoDOM.Events
     , onBackPressed
     , onNetworkChanged
     , makeEvent
+    , ScrollState
+    , onFocus
+    , onScroll
+    , onScrollStateChange
+    , onRefresh
     , afterRender
     , onAnimationEnd
     , onClickWithLogger
@@ -19,7 +24,7 @@ module PrestoDOM.Events
     , registerEvent
     , onFocus
     , onScroll
-    -- , onScrollStateChange
+    , onScrollStateChange
     , globalOnScroll
     , ScrollState
     ) where
@@ -89,10 +94,14 @@ onClick push f = event (DOM.EventType "onClick") (Just <<< (makeEvent (push <<< 
 onClickWithLogger :: String -> String -> forall a. (a ->  Effect Unit) -> (Unit -> a) -> Object Foreign -> Prop (Effect Unit)
 onClickWithLogger label value push f json = event (DOM.EventType "onClick") (Just <<< (makeEvent (pushAndLog label value push json <<< f )))
 
+onRefresh :: forall a. (a ->  Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
+onRefresh push f = event (DOM.EventType "onRefresh") (Just <<< (makeEvent (push <<< f)))
+
 pushAndLog :: forall a. String -> String -> (a -> Effect Unit) -> Object Foreign -> a ->Effect Unit
 pushAndLog label value push json a = do
     push a
     debounce (trackAction T.User T.Info L.ON_CLICK) label (encode value) json
+
 onFocus :: forall a. (a ->  Effect Unit) -> (Boolean -> a) -> Prop (Effect Unit)
 onFocus push f = event (DOM.EventType "onFocus") (Just <<< (makeEvent (push <<< f)))
 
@@ -101,9 +110,6 @@ onChange push f = event (DOM.EventType "onChange") (Just <<< (makeEvent (push <<
 
 attachBackPress :: forall a. (a ->  Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
 attachBackPress push f = event (DOM.EventType "onClick") (Just <<< backPressHandler)
-
--- onScroll :: forall a. (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
--- onScroll push f = event (DOM.EventType "onScroll") (Just <<< (makeEvent (push <<< f)))
 
 onScroll :: forall a. String -> String -> (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
 onScroll identifier globalEventsIdentifier push f = event (DOM.EventType "onScroll") (Just <<< (makeEvent (\a -> do
@@ -187,6 +193,7 @@ onScrollStateChange push f = event (DOM.EventType "onScrollStateChange") (Just <
 
 onAnimationEnd :: forall a. (a ->  Effect Unit) -> (String -> a) -> Prop (Effect Unit)
 onAnimationEnd push f = event (DOM.EventType "onAnimationEnd") (Just <<< (makeEvent (push <<< f)))
+
 {-- attachTimerHandler --}
 {--     :: forall eff a --}
 {--      . (a ->  Eff ( frp :: FRP, ref :: REF, dom :: DOM | eff) Unit) --}

@@ -8,19 +8,23 @@ module PrestoDOM.Properties
     , a_scaleY
     , a_translationX
     , a_translationY
+    , absolute
     , accessibilityHint
     , adjustViewBounds
     , alpha
+    , hideable
     , animation
 
     , background
     , backgroundColor
     , backgroundDrawable
     , backgroundTint
+    , peakHeight
     , btnBackground
     , btnColor
     , buttonTint
-
+    , enableRefresh
+    , setEnable
     , buttonClickOverlay
 
     , cardWidth
@@ -42,7 +46,6 @@ module PrestoDOM.Properties
 
     , elevation
     , ellipsize
-
     , fillViewport
     , focus
     , focusable
@@ -52,6 +55,10 @@ module PrestoDOM.Properties
     , fontStyle
     , font
     , foreground
+    , fromBottom
+    , fromLeft
+    , fromRight
+    , fromTop
 
     , gravity
     , gradient
@@ -79,28 +86,32 @@ module PrestoDOM.Properties
     , marginEnd
     , marginStart
     , maxDate
-    , maxHeight
     , maxLines
     , maxSeek
     , maxWidth
     , minDate
     , minHeight
     , minWidth
+    , maxHeight
 
     , orientation
 
     , padding
+    , percentWidth
     , pivotX
     , pivotY
+    , position
     , progressColor
     , packageIcon
     , placeHolder
 
-    , removeClassList
     , rotation
     , rotationX
     , rotationY
-
+    , removeClassList
+    
+    , sheetState
+    , halfExpandedRatio
     , scaleType
     , scaleX
     , scaleY
@@ -116,6 +127,7 @@ module PrestoDOM.Properties
     , showDividers
     , singleLine
     , stroke
+    , shimmer
 
     , tabTextColors
     , text
@@ -138,21 +150,21 @@ module PrestoDOM.Properties
 
     , weight
     , width
-    , position
     , alignParentBottom
     , alignParentLeft
     , popupMenu
     , pattern
+    , shimmerActive
     , viewGroupTag
     , payload
     ) where
 
 import Prelude
-import Data.String(toLower)
--- import Data.Tuple (Tuple(..))
+
+import Data.String (toLower)
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.DomAttributes (Corners, LineSpacing, __IS_ANDROID)
-import PrestoDOM.Types.Core (class IsProp, PropName(..), Margin, Position, Padding, Gravity, Gradient,Font(..) ,InputType, Length, Orientation, Typeface, Visibility, Shadow, toPropValue)
+import PrestoDOM.Types.Core (class IsProp, Gradient, Gravity, InputType, Length, Margin, Orientation, Padding, Position, PropName(..), Shadow, Typeface, Visibility, toPropValue)
+import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font(..), LineSpacing, Shimmer, __IS_ANDROID)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
@@ -186,6 +198,10 @@ a_translationX = prop (PropName "a_translationX")
 a_translationY :: forall i. Boolean -> Prop i
 a_translationY = prop (PropName "a_translationY")
 
+-- | Boolean
+absolute :: forall i. Boolean -> Prop i
+absolute = prop (PropName "absolute")
+
 -- | String
 accessibilityHint :: forall i. String -> Prop i
 accessibilityHint = prop (PropName "accessibilityHint")
@@ -201,6 +217,13 @@ alpha = prop (PropName "alpha")
 animation :: forall i. String -> Prop i
 animation = prop (PropName "animation")
 
+-- | Boolean 
+enableRefresh :: forall i. Boolean -> Prop i
+enableRefresh = prop (PropName "enableRefresh")
+
+-- | Boolean 
+setEnable :: forall i. Boolean -> Prop i
+setEnable = prop (PropName "setEnable")
 
 -- | String
 background :: forall i. String -> Prop i
@@ -338,6 +361,21 @@ foreground :: forall i. Boolean -> Prop i
 foreground = prop (PropName "foreground")
 
 
+-- | Number
+fromBottom :: forall i. Number -> Prop i
+fromBottom = prop (PropName "fromBottom")
+
+-- | Number
+fromLeft :: forall i. Number -> Prop i
+fromLeft = prop (PropName "fromLeft")
+
+-- | Number
+fromRight :: forall i. Number -> Prop i
+fromRight = prop (PropName "fromRight")
+
+-- | Number
+fromTop :: forall i. Number -> Prop i
+fromTop = prop (PropName "fromTop")
 
 -- | Gravity
 gravity :: forall i. Gravity -> Prop i
@@ -499,6 +537,10 @@ padding = prop (PropName "padding")
 -- | String
 packageIcon :: forall i. String -> Prop i
 packageIcon = prop (PropName "packageIcon")
+
+-- | Boolean
+percentWidth :: forall i. Boolean -> Prop i
+percentWidth = prop (PropName "percentWidth")
 
 -- | Number
 pivotX :: forall i. Number -> Prop i
@@ -690,6 +732,27 @@ popupMenu = prop (PropName "popupMenu")
 -- | Int -- ime option for edittext
 imeOptions :: forall i. Int -> Prop i
 imeOptions = prop (PropName "imeOptions")
+
+-- | Shimmer Properties -- should start shimmer
+shimmer :: forall i. Shimmer -> Prop i
+shimmer = prop (PropName "shimmer")
+
+peakHeight :: forall i. Int -> Prop i
+peakHeight = prop (PropName "peakHeight")
+
+hideable :: forall i. Boolean -> Prop i
+hideable = prop (PropName "hideable")
+
+sheetState :: forall i. BottomSheetState -> Prop i
+sheetState = prop (PropName "sheetState")
+
+halfExpandedRatio :: forall i. Number -> Prop i
+halfExpandedRatio = prop (PropName "halfExpandedRatio")
+
+-- | Boolean -- should start shimmer
+shimmerActive :: forall i. Boolean -> Prop i
+shimmerActive true = prop (PropName "shimmerActive") true
+shimmerActive false = prop (PropName "shimmerInactive") true
 
 viewGroupTag :: forall i. String -> Prop i
 viewGroupTag = prop (PropName "viewGroupTag")

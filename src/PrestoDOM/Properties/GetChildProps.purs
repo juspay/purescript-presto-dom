@@ -5,6 +5,7 @@ module PrestoDOM.Properties.GetChildProps
     , a_duration_p
     , a_scaleX_p
     , a_scaleY_p
+    , absolute_p
     , accessibilityHint_p
     , adjustViewBounds_p
     , alpha_p
@@ -41,6 +42,10 @@ module PrestoDOM.Properties.GetChildProps
     , fontStyle_p
     , font_p
     , foreground_p
+    , fromBottom_p
+    , fromLeft_p
+    , fromRight_p
+    , fromTop_p
 
     , gravity_p
 
@@ -171,6 +176,10 @@ a_scaleX_p = fromGenProp "a_scaleX"
 a_scaleY_p :: forall i. String -> Object GenProp -> Prop i
 a_scaleY_p = fromGenProp "a_scaleY"
 
+-- | Boolean
+absolute_p :: forall i. Boolean -> Object GenProp -> Prop i
+absolute_p = fromGenProp "absolute"
+
 -- | String
 accessibilityHint_p :: forall i. String -> Object GenProp -> Prop i
 accessibilityHint_p = fromGenProp "accessibilityHint"
@@ -295,6 +304,7 @@ fontSize_p = fromGenProp "fontSize"
 fontStyle_p :: forall i. String -> Object GenProp -> Prop i
 fontStyle_p = fromGenProp "fontStyle"
 
+
 -- | Font
 font_p :: forall  i. Font -> Object GenProp -> Prop i 
 font_p = fromGenProp "font"
@@ -303,6 +313,21 @@ font_p = fromGenProp "font"
 foreground_p :: forall i. Boolean -> Object GenProp -> Prop i
 foreground_p = fromGenProp "foreground"
 
+-- | Number
+fromBottom_p :: forall i. Number -> Object GenProp -> Prop i
+fromBottom_p = fromGenProp "fromBottom"
+
+-- | Number
+fromLeft_p :: forall i. Number -> Object GenProp -> Prop i
+fromLeft_p = fromGenProp "fromLeft"
+
+-- | Number
+fromRight_p :: forall i. Number -> Object GenProp -> Prop i
+fromRight_p = fromGenProp "fromRight"
+
+-- | Number
+fromTop_p :: forall i. Number -> Object GenProp -> Prop i
+fromTop_p = fromGenProp "fromTop"
 
 
 -- | Gravity

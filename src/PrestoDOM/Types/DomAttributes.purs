@@ -11,6 +11,9 @@ module PrestoDOM.Types.DomAttributes
     , Margin(..)
     , Shadow(..)
     , Corners(..)
+    , BottomSheetState(..)
+    , Shimmer
+    , renderShimmer
     , Font(..)
     , LineSpacing(..)
     , isUndefined
@@ -33,22 +36,39 @@ module PrestoDOM.Types.DomAttributes
     , toSafeObject
     , toSafeInt
     , __IS_ANDROID
+    , alphaBuilder
+    , colorBuilder
+    , tilt
+    , intensity
+    , direction
+    , duration
+    , repeatCount
+    , repeatDelay
+    , clipToChildren
+    , baseColor
+    , baseAlpha
+    , highlightColor
+    , highlightAlpha
+    , shape
+    , dropOff
+    , active
+    , renderBottomSheetState
     ) where
 
 import Prelude
 
-
 import Control.Monad.Except.Trans (ExceptT, except)
-import Data.Function.Uncurried (Fn3, runFn3)
 import Data.Either (Either(..))
+import Data.Function.Uncurried (Fn3, runFn3)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Int (fromString)
 import Data.List.NonEmpty (NonEmptyList, singleton)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String.Common (toLower)
 import Foreign (Foreign, ForeignError(..), unsafeFromForeign, unsafeToForeign)
-import Foreign.Class (class Decode, class Encode)
+import Foreign.Class (class Decode, class Encode, encode)
+import Presto.Core.Utils.Encoding (defaultEncodeJSON)
 
 
 foreign import stringifyGradient :: Fn3 String Number (Array String) String
@@ -594,3 +614,145 @@ renderLineSpacing = case _ of
     LineSpacing extra multiplier      -> (show extra) <> "," <> (show multiplier)
     LineSpacingExtra extra            -> (show extra) <> ",1.0"
     LineSpacingMultiplier multiplier  -> "0," <> (show multiplier)
+
+data BottomSheetState
+ = EXPANDED
+ | COLLAPSED
+ | HIDDEN
+ | HALF_EXPANDED
+
+renderBottomSheetState :: BottomSheetState -> String
+renderBottomSheetState EXPANDED = "expanded"
+renderBottomSheetState COLLAPSED = "collapsed"
+renderBottomSheetState HIDDEN = "hidden"
+renderBottomSheetState HALF_EXPANDED = "halfExpanded"
+
+-- int LEFT_TO_RIGHT = 0;
+-- int TOP_TO_BOTTOM = 1;
+-- int RIGHT_TO_LEFT = 2;
+-- int BOTTOM_TO_TOP = 3;
+
+--INFINITE = -1
+
+--int LINEAR = 0;
+--int RADIAL = 1;
+
+type ShimmerJson a = {
+    base :: Maybe a,
+    highlight :: Maybe a,
+    tilt :: Maybe Int,
+    intensity :: Maybe Int,
+    direction :: Maybe Int,
+    duration :: Maybe Int,
+    repeatCount :: Maybe Int,
+    repeatDelay :: Maybe Number,
+    clipToChildren :: Maybe Boolean,
+    shape :: Maybe Int,
+    dropOff :: Maybe Number,
+    active :: Boolean,
+    shimmerType :: String
+}
+
+data Shimmer
+    = AlphaBuilder (ShimmerJson Number)
+    | ColorBuilder (ShimmerJson String)
+
+derive instance genericShimmer :: Generic Shimmer _
+instance encodeShimmer :: Encode Shimmer 
+    where 
+        encode (AlphaBuilder a) = encode a
+        encode (ColorBuilder a) = encode a
+
+renderShimmer :: Shimmer -> String
+renderShimmer = defaultEncodeJSON
+
+alphaBuilder :: Shimmer
+alphaBuilder = AlphaBuilder {
+    base : Nothing
+    , highlight : Nothing
+    , tilt : Nothing
+    , intensity : Nothing
+    , direction : Nothing
+    , duration : Nothing
+    , repeatCount : Nothing
+    , repeatDelay : Nothing
+    , clipToChildren : Nothing
+    , shape : Nothing
+    , dropOff : Nothing
+    , active : true
+    , shimmerType : "alpha"
+    }
+
+tilt :: Int -> Shimmer -> Shimmer
+tilt f (AlphaBuilder a) = AlphaBuilder $ a { tilt = Just f}
+tilt f (ColorBuilder a) = ColorBuilder $ a { tilt = Just f}
+
+intensity :: Int -> Shimmer -> Shimmer
+intensity f (AlphaBuilder a) = AlphaBuilder $ a { intensity = Just f}
+intensity f (ColorBuilder a) = ColorBuilder $ a { intensity = Just f}
+
+direction :: Int -> Shimmer -> Shimmer
+direction f (AlphaBuilder a) = AlphaBuilder $ a { direction = Just f}
+direction f (ColorBuilder a) = ColorBuilder $ a { direction = Just f}
+
+duration :: Int -> Shimmer -> Shimmer
+duration f (AlphaBuilder a) = AlphaBuilder $ a { duration = Just f}
+duration f (ColorBuilder a) = ColorBuilder $ a { duration = Just f}
+
+repeatCount :: Int -> Shimmer -> Shimmer
+repeatCount f (AlphaBuilder a) = AlphaBuilder $ a { repeatCount = Just f}
+repeatCount f (ColorBuilder a) = ColorBuilder $ a { repeatCount = Just f}
+
+repeatDelay :: Number -> Shimmer -> Shimmer
+repeatDelay f (AlphaBuilder a) = AlphaBuilder $ a { repeatDelay = Just f}
+repeatDelay f (ColorBuilder a) = ColorBuilder $ a { repeatDelay = Just f}
+
+clipToChildren :: Boolean -> Shimmer -> Shimmer
+clipToChildren f (AlphaBuilder a) = AlphaBuilder $ a { clipToChildren = Just f}
+clipToChildren f (ColorBuilder a) = ColorBuilder $ a { clipToChildren = Just f}
+
+shape :: Int -> Shimmer -> Shimmer
+shape f (AlphaBuilder a) = AlphaBuilder $ a { shape = Just f}
+shape f (ColorBuilder a) = ColorBuilder $ a { shape = Just f}
+
+dropOff :: Number -> Shimmer -> Shimmer
+dropOff f (AlphaBuilder a) = AlphaBuilder $ a { dropOff = Just f}
+dropOff f (ColorBuilder a) = ColorBuilder $ a { dropOff = Just f}
+
+active :: Boolean -> Shimmer -> Shimmer
+active f (AlphaBuilder a) = AlphaBuilder $ a { active = f}
+active f (ColorBuilder a) = ColorBuilder $ a { active = f}
+
+
+baseAlpha :: Number -> Shimmer -> Shimmer
+baseAlpha f (AlphaBuilder a) = AlphaBuilder $ a {base = Just f}
+baseAlpha f shimmer = shimmer
+
+highlightAlpha :: Number -> Shimmer -> Shimmer
+highlightAlpha f (AlphaBuilder a) = AlphaBuilder $ a {highlight = Just f}
+highlightAlpha f shimmer = shimmer
+
+baseColor :: String -> Shimmer -> Shimmer
+baseColor f (ColorBuilder a) = ColorBuilder $ a {base = Just f}
+baseColor f shimmer = shimmer
+
+highlightColor :: String -> Shimmer -> Shimmer
+highlightColor f (ColorBuilder a) = ColorBuilder $ a {highlight = Just f}
+highlightColor f shimmer = shimmer
+
+colorBuilder :: Shimmer
+colorBuilder = ColorBuilder {
+    base : Nothing
+    , highlight : Nothing
+    , tilt : Nothing
+    , intensity : Nothing
+    , direction : Nothing
+    , duration : Nothing
+    , repeatCount : Nothing
+    , repeatDelay : Nothing
+    , clipToChildren : Nothing
+    , shape : Nothing
+    , dropOff : Nothing
+    , active : true
+    , shimmerType : "color"
+    }

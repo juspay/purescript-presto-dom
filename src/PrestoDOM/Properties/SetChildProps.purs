@@ -5,6 +5,7 @@ module PrestoDOM.Properties.SetChildProps
     , a_duration_c
     , a_scaleX_c
     , a_scaleY_c
+    , absolute_c
     , accessibilityHint_c
     , adjustViewBounds_c
     , alpha_c
@@ -16,7 +17,6 @@ module PrestoDOM.Properties.SetChildProps
     , btnBackground_c
     , btnColor_c
     , buttonTint_c
-    , buttonClickOverlay_c
 
     , checked_c
     , clickable_c
@@ -41,6 +41,10 @@ module PrestoDOM.Properties.SetChildProps
     , fontStyle_c
     , font_c
     , foreground_c
+    , fromBottom_c
+    , fromLeft_c
+    , fromRight_c
+    , fromTop_c
 
     , gravity_c
 
@@ -77,6 +81,7 @@ module PrestoDOM.Properties.SetChildProps
     , padding_c
     , pivotX_c
     , pivotY_c
+    , position_c
     , progressColor_c
 
     , rotation_c
@@ -146,6 +151,10 @@ a_scaleX_c = Tuple "a_scaleX" <<< StringP
 
 a_scaleY_c :: String -> Tuple String GenProp
 a_scaleY_c = Tuple "a_scaleY" <<< StringP
+
+-- | Boolean
+absolute_c :: Boolean -> Tuple String GenProp
+absolute_c = Tuple "absolute" <<< BooleanP
 
 -- | String
 accessibilityHint_c :: String -> Tuple String GenProp
@@ -279,6 +288,21 @@ font_c = Tuple "font" <<< FontP
 foreground_c :: Boolean -> Tuple String GenProp
 foreground_c = Tuple "foreground" <<< BooleanP
 
+-- | Boolean
+fromBottom_c :: Boolean -> Tuple String GenProp
+fromBottom_c = Tuple "fromBottom" <<< BooleanP
+
+-- | Boolean
+fromLeft_c :: Boolean -> Tuple String GenProp
+fromLeft_c = Tuple "fromLeft" <<< BooleanP
+
+-- | Boolean
+fromRight_c :: Boolean -> Tuple String GenProp
+fromRight_c = Tuple "fromRight" <<< BooleanP
+
+-- | Boolean
+fromTop_c :: Boolean -> Tuple String GenProp
+fromTop_c = Tuple "fromTop" <<< BooleanP
 
 
 -- | Gravity

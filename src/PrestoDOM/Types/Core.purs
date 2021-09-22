@@ -24,7 +24,6 @@ import Prelude
 
 import Data.Tuple (Tuple)
 import Data.Either (Either)
-{-- import Data.Exists (Exists) --}
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Effect (Effect)
@@ -35,8 +34,8 @@ import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Thunk (Thunk)
 import Halogen.VDom.Types (VDom(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
-import PrestoDOM.Types.DomAttributes (Gravity, Gradient,  InputType, Length, Margin, Orientation, Padding, Font, Typeface, Visibility, Shadow, Corners, Position, LineSpacing, renderPosition, renderGravity, renderInputType, renderLength, renderMargin, renderOrientation, renderFont,renderPadding, renderTypeface, renderVisibility, renderShadow,  renderGradient, renderCorners, renderLineSpacing)
-import PrestoDOM.Types.DomAttributes (Gravity(..), Gradient(..), InputType(..), Length(..), Margin(..), Font(..),Orientation(..), Padding(..), Shadow(..), Typeface(..), Visibility(..), Position(..), renderPosition, renderGravity, renderInputType, renderLength, renderFont,renderMargin, renderOrientation, renderPadding, renderShadow, renderTypeface, renderVisibility,  renderGradient) as Types
+import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font, Gradient, Gravity, InputType, Length, LineSpacing, Margin, Orientation, Padding, Position, Shadow, Shimmer, Typeface, Visibility, renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility)
+import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font, Gradient, Gravity, InputType, Length, LineSpacing, Margin, Orientation, Padding, Position, Shadow, Shimmer, Typeface, Visibility, renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility) as Types
 {-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
 import Tracker (trackAction)
 import Tracker.Types (Level(..), Action(..)) as T
@@ -172,3 +171,9 @@ instance fontIsProp :: IsProp Font where
 
 instance lineSpacingIsProp :: IsProp LineSpacing where
   toPropValue = propFromString <<< renderLineSpacing
+
+instance shimmerIsProp :: IsProp Shimmer where
+  toPropValue = propFromString <<< renderShimmer
+
+instance bottomSheetStateIsProp :: IsProp BottomSheetState where
+  toPropValue = propFromString <<< renderBottomSheetState
