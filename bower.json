@@ -7,7 +7,7 @@
     "output"
   ],
   "dependencies": {
-    "purescript-halogen-vdom": "git@bitbucket.org:juspay/purescript-halogen-vdom.git#PICAF-4739-master-sync",
+    "purescript-halogen-vdom": "git@bitbucket.org:juspay/purescript-halogen-vdom.git#master",
     "purescript-tracker": "git@bitbucket.org:juspay/purescript-tracker.git#master",
     "purescript-behaviors": "^7.0.0",
     "purescript-event": "1.3.0"
