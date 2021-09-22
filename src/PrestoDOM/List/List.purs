@@ -31,38 +31,38 @@ module PrestoDOM.List
 import Prelude
 
 import Control.Monad.Except (runExcept)
-import Data.Maybe (Maybe(..))
+import Data.Array (catMaybes, cons)
 import Data.Either (Either(..), hush)
 import Data.Foldable (foldr, foldM)
-import Effect.Uncurried as EFn
-import Data.Array (catMaybes, cons)
-import Effect (Effect)
-import PrestoDOM (PropName(..))
-import Halogen.VDom.Types(VDom(..), ElemName(..))
-import Data.Tuple (snd)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String.CodePoints (drop, contains)
 import Data.String.Pattern (Pattern(..))
-import Effect.Ref (Ref, new, read, modify) as Ref
+import Data.Traversable (traverse)
+import Data.Tuple (snd)
+import Effect (Effect)
+import Effect.Aff (effectCanceler, makeAff)
 import Effect.Class (liftEffect)
+import Effect.Ref (Ref, new, read, modify) as Ref
+import Effect.Uncurried as EFn
 import Foreign (Foreign, unsafeToForeign)
 import Foreign.Class (encode, decode)
 import Foreign.Object (Object, empty, insert, singleton, update, fromHomogeneous, alter, union)
+import Halogen.VDom.DOM.Prop (Prop(..), PropValue) as P
+import Halogen.VDom.Types (VDom(..), ElemName(..))
 import Presto.Core.Flow (Flow, doAff)
 import Presto.Core.Types.API (class StandardEncode, standardEncode)
-import Halogen.VDom.DOM.Prop(Prop(..), PropValue) as P
-import Type.Row.Homogeneous (class Homogeneous)
-import Data.Traversable (traverse)
-import PrestoDOM.Events (makeEvent)
-import PrestoDOM.Elements.Elements (element)
-import PrestoDOM.Properties (prop)
-import PrestoDOM.Core2 (createPrestoElement)
-import PrestoDOM.Types.Core (toPropValue, PrestoDOM)
-import Effect.Aff (effectCanceler, makeAff)
-import Web.Event.Event (EventType(..)) as DOM
-import Unsafe.Coerce (unsafeCoerce)
-import PrestoDOM.Core.Utils (callbackMapper, setDebounceToCallback, callMicroAppList, generateCommands)
-import PrestoDOM.Core.Types (ListItemType)
+import PrestoDOM (PropName(..))
 import PrestoDOM.Animation (AnimProp)
+import PrestoDOM.Core.Types (ListItemType)
+import PrestoDOM.Core.Utils (callbackMapper, setDebounceToCallback, callMicroAppList, generateCommands)
+import PrestoDOM.Core2 (createPrestoElement)
+import PrestoDOM.Elements.Elements (element)
+import PrestoDOM.Events (makeEvent)
+import PrestoDOM.Properties (prop)
+import PrestoDOM.Types.Core (toPropValue, PrestoDOM)
+import Type.Row.Homogeneous (class Homogeneous)
+import Unsafe.Coerce (unsafeCoerce)
+import Web.Event.Event (EventType(..)) as DOM
 
 preComputeListItem :: forall i p a. VDom (Array (P.Prop i)) p -> Flow a ListItem
 preComputeListItem = preComputeListItemWithFragment Nothing
@@ -126,7 +126,8 @@ extractView hv kpm klm aim parentType (Keyed _ (ElemName name) p c) = do
     , service : Nothing
     , requestId : Nothing
     }
-extractView hv kpm klm aim parentType (Microapp s p) = do
+extractView hv kpm klm aim parentType (Microapp s p ch) = do
+  children' <- catMaybes <$> (extractView hv kpm klm aim (encode $ (Nothing :: Maybe String)) `traverse` (fromMaybe [] ch))
   props <- addRunInUI hv =<< foldM (parseProps hv kpm klm aim) {id : Nothing , props : empty} p
   listItem_ <- hush <<< runExcept <<< decode <$> (doAff $ makeAff $ \cb -> callMicroAppList s props (cb <<< Right) <#> effectCanceler)
   children <- case listItem_ of
@@ -135,7 +136,7 @@ extractView hv kpm klm aim parentType (Microapp s p) = do
         _ <- doAff $ liftEffect $ Ref.modify (flip append keyPropMap ) kpm
         _ <- doAff $ liftEffect $ Ref.modify (flip append keyIdMap ) klm
         _ <- doAff $ liftEffect $ Ref.modify (union animationIdMap ) aim
-        pure [itemView]
+        pure $ children' <> [itemView]
     _ -> pure []
   pure $ Just $ generateCommands
     { "type" : "relativeLayout"

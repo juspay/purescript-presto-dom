@@ -30,20 +30,18 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Effect (Effect)
 import PrestoDOM.Utils (storeToWindow, getFromWindow, debounce)
 import Foreign.Class (encode)
-import Foreign.Object
+import Foreign.Object (Object, empty, insert, lookup)
 import Halogen.VDom.DOM.Prop (Prop(..))
 import Tracker.Labels (Label(..)) as L
 import Tracker (trackAction)
 import Tracker.Types (Level(..), Action(..)) as T
 import Unsafe.Coerce as U
 import Web.Event.Event (EventType(..), Event) as DOM
-import Foreign.Object (Object, lookup, insert)
 import Foreign(Foreign)
 import FRP.Event as E
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
 
-import Debug.Trace (spy)
 {-- foreign import dummyEvent :: E.Event Int --}
 foreign import backPressHandlerImpl :: Effect Unit
 
