@@ -781,6 +781,19 @@ exports.render = function (namespace) {
   } else {
     AndroidWrapper.render(domAll(getScopedState(namespace).root, "base", namespace), null, (id ? id : undefined)); // Add support for iOS
   }
+
+  try {
+    //Code is in try catch to avoid any errors with accessing top
+    if(window.__OS == "IOS" && !getScopedState(namespace).id) {
+      top.setAddRootScreen = top.setAddRootScreen || function (screenName) {
+        top.PDScreens = top.PDScreens || []
+        top.PDScreens.push(screenName)
+      }
+      top.setAddRootScreen(JOS.self + "::" + namespace);
+    }
+  } catch (e) {
+
+  }
 }
 
 exports.insertDom = function(namespace, name, dom, cache) {
@@ -976,9 +989,25 @@ function terminateUIImpl (callback) {
           ) {
           AndroidWrapper.removeView(getScopedState(namespace).root.__ref.__id, getIdFromNamespace(namespace));
         }
-        if (namespace.indexOf("default") !== -1){
-          AndroidWrapper.runInUI(["removeAllUI"], getIdFromNamespace(namespace));
+      }
+      try {
+        if(window.__OS == "IOS" && !getScopedState(namespace).id) {
+          top.removeRootScreen = top.removeRootScreen || function (screenName) {
+            var index = top.PDScreens.indexOf(screenName);
+            if(index == -1) {
+              return;
+            }
+            else {
+              top.PDScreens.splice(index, 1);
+              if (top.PDScreens.length == 0) {
+                AndroidWrapper.runInUI(["removeAllUI"], getIdFromNamespace(namespace));
+              }
+            }
+          }
+          top.removeRootScreen(JOS.self + "::" + namespace);
         }
+      } catch (e) {
+        // incase of exception from using top
       }
       deleteScopedState(namespace)
     }
