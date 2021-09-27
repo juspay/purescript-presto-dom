@@ -3,7 +3,9 @@ const state = {
   , pendingRequests :[]
   , oldRequestIds : []
   , replayCallbacks : {}
+  , cacheImage : {}
   }
+
 
 exports.saveRefToStateImpl = function (key) {
   return function(ref) {
@@ -223,10 +225,13 @@ exports.checkFontisPresent = function (fontName) {
   }
 }
 
-exports.checkImageisPresent = function (imageName) {
-  return function (callback) {
-      return function () {
+exports.checkImageisPresent = function (imageName, name, prp, callback) {
           if (window.__OS != "ANDROID" || isUrl(imageName)) {
+            if (window.__OS === "ANDROID" && prp.value0.__id){
+              state.cacheImage[name] = state.cacheImage[name] || {};
+              state.cacheImage[name][imageName] = state.cacheImage[name][imageName] || [];
+              state.cacheImage[name][imageName].push(prp.value0.__id)
+            }
               callback(true)();
               return;
           }
@@ -243,7 +248,25 @@ exports.checkImageisPresent = function (imageName) {
               callback(success == "success")()
           })
           Android.runInUI( "set_342372=ctx->getPackageName;set_res=ctx->getResources;set_368248=get_res->getIdentifier:s_" + imageName + ",s_drawable,get_342372;set_res=ctx->getResources;set_482380=get_res->getDrawable:get_368248;",JSON.stringify(cb))
+}
+
+exports.attachUrlImages = function (name){
+  if (window.__OS === "ANDROID" && state.cacheImage.hasOwnProperty(name)){
+    var urlSetCommands = "set_directory=ctx->getDir:s_juspay,i_0;" ;
+    for ( var imgUrl in state.cacheImage[name]){
+      var image = imgUrl.substr(imgUrl.lastIndexOf('/') + 1);
+      var ids = state.cacheImage[name][imgUrl];
+      for (var i=0;i<ids.length;i++){
+        urlSetCommands = urlSetCommands + "set_resolvedFile=java.io.File->new:get_directory,s_" + JBridge.getFilePath(image)  + ";" +
+                        "set_resolvedPath=get_resolvedFile->toString;" +
+                        "set_dimage=android.graphics.drawable.Drawable->createFromPath:get_resolvedPath;" +
+                        "set_imgV=ctx->findViewById:i_" + ids[i] + ";" +
+                        "get_imgV->setImageDrawable:get_dimage;";
+
       }
+    }
+    delete state.cacheImage[name];
+    Android.runInUI(urlSetCommands ,null);
   }
 }
 

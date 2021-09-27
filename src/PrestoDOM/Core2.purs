@@ -36,7 +36,7 @@ import Tracker.Types (Level(..), Screen(..)) as T
 import Unsafe.Coerce (unsafeCoerce)
 
 import PrestoDOM.Core.Types (InsertState, UpdateActions, VdomTree)
-import PrestoDOM.Core.Utils (callMicroAppsForListState, extractAndDecode, extractJsonAndDecode, forkoutListState, generateCommands, getListData, replayListFragmentCallbacks', verifyFont, verifyImage)
+import PrestoDOM.Core.Utils (callMicroAppsForListState, extractAndDecode, extractJsonAndDecode, forkoutListState, generateCommands, getListData, replayListFragmentCallbacks', verifyFont, verifyImage, attachUrlImages)
 
 foreign import setUpBaseState :: String -> Foreign -> Effect Unit
 foreign import insertDom :: forall a. EFn.EffectFn4 String String a Boolean InsertState
@@ -143,8 +143,8 @@ updateProperties namespace screenName = do
                   launchAffWithCounter namespace screenName do
                     updatedProps <- props
                       # updateProp "fontStyle" verifyFont
-                      >>= updateProp "imageUrl" verifyImage
-                      >>= updateProp "placeHolder" verifyImage
+                      >>= updateProp "imageUrl" (verifyImage Nothing "" )
+                      >>= updateProp "placeHolder" (verifyImage Nothing "")
                       >>= getListDataFromMapps namespace screenName elem
                       >>= getPaddingForStroke namespace screenName elem
                       <#> delete "payload"
@@ -282,6 +282,7 @@ renderOrPatch {event, push} st@{ initialState, view, eval, name , globalEvents, 
       EFn.runEffectFn3 storeMachine newMachine name ns
       EFn.runEffectFn3 addScreenWithAnim (extract newMachine) name ns
       setPatchToActive ns name
+      EFn.runEffectFn1 attachUrlImages (ns <> name)
     Nothing -> do
       machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns name)) myDom
       insertState <- liftEffect $ EFn.runEffectFn4 insertDom ns name (extract machine) isCache
@@ -304,8 +305,8 @@ domAll {name, parent} ids dom = {--dom--} do
   case hush $ runExcept $ decode d of
     Just (vdomTree :: VdomTree) -> do
       fontFiber <- forkAff $ verifyFont $ extractAndDecode "fontStyle" vdomTree.props
-      imageFiber <- forkAff $ verifyImage $ extractAndDecode "imageUrl" vdomTree.props
-      placeFiber <- forkAff $ verifyImage $ extractAndDecode "placeHolder" vdomTree.props
+      imageFiber <- forkAff $ verifyImage vdomTree.__ref (ns <> name) $ extractAndDecode "imageUrl" vdomTree.props
+      placeFiber <- forkAff $ verifyImage Nothing "" $ extractAndDecode "placeHolder" vdomTree.props
       listFiber <- forkoutListState ns name vdomTree."type" vdomTree.props
       children <- domAll {name, parent} i `traverse` vdomTree.children
       font <- joinFiber fontFiber

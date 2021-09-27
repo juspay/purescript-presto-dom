@@ -4,13 +4,14 @@ import Prelude
 
 import Data.Array (catMaybes, snoc, zipWith)
 import Data.Either (hush, Either(..))
-import Data.Maybe (Maybe (..), fromMaybe)
+import Data.Maybe (Maybe (..), fromMaybe, maybe)
 import Data.Foldable (foldl)
 import Data.Traversable (traverse)
 import Effect (Effect)
 import Effect.Aff(Aff, makeAff, nonCanceler, Fiber, forkAff)
 import Effect.Ref (Ref, new, modify)
 import Foreign (Foreign, unsafeToForeign)
+import Foreign as F
 import Foreign.Class (encode, decode, class Decode)
 import Foreign.Generic (decodeJSON)
 import Foreign.Object (Object, empty, insert, delete, lookup, union)
@@ -249,7 +250,8 @@ cacheMappPayload ref _ = pure unit
 -- Async Prop Validation Functions
 -- first cut covers only android
 foreign import checkFontisPresent :: String -> (Boolean -> Effect Unit) -> Effect Unit
-foreign import checkImageisPresent :: String -> (Boolean -> Effect Unit) -> Effect Unit
+foreign import checkImageisPresent :: EFn.EffectFn4 String String (Maybe { __id :: Foreign }) (Boolean -> Effect Unit) Unit
+foreign import attachUrlImages :: EFn.EffectFn1 String Unit
 
 verifyFont :: Maybe String -> Aff (Maybe Foreign)
 verifyFont Nothing = pure Nothing
@@ -259,10 +261,10 @@ verifyFont (Just a) =
           then Just $ encode a
           else Nothing
 
-verifyImage :: Maybe String -> Aff (Maybe Foreign)
-verifyImage Nothing = pure Nothing
-verifyImage (Just a) =
-  makeAff (\cb -> checkImageisPresent a (Right >>> cb) $> nonCanceler)
+verifyImage :: Maybe { __id :: Foreign } -> String -> Maybe String -> Aff (Maybe Foreign)
+verifyImage _ _ Nothing = pure Nothing
+verifyImage mId name (Just a) =
+  makeAff (\cb -> EFn.runEffectFn4 checkImageisPresent a name mId (Right >>> cb) $> nonCanceler)
     <#> if _
           then Just $ encode a
           else Nothing
