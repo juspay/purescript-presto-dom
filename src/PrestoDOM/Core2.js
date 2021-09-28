@@ -490,7 +490,12 @@ function callAnimation__ (screenName, namespace, cache) {
         animationArray.push({ screenName : screenName, tag : "entryB"})
         animationArray.push({ screenName : topOfStack, tag : "exitB"})
         while (getConstState(namespace).animations.animationStack[getConstState(namespace).animations.animationStack.length - 1] != screenName) {
-          getConstState(namespace).animations.animationStack.pop();
+          var page = getConstState(namespace).animations.animationStack.pop();
+          var namespace_ = getNamespace(namespace);
+          if (state.cachedMachine.hasOwnProperty(namespace_) &&
+               state.cachedMachine[namespace_].hasOwnProperty(page)){
+          getConstState(namespace).animations.prerendered.push(page)
+          }
         }
       }
     } else {
@@ -504,6 +509,9 @@ function callAnimation__ (screenName, namespace, cache) {
       // new runscreen case call forward exit animation of previous runscreen
       var previousScreen = getConstState(namespace).animations.animationStack[getConstState(namespace).animations.animationStack.length - 1]
       animationArray.push({ screenName : previousScreen, tag : "exitF"})
+      if (getConstState(namespace).animations.prerendered.indexOf(screenName) != -1){
+        animationArray.push({ screenName : screenName, tag : "entryF"})
+      }
       getScopedState(namespace).hideList.push(previousScreen);
       getConstState(namespace).animations.animationStack.push(screenName);
     }
@@ -747,6 +755,7 @@ exports.setUpBaseState = function (namespace) {
         getConstState(namespace).animations.animationStack = []
         getConstState(namespace).animations.animationCache = []
         getConstState(namespace).animations.lastAnimatedScreen = ""
+        getConstState(namespace).animations.prerendered = []
 
         getConstState(namespace).screenHideCallbacks = {}
         getConstState(namespace).screenShowCallbacks = {}
