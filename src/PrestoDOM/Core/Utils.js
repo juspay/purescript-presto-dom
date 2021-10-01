@@ -227,7 +227,7 @@ exports.checkFontisPresent = function (fontName) {
 
 exports.checkImageisPresent = function (imageName, name, prp, callback) {
           if (window.__OS != "ANDROID" || isUrl(imageName)) {
-            if (window.__OS === "ANDROID" && prp.value0.__id){
+            if (window.__OS === "ANDROID" && prp && prp.value0 && prp.value0.__id){
               state.cacheImage[name] = state.cacheImage[name] || {};
               state.cacheImage[name][imageName] = state.cacheImage[name][imageName] || [];
               state.cacheImage[name][imageName].push(prp.value0.__id)
