@@ -1002,18 +1002,19 @@ function terminateUIImpl (callback) {
       try {
         if(window.__OS == "IOS" && !getScopedState(namespace).id) {
           top.removeRootScreen = top.removeRootScreen || function (screenName) {
-            var index = top.PDScreens.indexOf(screenName);
+            var index = this.top.PDScreens.indexOf(screenName);
             if(index == -1) {
               return;
             }
             else {
-              top.PDScreens.splice(index, 1);
-              if (top.PDScreens.length == 0) {
-                AndroidWrapper.runInUI(["removeAllUI"], getIdFromNamespace(namespace));
+              this.top.PDScreens.splice(index, 1);
+              if (this.top.PDScreens.length == 0) {
+                AndroidWrapper.runInUI(["removeAllUI"], this.getIdFromNamespace(this.namespace));
               }
             }
           }
-          top.removeRootScreen(JOS.self + "::" + namespace);
+          // Adding var x so that openning paranthesis is not treated as argument
+          var x = (top.removeRootScreen.bind(this))(JOS.self + "::" + namespace);
         }
       } catch (e) {
         // incase of exception from using top
