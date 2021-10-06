@@ -56,7 +56,7 @@ module PrestoDOM.Types.DomAttributes
     ) where
 
 import Prelude
-
+import Control.Monad.Except(runExcept)
 import Control.Monad.Except.Trans (ExceptT, except)
 import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn3, runFn3)
@@ -67,8 +67,10 @@ import Data.List.NonEmpty (NonEmptyList, singleton)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String.Common (toLower)
 import Foreign (Foreign, ForeignError(..), unsafeFromForeign, unsafeToForeign)
-import Foreign.Class (class Decode, class Encode, encode)
+import Foreign.Class (class Decode, class Encode, encode, decode)
 import Presto.Core.Utils.Encoding (defaultEncodeJSON)
+import Foreign.Generic (decodeJSON)
+import Control.Alt ((<|>))
 
 
 foreign import stringifyGradient :: Fn3 String Number (Array String) String
@@ -490,29 +492,35 @@ data Gradient
   = Radial (Array String)
   | Linear Number (Array String)
 
-type GradientType = { angle :: Number, values :: Array String }
+type GradientType = { type :: Maybe String, angle :: Foreign, values :: Array String }
 
 
 derive instance genericGradient:: Generic Gradient _
 instance showGradient:: Show Gradient where show = genericShow
-instance decodeGradient :: Decode Gradient where decode = decodeGradientUtil <<< unsafeFromForeign
+instance decodeGradient :: Decode Gradient where decode = decodeGradientUtil
 instance encodeGradient :: Encode Gradient where encode = encodeGradientUtil >>> unsafeToForeign
 
-decodeGradientUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Gradient
+decodeGradientUtil :: forall a. Applicative a => Foreign -> ExceptT (NonEmptyList ForeignError) a Gradient
 decodeGradientUtil json = let
-  (gEither :: Either (NonEmptyList ForeignError) GradientType) = toSafeGradientType json (Left <<< singleton <<< ForeignError) Right
+  (gEither :: Either (NonEmptyList ForeignError) GradientType) = (runExcept $ decode json :: _ GradientType)
+  (angle :: Either (NonEmptyList ForeignError) Number) = gEither >>= \a -> (runExcept (decode a.angle) :: _ Number) <|> (runExcept (decode a.angle >>= decodeJSON) :: _ Number)
+  commonCode g angle =
+    case toLower $ fromMaybe "" g.type of 
+      "linear" ->  Right $ Linear angle g.values
+      "radial" ->  Right $ Radial g.values 
+      _        ->  if angle < 0.0 then Right $ Radial g.values else Right $ Linear angle g.values
   in
   except $
-  case gEither of
-    Right g ->
-      if g.angle > 0.0 then Right $ Radial g.values
-      else Right $ Linear g.angle g.values
-    Left err -> Left err
+  case gEither, angle of
+    Right g, Right ang -> commonCode g ang
+    Right g, _ -> commonCode g 0.0
+    Left err, _ -> Left err
+
 
 encodeGradientUtil :: Gradient -> GradientType
 encodeGradientUtil = case _ of
-  Radial arr       -> {angle : 0.0, values : arr }
-  Linear angle arr -> {angle : angle, values : arr}
+  Radial arr       -> { type: Just "radial", angle : encode 0.0, values : arr }
+  Linear angle arr -> { type: Just "linear", angle : encode angle, values : arr }
 
 
 renderGradient :: Gradient -> String
