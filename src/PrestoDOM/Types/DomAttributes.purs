@@ -401,6 +401,7 @@ data Visibility
     | GONE
 
 derive instance genericVisibility:: Generic Visibility _
+derive instance eqVisibility :: Eq Visibility
 instance decodeVisibility :: Decode Visibility where decode = decodeVisibilityUtil <<< toSafeString <<< unsafeFromForeign
 instance showVisibility:: Show Visibility where show = genericShow
 instance encodeVisibility :: Encode Visibility where encode = renderVisibility >>> unsafeToForeign
