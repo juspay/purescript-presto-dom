@@ -1,6 +1,7 @@
 module PrestoDOM.Properties
     ( prop
     , id
+    , testID
 
     , root
     , a_duration
@@ -175,6 +176,9 @@ prop (PropName name) = Property name <<< toPropValue
 
 id :: forall i. String -> Prop i
 id = prop (PropName "id")
+
+testID :: forall i. String -> Prop i
+testID = prop (PropName "testID")
 
 retFontFamilyAndroid :: forall i. String -> Prop i
 retFontFamilyAndroid str = case (toLower str) of
