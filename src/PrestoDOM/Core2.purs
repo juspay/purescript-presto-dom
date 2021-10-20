@@ -94,9 +94,11 @@ foreign import canPreRender :: Unit -> Boolean
 foreign import cacheMachine :: forall a b . EFn.EffectFn3 (Step a b) String String Unit
 foreign import prepareDom :: forall a. EFn.EffectFn3 a String String Foreign
 foreign import getCachedMachineImpl :: forall a b . EFn.EffectFn4 ((Step a b) -> Maybe (Step a b)) (Maybe (Step a b)) String String (Maybe (Step a b))
-foreign import prepareAndStoreView :: EFn.EffectFn3 (Effect Unit) Foreign String Unit
+foreign import prepareAndStoreView :: EFn.EffectFn5 (Effect Unit) Foreign String String String Unit
 foreign import attachScreen :: EFn.EffectFn3 String String Foreign Unit
 foreign import render :: EFn.EffectFn1 String Unit
+foreign import startedToPrepare :: EFn.EffectFn2 String String Unit
+foreign import awaitPrerenderFinished :: EFn.EffectFn3 String String (Effect Unit) Unit
 
 foreign import addScreenWithAnim :: EFn.EffectFn3 Foreign String String Unit
 
@@ -399,6 +401,7 @@ runScreen :: forall action state returnType
   -> Aff returnType
 runScreen st@{ name, parent, view} json = do
   ns <- liftEffect $ sanitiseNamespace parent
+  makeAff (\cb -> Efn.runEffectFn3 awaitPrerenderFinished ns name (cb $ Right unit) $> nonCanceler )
   liftEffect $ EFn.runEffectFn2 checkAndDeleteFromHideAndRemoveStacks ns name
   check <- liftEffect $  EFn.runEffectFn2 isInStack name ns <#> not
   eventIO <- liftEffect $ getEventIO name parent
@@ -444,6 +447,7 @@ showScreen :: forall action state returnType
   -> Aff returnType
 showScreen st@{name, parent, view} json = do
   ns <- liftEffect $ sanitiseNamespace parent
+  makeAff (\cb -> Efn.runEffectFn3 awaitPrerenderFinished ns name (cb $ Right unit) $> nonCanceler )
   liftEffect $ EFn.runEffectFn2 checkAndDeleteFromHideAndRemoveStacks ns name
   liftEffect $ Efn.runEffectFn1 makeCacheRootVisible ns
   check <- liftEffect $  EFn.runEffectFn2 isCached name ns <#> not
@@ -473,9 +477,10 @@ prepareScreen screen@{name, parent, view} json = do
   if not (canPreRender unit)
     then pure unit
     else do 
-      liftEffect $ trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" screen.name json
       ns <- liftEffect $ sanitiseNamespace parent
       liftEffect <<< setUpBaseState ns $ encode (Nothing :: Maybe String )
+      liftEffect $ EFn.runEffectFn2 startedToPrepare ns name
+      liftEffect $ trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" screen.name json
       eventIO <- liftEffect $ getEventIO name parent
       let myDom = view (\_ -> pure unit) screen.initialState
 
@@ -487,7 +492,7 @@ prepareScreen screen@{name, parent, view} json = do
       -- AND CAN IMPACT ALL ENCODE USAGES
       domAllOut <- domAll screen (unsafeToForeign {}) dom
       makeAff $ \cB -> do
-         EFn.runEffectFn3 prepareAndStoreView (callBack cB) domAllOut (ns <> name)
+         EFn.runEffectFn5 prepareAndStoreView (callBack cB) domAllOut (ns <> name) ns name
          pure nonCanceler
   where
   callBack cb = do

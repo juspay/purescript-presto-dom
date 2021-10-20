@@ -858,12 +858,23 @@ exports.addViewToParent = function (insertObject) {
   );
 }
 
-exports.prepareAndStoreView = function (callback, dom, key){
+exports.prepareAndStoreView = function (callback, dom, key, namespace, screenName){
   /*
    * Adding callback to make sure that prepareScreen returns controll only
    * after native rendering is completed
    */
-  var callB = callbackMapper.map(callback);
+  var callB = callbackMapper.map(function(){
+    try{
+      getConstState(namespace)[screenName].prepareStarted = false;
+      while(getConstState(namespace)[screenName].prepareStartedQueue[0]){
+        var fn = getConstState(namespace)[screenName].prepareStartedQueue.pop();
+        fn();
+      }
+    }catch(err){
+      console.error("call InitUI for namespace", namespace);
+    }
+    callback();
+  });
   Android.prepareAndStoreView(
     key,
     window.__OS == "ANDROID" ? JSON.stringify(dom) : dom,
@@ -1739,4 +1750,22 @@ function getScrollViewIDs(dom){
     idArray = idArray.concat(getScrollViewIDs(dom["children"][i]));
   }
   return idArray;
+}
+
+exports.startedToPrepare = function(namespace, screenName){
+  if(getConstState(namespace)){
+    getConstState(namespace)[screenName] = getConstState(namespace)[screenName] || {};
+    getConstState(namespace)[screenName].prepareStarted = true;
+    getConstState(namespace)[screenName].prepareStartedQueue = [];
+  }
+}
+
+exports.awaitPrerenderFinished = function(namespace, screenName, cb){
+  if(getConstState(namespace) && getConstState(namespace)[screenName] && getConstState(namespace)[screenName].prepareStarted){
+    getConstState(namespace)[screenName].prepareStartedQueue = getConstState(namespace)[screenName].prepareStartedQueue || [];
+    getConstState(namespace)[screenName].prepareStartedQueue.push(cb);
+  }else{
+    cb();
+  }
+
 }
