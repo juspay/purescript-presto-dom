@@ -1588,6 +1588,7 @@ exports.updateActivity = function (activityId) {
         return;
       }
       exports.setUpBaseState(a)()();
+      exports.render(a);
     });
   }
 }
