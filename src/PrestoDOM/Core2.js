@@ -776,11 +776,11 @@ exports.setUpBaseState = function (namespace) {
 
 exports.render = function (namespace) {
   getConstState(namespace).hasRender = true
+  var id = getScopedState(namespace).id
   if (window.__OS == "ANDROID") {
     if (typeof AndroidWrapper.getNewID == "function") {
       // TODO change this to mystique version check.
       // TODO add mystique reject / alternate handling, when required version is not present
-      var id = getScopedState(namespace).id
       AndroidWrapper.render(JSON.stringify(domAll(getScopedState(namespace).root, "base", namespace)), null, "false", (id ? id : null));
     } else {
       AndroidWrapper.render(JSON.stringify(domAll(getScopedState(namespace).root), "base", namespace), null);
