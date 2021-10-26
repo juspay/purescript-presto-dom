@@ -616,6 +616,14 @@ selectedTabIndicatorColor = prop (PropName "selectedTabIndicatorColor")
 selectedTabIndicatorHeight :: forall i. Int -> Prop i
 selectedTabIndicatorHeight = prop (PropName "selectedTabIndicatorHeight")
 
+-- | String 
+separator :: ∀ i. String -> Prop i
+separator = prop (PropName "separator")
+
+-- | String 
+separatorRepeat :: ∀ i. String -> Prop i
+separatorRepeat = prop (PropName "separatorRepeat")
+
 -- | L, // long
 setDate :: forall i. String -> Prop i
 setDate = prop (PropName "setDate")
