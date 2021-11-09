@@ -302,6 +302,8 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
     if(props.hasOwnProperty("afterRender")) {
       getConstState(namespace).afterRenderFunctions[screenName] = getConstState(namespace).afterRenderFunctions[screenName] || []
       getConstState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
+      getScopedState(namespace).afterRenderFunctions[screenName] = getScopedState(namespace).afterRenderFunctions[screenName] || []
+      getScopedState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
       delete props.afterRender
     }
     if (
@@ -764,7 +766,7 @@ exports.setUpBaseState = function (namespace) {
         getConstState(namespace).afterRenderFunctions = {}
       }
       // https://juspay.atlassian.net/browse/PICAF-6628
-      getScopedState(namespace).afterRenderFunctions = getConstState(namespace).afterRenderFunctions || {}
+      getScopedState(namespace).afterRenderFunctions = prestoUI.prestoClone( getConstState(namespace).afterRenderFunctions || {});
 
       // rethink Logic
       getScopedState(namespace).mappQueue = []
