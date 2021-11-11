@@ -124,6 +124,14 @@ const deleteScopedState = function (namespace, activityID) {
   delete state.scopedState[namespace];
 }
 
+const deleteConstState = function (namespace, activityID) {
+  var id = activityID || state.currentActivity
+  if (namespace && namespace.indexOf(id) == -1) {
+    namespace = namespace + id;
+  }
+  delete state.constState[namespace];
+}
+
 var getIdFromNamespace = function(namespace) {
   var ns = getScopedState(namespace).id ? getScopedState(namespace).id : undefined
   if(window.__OS == "ANDROID")
@@ -1033,6 +1041,9 @@ function terminateUIImpl (callback) {
         // incase of exception from using top
       }
       deleteScopedState(namespace)
+      if (window.__OS != "ANDROID") {
+        deleteConstState(namespace)
+      }
     }
   }
 
