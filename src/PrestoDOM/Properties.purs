@@ -128,6 +128,8 @@ module PrestoDOM.Properties
     , singleLine
     , stroke
     , shimmer
+    , separator
+    , separatorRepeat
 
     , tabTextColors
     , text
