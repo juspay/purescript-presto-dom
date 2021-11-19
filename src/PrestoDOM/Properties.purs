@@ -121,6 +121,7 @@ module PrestoDOM.Properties
     , scaleY
     , scrollBarX
     , scrollBarY
+    , scrollBarVisible
     , selectable
     , selectableItem
     , selected
@@ -617,6 +618,10 @@ scrollBarX = prop (PropName "scrollBarX")
 -- | Boolean
 scrollBarY :: forall i. Boolean -> Prop i
 scrollBarY = prop (PropName "scrollBarY")
+
+-- | Boolean
+scrollBarVisible :: forall i. Boolean -> Prop i
+scrollBarVisible = prop (PropName "scrollBarVisible")
 
 -- | Boolean
 selectable :: forall i. Boolean -> Prop i
