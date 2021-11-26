@@ -13,10 +13,10 @@
 //   }
 // }
 
-const scrollState = {};
-exports.getTimeStamp = function(){
-  return Date.now();
-}
+// const scrollState = {};
+// exports.getTimeStamp = function(){
+//   return Date.now();
+// }
 
 exports.saveScrollPush = function(scrollPush){
   return function (identifier){

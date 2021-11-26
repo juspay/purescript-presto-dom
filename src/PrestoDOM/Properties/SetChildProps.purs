@@ -81,7 +81,6 @@ module PrestoDOM.Properties.SetChildProps
     , padding_c
     , pivotX_c
     , pivotY_c
-    , position_c
     , progressColor_c
 
     , rotation_c

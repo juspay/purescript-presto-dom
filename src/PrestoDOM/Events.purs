@@ -22,11 +22,7 @@ module PrestoDOM.Events
     , onMicroappResponse
     , update
     , registerEvent
-    , onFocus
-    , onScroll
-    , onScrollStateChange
     , globalOnScroll
-    , ScrollState
     ) where
 
 import Prelude
@@ -69,7 +65,7 @@ foreign import setLastTimeStamp :: String -> Effect Unit
 data ScrollState = SCROLL_STATE_FLING | SCROLL_STATE_IDLE  | SCROLL_STATE_TOUCH_SCROLL
 
 mapScrollState :: Int -> ScrollState
-mapScrollState value = case value of 
+mapScrollState value = case value of
     0 -> SCROLL_STATE_IDLE
     1 -> SCROLL_STATE_TOUCH_SCROLL
     2 -> SCROLL_STATE_FLING
@@ -121,10 +117,10 @@ onScroll identifier globalEventsIdentifier push f = event (DOM.EventType "onScro
 globalOnScroll :: forall a. String -> (a -> Effect Unit) -> Effect (Effect Unit)
 globalOnScroll identifier _ =  --pure $ pure unit
   do
-        { event, push } <- E.create
+        { event: event' , push } <- E.create
         _ <- saveScrollPush push identifier
-        let stateBehaviour = unfold (scrollStateUpdate identifier) event ( {scrollState : empty, lastIdentifier : ""})
-        canceller <- sample_ stateBehaviour event `subscribe` (scrollListner push)
+        let stateBehaviour = unfold (scrollStateUpdate identifier) event' ( {scrollState : empty, lastIdentifier : ""})
+        canceller <- sample_ stateBehaviour event' `subscribe` (scrollListner push)
         pure canceller
     where
     scrollListner :: (PushState -> Effect Unit) -> ScrollS -> Effect Unit

@@ -6,12 +6,13 @@ module PrestoDOM.Elements.Elements
 
     , linearLayout_
     , relativeLayout_
-    
+
     , bottomSheetLayout
     , coordinatorLayout
     , swipeRefreshLayout
     , linearLayout
     , mapp
+    , mappWithLoader
     , relativeLayout
     , horizontalScrollView
     , scrollView

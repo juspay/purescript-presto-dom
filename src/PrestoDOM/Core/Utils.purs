@@ -4,14 +4,13 @@ import Prelude
 
 import Data.Array (catMaybes, snoc, zipWith)
 import Data.Either (hush, Either(..))
-import Data.Maybe (Maybe (..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Foldable (foldl)
 import Data.Traversable (traverse)
 import Effect (Effect)
 import Effect.Aff(Aff, makeAff, nonCanceler, Fiber, forkAff)
 import Effect.Ref (Ref, new, modify)
 import Foreign (Foreign, unsafeToForeign)
-import Foreign as F
 import Foreign.Class (encode, decode, class Decode)
 import Foreign.Generic (decodeJSON)
 import Foreign.Object (Object, empty, insert, delete, lookup, union)

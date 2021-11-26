@@ -4,12 +4,10 @@ module PrestoDOM.Core.Types.Language.Flow where
 import Prelude
 
 import Data.Maybe (Maybe(..))
-import Effect.Aff (makeAff)
 import Effect.Class (liftEffect)
 import Presto.Core.Flow (Flow, doAff)
 import Presto.Core.Types.Language.Flow(getLogFields)
 import Effect(Effect)
-import PrestoDOM.Core (prepareScreen) as PrestoDOM
 import PrestoDOM.Core2 as PrestoDOM2
 import PrestoDOM.Types.Core (class Loggable, ScopedScreen, Controller, Screen)
 
