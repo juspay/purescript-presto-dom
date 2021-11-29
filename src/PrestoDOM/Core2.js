@@ -306,98 +306,96 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
     }
     type = "relativeLayout"
   }
-  if (window.__OS !== "WEB") {
-    if(props.hasOwnProperty("afterRender")) {
-      getConstState(namespace).afterRenderFunctions[screenName] = getConstState(namespace).afterRenderFunctions[screenName] || []
-      getConstState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
-      getScopedState(namespace).afterRenderFunctions[screenName] = getScopedState(namespace).afterRenderFunctions[screenName] || []
-      getScopedState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
-      delete props.afterRender
-    }
-    if (
-      props.entryAnimation ||
-      props.entryAnimationF ||
-      props.entryAnimationB
-    ) {
-      if (props.onAnimationEnd) {
-        var callbackFunction = props.onAnimationEnd;
-        var updatedCallback = function(event) {
+  if(props.hasOwnProperty("afterRender")) {
+    getConstState(namespace).afterRenderFunctions[screenName] = getConstState(namespace).afterRenderFunctions[screenName] || []
+    getConstState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
+    getScopedState(namespace).afterRenderFunctions[screenName] = getScopedState(namespace).afterRenderFunctions[screenName] || []
+    getScopedState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
+    delete props.afterRender
+  }
+  if (
+    props.entryAnimation ||
+    props.entryAnimationF ||
+    props.entryAnimationB
+  ) {
+    if (props.onAnimationEnd) {
+      var callbackFunction = props.onAnimationEnd;
+      var updatedCallback = function(event) {
+        getScopedState(namespace).activateScreen = true;
+        hideOldScreenNow(namespace, screenName);
+        callbackFunction(event);
+      };
+      props.onAnimationEnd = updatedCallback;
+    } else {
+      props.onAnimationEnd = function() {
           getScopedState(namespace).activateScreen = true;
           hideOldScreenNow(namespace, screenName);
-          callbackFunction(event);
-        };
-        props.onAnimationEnd = updatedCallback;
-      } else {
-        props.onAnimationEnd = function() {
-            getScopedState(namespace).activateScreen = true;
-            hideOldScreenNow(namespace, screenName);
-          }
-      }
+        }
     }
-    if (props.entryAnimation) {
-      props.inlineAnimation = props.entryAnimation;
-      getConstState(namespace).animations.entry[screenName] = getConstState(namespace).animations.entry[screenName] || {}
-      getConstState(namespace).animations.entry[screenName].hasAnimation = true
-      getConstState(namespace).animations.entry[screenName][elem.__ref.__id] = {
-          visibility: props.visibility ? props.visibility : "visible",
-          inlineAnimation: props.entryAnimation,
-          onAnimationEnd: props.onAnimationEnd,
-          type: type
-        };
-    }
-
-    if (props.entryAnimationF) {
-      getConstState(namespace).animations.entryF[screenName] = getConstState(namespace).animations.entryF[screenName] || {}
-      getConstState(namespace).animations.entryF[screenName].hasAnimation = true
-      getConstState(namespace).animations.entryF[screenName][elem.__ref.__id] = {
-          visibility: props.visibility ? props.visibility : "visible",
-          inlineAnimation: props.entryAnimationF,
-          onAnimationEnd: props.onAnimationEnd,
-          type: type
-        };
-      props.inlineAnimation = props.entryAnimationF;
-    }
-
-    if (props.entryAnimationB) {
-      getConstState(namespace).animations.entryB[screenName] = getConstState(namespace).animations.entryB[screenName] || {}
-      getConstState(namespace).animations.entryB[screenName].hasAnimation = true
-      getConstState(namespace).animations.entryB[screenName][elem.__ref.__id] = {
+  }
+  if (props.entryAnimation) {
+    props.inlineAnimation = props.entryAnimation;
+    getConstState(namespace).animations.entry[screenName] = getConstState(namespace).animations.entry[screenName] || {}
+    getConstState(namespace).animations.entry[screenName].hasAnimation = true
+    getConstState(namespace).animations.entry[screenName][elem.__ref.__id] = {
         visibility: props.visibility ? props.visibility : "visible",
-        inlineAnimation: props.entryAnimationB,
+        inlineAnimation: props.entryAnimation,
         onAnimationEnd: props.onAnimationEnd,
         type: type
       };
-    }
+  }
 
-    if (props.exitAnimation) {
-      getConstState(namespace).animations.exit[screenName] = getConstState(namespace).animations.exit[screenName] || {}
-      getConstState(namespace).animations.exit[screenName].hasAnimation = true
-      getConstState(namespace).animations.exit[screenName][elem.__ref.__id] = {
-        inlineAnimation: props.exitAnimation,
+  if (props.entryAnimationF) {
+    getConstState(namespace).animations.entryF[screenName] = getConstState(namespace).animations.entryF[screenName] || {}
+    getConstState(namespace).animations.entryF[screenName].hasAnimation = true
+    getConstState(namespace).animations.entryF[screenName][elem.__ref.__id] = {
+        visibility: props.visibility ? props.visibility : "visible",
+        inlineAnimation: props.entryAnimationF,
         onAnimationEnd: props.onAnimationEnd,
         type: type
       };
-    }
+    props.inlineAnimation = props.entryAnimationF;
+  }
 
-    if (props.exitAnimationF) {
-      getConstState(namespace).animations.exitF[screenName] = getConstState(namespace).animations.exitF[screenName] || {}
-      getConstState(namespace).animations.exitF[screenName].hasAnimation = true
-      getConstState(namespace).animations.exitF[screenName][elem.__ref.__id] = {
-        inlineAnimation: props.exitAnimationF,
-        onAnimationEnd: props.onAnimationEnd,
-        type: type
-      };
-    }
+  if (props.entryAnimationB) {
+    getConstState(namespace).animations.entryB[screenName] = getConstState(namespace).animations.entryB[screenName] || {}
+    getConstState(namespace).animations.entryB[screenName].hasAnimation = true
+    getConstState(namespace).animations.entryB[screenName][elem.__ref.__id] = {
+      visibility: props.visibility ? props.visibility : "visible",
+      inlineAnimation: props.entryAnimationB,
+      onAnimationEnd: props.onAnimationEnd,
+      type: type
+    };
+  }
 
-    if (props.exitAnimationB) {
-      getConstState(namespace).animations.exitB[screenName] = getConstState(namespace).animations.exitB[screenName] || {}
-      getConstState(namespace).animations.exitB[screenName].hasAnimation = true
-      getConstState(namespace).animations.exitB[screenName][elem.__ref.__id] = {
-        inlineAnimation: props.exitAnimationB,
-        onAnimationEnd: props.onAnimationEnd,
-        type: type
-      };
-    }
+  if (props.exitAnimation) {
+    getConstState(namespace).animations.exit[screenName] = getConstState(namespace).animations.exit[screenName] || {}
+    getConstState(namespace).animations.exit[screenName].hasAnimation = true
+    getConstState(namespace).animations.exit[screenName][elem.__ref.__id] = {
+      inlineAnimation: props.exitAnimation,
+      onAnimationEnd: props.onAnimationEnd,
+      type: type
+    };
+  }
+
+  if (props.exitAnimationF) {
+    getConstState(namespace).animations.exitF[screenName] = getConstState(namespace).animations.exitF[screenName] || {}
+    getConstState(namespace).animations.exitF[screenName].hasAnimation = true
+    getConstState(namespace).animations.exitF[screenName][elem.__ref.__id] = {
+      inlineAnimation: props.exitAnimationF,
+      onAnimationEnd: props.onAnimationEnd,
+      type: type
+    };
+  }
+
+  if (props.exitAnimationB) {
+    getConstState(namespace).animations.exitB[screenName] = getConstState(namespace).animations.exitB[screenName] || {}
+    getConstState(namespace).animations.exitB[screenName].hasAnimation = true
+    getConstState(namespace).animations.exitB[screenName][elem.__ref.__id] = {
+      inlineAnimation: props.exitAnimationB,
+      onAnimationEnd: props.onAnimationEnd,
+      type: type
+    };
   }
 
   if (props.focus == false && window.__OS === "ANDROID") {
@@ -434,7 +432,7 @@ function hideOldScreenNow(namespace, screenName) {
     getScopedState(namespace).shouldReplayCallbacks[sn] = false;
     var cbs = getScopedState(namespace).fragmentCallbacks[sn] || []
     cbs.forEach (function(x) {
-      x.callback(x.payload)
+      if (typeof x.callback == "function") { x.callback(x.payload); }
     })
   }
 }
@@ -532,11 +530,6 @@ function callAnimation__ (screenName, namespace, cache) {
 
 function callAnimation_ (namespace, screenArray, resetAnimation, screenName) {
   window.enableBackpress = false;
-  if (window.__OS == "WEB") {
-    getScopedState(namespace).activateScreen = true;
-    hideOldScreenNow(namespace, screenName);
-    return;
-  }
   var hasAnimation = false;
   screenArray.forEach(
     function (animationJson) {
