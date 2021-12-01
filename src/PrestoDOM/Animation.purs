@@ -33,6 +33,7 @@ module PrestoDOM.Animation
   , exitAnimationSet
   , exitAnimationSetForward
   , exitAnimationSetBackward
+  , hoverAnimationSet
   , _mergeAnimation
   ) where
 
@@ -52,8 +53,11 @@ import Effect (Effect)
 import PrestoDOM.Properties (prop)
 import PrestoDOM.Types.Core (PropName(PropName), VDom(Keyed, Elem), PrestoDOM)
 import PrestoDOM.Types.DomAttributes(isUndefined, toSafeString, toSafeArray, toSafeObject, toSafeInt)
+import Halogen.VDom.DOM.Prop (Prop)
+import PrestoDOM.Core.Utils (os)
 
 foreign import _mergeAnimation :: forall a. a -> String
+foreign import mergeHoverProps :: forall a. a -> String 
 
 foreign import toSafeInterpolator
   :: forall a. String -- foreign string
@@ -313,6 +317,17 @@ exitAnimationSetBackward = animationSetImpl "exitAnimationB"
 
 animationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
 animationSet = animationSetImpl "inlineAnimation"
+
+hoverAnimationSet :: forall w. Array (Prop (Effect Unit)) -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+hoverAnimationSet hoverProps view = do 
+  case os, view of 
+    "WEB", Elem ns eName props child -> do 
+      let newProps = props <> [prop (PropName "onHover") $ mergeHoverProps hoverProps ]
+      Elem ns eName newProps child
+    "WEB", Keyed ns eName props child -> do 
+      let newProps = props <> [prop (PropName "onHover") $ mergeHoverProps hoverProps ]
+      Keyed ns eName newProps child
+    _, _ -> view 
 
 -- | Animation set is a composible animation view
 -- | It applies the set of animations on the provided view

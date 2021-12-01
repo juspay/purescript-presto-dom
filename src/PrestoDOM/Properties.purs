@@ -69,6 +69,7 @@ module PrestoDOM.Properties
     , hintColor
     , hoverBg
     , hoverColor
+    , hoverPath
 
     , imageUrl
     , inputType
@@ -412,6 +413,8 @@ hoverBg = prop (PropName "hoverBg")
 hoverColor :: forall i. String -> Prop i
 hoverColor = prop (PropName "hoverColor")
 
+hoverPath :: forall i. String -> Prop i
+hoverPath = prop (PropName "hoverPath")
 
 -- | String
 imageUrl :: forall i. String -> Prop i

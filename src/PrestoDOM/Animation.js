@@ -35,6 +35,10 @@ exports._mergeAnimation = function (animations) {
 	return JSON.stringify(animations.map(createAnimationObject));
 }
 
+exports.mergeHoverProps = function (props) {
+	return JSON.stringify(createAnimationObject(props));
+}
+
 exports["toSafeInterpolator"] = function (json) {
 	return function (left) {
 	  return function (right) {
