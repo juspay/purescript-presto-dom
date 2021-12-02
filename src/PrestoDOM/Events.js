@@ -1,23 +1,5 @@
 "use strict";
 
-// exports.dummyEvent = function(sub) {
-//   console.log("EVENTYTTTT");
-//   sub(1);
-// }
-
-// exports.saveCanceler = function(ty, cance) {
-//   return function (canceler) {
-//     return function () {
-//       window.__CANCELER.ty = canceler;
-//     }
-//   }
-// }
-
-// const scrollState = {};
-// exports.getTimeStamp = function(){
-//   return Date.now();
-// }
-
 exports.saveScrollPush = function(scrollPush){
   return function (identifier){
     return function (){
@@ -78,7 +60,7 @@ function setManualEvents(screen) {
     return function(callbackFunction){
       return function () {
         var screenName = screen.value0 || window.__dui_screen;
-  
+
         // function was getting cleared when placed outside
         var isDefined = function(val){
           return (typeof val !== "undefined");
