@@ -581,13 +581,17 @@ function callAnimation_ (namespace, screenArray, resetAnimation, screenName) {
   }
 }
 
-function processMapps(namespace, nam) {
+function processMapps(namespace, nam, timeout) {
   setTimeout(function () {
     if (!getScopedState(namespace).mappQueue)
       return;
     var cachedObject = getScopedState(namespace).mappQueue.shift();
     while (cachedObject) {
       var fragId = AndroidWrapper.addToContainerList(parseInt(cachedObject.elemId), getIdFromNamespace(namespace));
+      if (fragId == "__failed") {
+        setTimeout( processMapps(namespace, nam, (timeout|| 75)*2), (timeout|| 75))
+        return;
+      }
       cachedObject.fragId = fragId;
       var cb = function (code) {
         return function (message) {
@@ -661,7 +665,7 @@ function triggerAfterRender(namespace, screenName) {
 function executePostProcess(nam, namespace, cache) {
   return function() {
     callAnimation__(nam, namespace, cache);
-    processMapps(namespace, nam);
+    processMapps(namespace, nam, 75);
     triggerAfterRender(namespace, nam);
   };
 }
@@ -1091,9 +1095,9 @@ exports.addChildImpl = function (namespace) {
       }
       var cb = callbackMapper.map(function(){
             if (window.__OS ===  "WEB"){
-              setTimeout(function(){ processMapps(namespace, screenName)},500)
+              setTimeout(function(){ processMapps(namespace, screenName, 75)},500)
             } else {
-              processMapps(namespace, screenName)
+              processMapps(namespace, screenName, 75)
             }
           }
          )
