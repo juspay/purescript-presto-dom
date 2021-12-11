@@ -1210,3 +1210,60 @@ function processMapps(namespace, nam, timeout) {
     }
   }, 32);
 }
+
+exports.getLatestMachine = function (name, namespace) {
+    return getScopedState(namespace).MACHINE_MAP[name];
+  }
+
+  
+  exports.storeMachine = function (dom, name, namespace) {
+    getScopedState(namespace).MACHINE_MAP[name] = dom;
+    if (getConstState(namespace).cachedMachine.hasOwnProperty(namespace) &&
+        getConstState(namespace).cachedMachine[namespace].hasOwnProperty(name)){
+          getConstState(namespace).cachedMachine[namespace][name] = dom;
+    }
+}
+
+exports.setPatchToActive = function(namespace) {
+    return function(screenName) {
+      return function () {
+        getScopedState(namespace).patchState = getScopedState(namespace).patchState || {}
+        getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
+        if(getScopedState(namespace).patchState[screenName].counter > 0) {
+            getScopedState(namespace).patchState[screenName].active = true;
+        } else {
+          triggerPatchQueue(namespace, screenName)
+        }
+      }
+    }
+  }
+  
+
+  exports.addToPatchQueue = function(namespace) {
+    return function(screenName) {
+      return function(patchFn) {
+        return function () {
+          getScopedState(namespace).
+          state.patchState = state.patchState || {}
+          state.patchState[namespace] = state.patchState[namespace] || {}
+          getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
+          getScopedState(namespace).patchState[screenName].queue = state.patchState[namespace][screenName].queue || []
+          getScopedState(namespace).patchState[screenName].queue.push(patchFn);
+          if(!state.patchState[namespace][screenName].started) {
+            state.patchState[namespace][screenName].started = true;
+            triggerPatchQueue(namespace, screenName);
+          }
+        }
+      }
+    }
+  }
+  
+  function triggerPatchQueue(namespace, screenName) {
+    getScopedState(namespace).patchState[screenName].active = false;
+    var nextPatch = (getScopedState(namespace).patchState[screenName].queue || []).shift();
+    if(typeof nextPatch == "function") {
+      nextPatch();
+    } else {
+        getScopedState(namespace).patchState[screenName].started = false;
+    }
+  }

@@ -30,15 +30,10 @@ import Control.Monad.Except(runExcept)
 import Halogen.VDom (Step, VDom, VDomSpec(..), buildVDom, extract, step)
 
 foreign import startedToPrepare :: EFn.EffectFn2 String String Unit
-
 foreign import getAndSetEventFromState :: forall a. EFn.EffectFn3 String String (Effect (EventIO a)) (EventIO a)
-
 foreign import getCurrentActivity :: Effect String
-
 foreign import cachePushEvents :: String -> String -> Effect Unit -> String -> Effect Unit
-
 foreign import isScreenPushActive :: String -> String -> String -> Effect Boolean
-
 foreign import setScreenPushActive :: String -> String -> String -> Effect Unit
 foreign import cancelExistingActions :: EFn.EffectFn2 String String Unit
 foreign import addChildImpl :: forall a b. String -> String -> EFn.EffectFn3 a b Int InsertState
@@ -49,6 +44,11 @@ foreign import saveCanceller :: EFn.EffectFn3 String String (Effect Unit) Unit
 foreign import getCurrentActivity :: Effect String
 foreign import setUpBaseState :: String -> Foreign -> Effect Unit
 foreign import render :: EFn.EffectFn1 String Unit
+foreign import setPatchToActive :: String -> String -> Effect Unit
+foreign import addToPatchQueue :: String -> String -> Effect Unit -> Effect Unit
+foreign import getLatestMachine :: forall a b . EFn.EffectFn2 String String (Step a b)
+foreign import storeMachine :: forall a b . EFn.EffectFn3 (Step a b) String String Unit
+
 
 sanitiseNamespace :: Maybe String -> Effect String
 sanitiseNamespace maybeNS = do
@@ -241,3 +241,18 @@ runController st@{name, parent, eval, initialState, globalEvents, emitter} json 
   _ <- liftEffect $ setControllerStates ns name
   eventIO <- liftEffect $ getEventIO name parent
   makeAff $ controllerActions eventIO st json emitter
+
+patchAndRun :: forall w i state. String -> Maybe String -> (state -> VDom (Array (Prop i)) w) -> state -> Effect Unit
+patchAndRun screenName namespace emitter state = do
+  let myDom = emitter state
+  let patchFunc = patchBlock screenName namespace myDom
+  ns <- sanitiseNamespace namespace
+  addToPatchQueue ns screenName patchFunc
+
+patchBlock :: forall w i. String -> Maybe String -> VDom (Array (Prop i)) w -> Effect Unit
+patchBlock screenName namespace myDom = do
+  ns <- sanitiseNamespace namespace
+  machine <- EFn.runEffectFn2 getLatestMachine screenName ns
+  newMachine <- EFn.runEffectFn2 step (machine) (myDom)
+  EFn.runEffectFn3 storeMachine newMachine screenName ns
+  setPatchToActive ns screenName
