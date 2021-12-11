@@ -72,12 +72,16 @@ const getScopedState = function (namespace, activityID) {
     : undefined;
 };
 
-const setFragmentIdInScopedState = function (namespace, id, activityID) {
+const ensureScopeStateExists = function() {
   const activityIDToUse = activityID || state.currentActivity;
   state.scopedState.hasOwnProperty(namespace)
     ? (state.scopedState.namespace[activityIDToUse] =
         state.scopedState.namespace[activityIDToUse] || {})
     : (state.scopedState = { [namespace]: { [activityIDToUse]: {} } });
+}
+
+const setFragmentIdInScopedState = function (namespace, id, activityID) {
+  ensureScopeStateExists()
   getScopedState(namespace).id = id;
 };
 
@@ -322,6 +326,18 @@ exports.saveCanceller = function (name, namespace, activityId, canceller) {
     getScopedState(namespace, activityId).cancelers[name] = canceller;
   }
 };
+
+exports.addViewToParent = function (insertObject) {
+  var dom = insertObject.dom
+  AndroidWrapper.addViewToParent(
+    insertObject.rootId,
+    window.__OS == "ANDROID" ? JSON.stringify(dom) : dom,
+    insertObject.length,
+    insertObject.callback,
+    null,
+    insertObject.id
+  );
+}
 
 function createAndroidWrapper() {
   if (
@@ -1060,4 +1076,137 @@ exports.getListDataCommands = function (listData, element) {
     final.push(item);
     }
     return JSON.stringify(final)
+}
+exports.setControllerStates = function(namespace) {
+  return function (screenName) {
+    return function () {
+      ensureScopeStateExists()
+      getScopedState(namespace).activeScreen = screenName;
+      getScopedState(namespace).activateScreen = true;
+    }
+  }
+}
+
+exports.moveChild = function(namespace) {
+  return function (child, parent, index) {
+    AndroidWrapper.moveView(child.__ref.__id, index, getIdFromNamespace(namespace));
+  }
+}
+
+exports.addChildImpl = function (namespace) {
+  return function(screenName) {
+    return function (child, parent, index) {
+      if (child.type == null) {
+        console.warn("child null");
+      }
+      var cb = callbackMapper.map(function(){
+            if (window.__OS ===  "WEB"){
+              setTimeout(function(){ processMapps(namespace, screenName, 75)},500)
+            } else {
+              processMapps(namespace, screenName, 75)
+            }
+          }
+         )
+      // console.log("Add child :", child.__ref.__id, child.type);
+      var viewGroups = [
+        "linearLayout",
+        "relativeLayout",
+        "scrollView",
+        "frameLayout",
+        "horizontalScrollView"
+      ];
+      if (window.__OS == "ANDROID") {
+        if (viewGroups.indexOf(child.type) != -1) {
+          child.props.root = true;
+        } else {
+          child.parentType = parent.type;
+        }
+      }
+      if(child.props && (!child.props.id) && child.__ref) {
+        child.props.id = child.__ref.__id
+      }
+      return { rootId : window.__OS == "ANDROID" ? parent.__ref.__id + "" : parent.__ref.__id
+      , dom : child
+      , length : index
+      , callback : cb
+      , id :  getIdFromNamespace(namespace)
+      }
+    }
+  }
+}
+
+
+function processMapps(namespace, nam, timeout) {
+  setTimeout(function () {
+    if (!getScopedState(namespace).mappQueue)
+      return;
+    var cachedObject = getScopedState(namespace).mappQueue.shift();
+    while (cachedObject) {
+      var fragId = AndroidWrapper.addToContainerList(parseInt(cachedObject.elemId), getIdFromNamespace(namespace));
+      if (fragId == "__failed") {
+        setTimeout( processMapps(namespace, nam, (timeout|| 75)*2), (timeout|| 75))
+        return;
+      }
+      cachedObject.fragId = fragId;
+      var cb = function (code) {
+        return function (message) {
+          return function () {
+            var test = JSON.parse(message)
+            if(!test.stopAtDom) {
+              getScopedState(namespace).fragmentCallbacks[nam] = getScopedState(namespace).fragmentCallbacks[nam] || [];
+              getScopedState(namespace).fragmentCallbacks[nam].push({
+                payload: {
+                  code: code,
+                  message: message,
+                },
+                callback: this.object.callback
+              });
+              if (typeof this.object.callback == "function")
+                  this.object.callback({
+                  code: code,
+                  message: message,
+                  elemId : this.object.fragId
+                });
+              else
+                console.log("Mapp response", code, message)
+            } else {
+                try {
+                  var plds = getScopedState(namespace).fragmentCallbacks[nam] || [];
+                  getScopedState(namespace).fragmentCallbacks[nam] = plds.filter(function(x) {
+                    return !(test.id == x.payload.elemId)
+                  })
+                } catch (e) {
+                  console.log("flushFragmentCallbacks Error => ", e)
+                }
+            }
+          }.bind({
+            object: this.object
+          });
+        }.bind({
+          object: this.object
+        });
+      }.bind({
+        object: cachedObject
+      });
+
+      var p = JSON.parse(cachedObject.payload);
+      p.fragmentViewGroups = p.fragmentViewGroups || {};
+      p.fragmentViewGroups[cachedObject.viewGroupTag] = fragId;
+      state.fragmentIdMap[cachedObject.requestId] = p.fragmentViewGroups[cachedObject.viewGroupTag];
+      var x = cachedObject.unNestPayload ? p : {
+        service: cachedObject.service,
+        requestId: cachedObject.requestId,
+        payload: p
+      };
+
+      if (cachedObject.useStartApp) {
+        JOS.startApp(cachedObject.service)(x)(cb)()
+      } else if(window.JOS && typeof JOS.isMAppPresent == "function" &&  typeof JOS.isMAppPresent(cachedObject.service) == "function" && JOS.isMAppPresent(cachedObject.service)()) {
+        JOS.emitEvent(cachedObject.service)("onMerchantEvent")(["process", JSON.stringify(x)])(cb)();
+      } else {
+        cb(0)("error")()
+      }
+      cachedObject = getScopedState(namespace).mappQueue.shift();
+    }
+  }, 32);
 }
