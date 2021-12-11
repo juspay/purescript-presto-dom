@@ -42,6 +42,8 @@ foreign import isScreenPushActive :: String -> String -> String -> Effect Boolea
 
 foreign import setScreenPushActive :: String -> String -> String -> Effect Unit
 foreign import cancelExistingActions :: EFn.EffectFn2 String String Unit
+foreign import addViewToParent :: EFn.EffectFn1 InsertState Unit
+foreign import setControllerStates :: String -> String -> Effect Unit
 foreign import saveCanceller :: EFn.EffectFn3 String String (Effect Unit) Unit
 foreign import getCurrentActivity :: Effect String
 foreign import setUpBaseState :: String -> Foreign -> Effect Unit
@@ -57,6 +59,17 @@ initUIWithNameSpace namespace id = do
   setUpBaseState namespace $ encode id
   EFn.runEffectFn1 render namespace
 
+initUIWithScreen ::
+  forall action state returnType.
+  String -> Maybe String -> ScopedScreen action state returnType -> Aff Unit
+initUIWithScreen namespace id screen = do
+  liftEffect $ initUIWithNameSpace namespace id
+  let myDom = screen.view (\_ -> pure unit) screen.initialState
+  ns <- liftEffect $ sanitiseNamespace screen.parent
+  machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns screen.name)) myDom
+  insertState <- liftEffect $ EFn.runEffectFn4 insertDom ns screen.name (extract machine) false
+  domAllOut <- domAll screen (unsafeToForeign {}) insertState.dom
+  liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
 
 joinCancellers :: Array (Effect Unit) -> Effect Unit -> Effect Unit
 joinCancellers cancellers canceller = do
@@ -128,3 +141,25 @@ prepareScreen screen@{name, parent, view} json = do
       liftEffect $ EFn.runEffectFn2 startedToPrepare ns name
       liftEffect $ trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" screen.name json
       let myDom = view (\_ -> pure unit) screen.initialState
+
+updateChildrenImpl :: String -> String -> Array UpdateActions -> Aff (Array Unit)
+updateChildrenImpl namespace screenName =
+  traverse
+    \{action, parent, elem, index} ->
+        case action of
+          "add" -> do
+              insertState <- liftEffect $ Efn.runEffectFn3 (addChildImpl namespace screenName) (encode elem) (encode parent) index
+              domAllOut <- domAll {name : screenName, parent : Just namespace} (unsafeToForeign {}) insertState.dom
+              liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
+          "move" -> liftEffect $ EFn.runEffectFn3 (moveChild namespace) elem parent index
+          _ -> pure unit -- Should never reach here
+
+runController :: forall action state returnType
+  . Show action => Loggable action
+  => Controller action state returnType
+  -> (Object Foreign) -> Aff returnType
+runController st@{name, parent, eval, initialState, globalEvents, emitter} json = do
+  ns <- liftEffect $ sanitiseNamespace parent
+  _ <- liftEffect $ setControllerStates ns name
+  eventIO <- liftEffect $ getEventIO name parent
+  makeAff $ controllerActions eventIO st json emitter

@@ -72,12 +72,16 @@ const getScopedState = function (namespace, activityID) {
     : undefined;
 };
 
-const setFragmentIdInScopedState = function (namespace, id, activityID) {
+const ensureScopeStateExists = function() {
   const activityIDToUse = activityID || state.currentActivity;
   state.scopedState.hasOwnProperty(namespace)
     ? (state.scopedState.namespace[activityIDToUse] =
         state.scopedState.namespace[activityIDToUse] || {})
     : (state.scopedState = { [namespace]: { [activityIDToUse]: {} } });
+}
+
+const setFragmentIdInScopedState = function (namespace, id, activityID) {
+  ensureScopeStateExists()
   getScopedState(namespace).id = id;
 };
 
@@ -322,6 +326,18 @@ exports.saveCanceller = function (name, namespace, activityId, canceller) {
     getScopedState(namespace, activityId).cancelers[name] = canceller;
   }
 };
+
+exports.addViewToParent = function (insertObject) {
+  var dom = insertObject.dom
+  AndroidWrapper.addViewToParent(
+    insertObject.rootId,
+    window.__OS == "ANDROID" ? JSON.stringify(dom) : dom,
+    insertObject.length,
+    insertObject.callback,
+    null,
+    insertObject.id
+  );
+}
 
 function createAndroidWrapper() {
   if (
@@ -748,4 +764,14 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
   }
   props.id = elem.__ref.__id;
   return {dom : { type : type, props:props, children:elem.children, parentType : elem.parentType, __ref : elem.__ref}, ids : VALIDATE_ID}
+}
+
+exports.setControllerStates = function(namespace) {
+  return function (screenName) {
+    return function () {
+      ensureScopeStateExists()
+      getScopedState(namespace).activeScreen = screenName;
+      getScopedState(namespace).activateScreen = true;
+    }
+  }
 }
