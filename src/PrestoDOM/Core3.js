@@ -129,14 +129,8 @@ exports.setUpBaseState = function (namespace) {
         getScopedState(namespace).id = id;
         return;
       }
-      if (namespace.indexOf(state.currentActivity) == -1) {
-        namespace = namespace + state.currentActivity;
-      }
       if (state.currentActivity !== "") {
-        var ns = namespace.substr(
-          0,
-          namespace.length - state.currentActivity.length
-        );
+        var ns = namespace;
         state.activityNamespaces[state.currentActivity] =
           state.activityNamespaces[state.currentActivity] || [];
         state.activityNamespaces[state.currentActivity].push(ns);
@@ -1758,4 +1752,37 @@ exports.parseParams = function (a,b, c) {
     } else {
         return parseParams(a,b,c);
     }
+  }
+
+exports["replayFragmentCallbacks'"] = function (namespace) {
+  return function (nam) {
+    return function (push) {
+      return function() {
+        try {
+          if (namespace && namespace.indexOf(state.currentActivity) == -1) {
+            namespace = namespace + state.currentActivity;
+          }
+          getScopedState(namespace).shouldReplayCallbacks[nam] = true
+          if(window.__OS == "WEB") {
+            (getScopedState(namespace).fragmentCallbacks[nam] || []).forEach (function(x) {
+              x.callback(x.payload)
+            })
+          }
+        }
+        catch (e) {
+          console.log("Replay fragment Error => ", e)
+        }
+        return function() {
+          try {
+            if (namespace && namespace.indexOf(state.currentActivity) == -1) {
+              namespace = namespace + state.currentActivity;
+            }
+            getScopedState(namespace).shouldReplayCallbacks[nam] = false
+          } catch (err) {
+            console.warn("TODO:: Fix this", err);
+          }
+        }
+      }
+    }
+  }
 }

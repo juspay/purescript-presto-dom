@@ -44,6 +44,8 @@ foreign import getCurrentActivity :: Effect String
 foreign import cachePushEvents :: String -> String -> Effect Unit -> String -> Effect Unit
 foreign import isScreenPushActive :: String -> String -> String -> Effect Boolean
 foreign import setScreenPushActive :: String -> String -> String -> Effect Unit
+foreign import terminateUIImpl :: EFn.EffectFn1 String Unit
+foreign import terminateUIImplWithCallback :: (Int -> String -> Effect Unit) ->  EFn.EffectFn1 String Unit
 foreign import cancelExistingActions :: EFn.EffectFn2 String String Unit
 foreign import addChildImpl :: forall a b. String -> String -> EFn.EffectFn3 a b Int InsertState
 foreign import moveChild :: forall a b. String -> EFn.EffectFn3 a b Int Unit
@@ -365,3 +367,9 @@ patchBlock screenName namespace myDom = do
   newMachine <- EFn.runEffectFn2 step (machine) (myDom)
   EFn.runEffectFn3 storeMachine newMachine screenName ns
   setPatchToActive ns screenName
+  
+terminateUI :: Maybe String -> Effect Unit
+terminateUI nameSpace = EFn.runEffectFn1 terminateUIImpl =<< sanitiseNamespace nameSpace
+
+terminateUIWithCallback :: (Int -> String -> Effect Unit) -> String -> Effect Unit
+terminateUIWithCallback cb nameSpace = EFn.runEffectFn1 (terminateUIImplWithCallback cb) nameSpace
