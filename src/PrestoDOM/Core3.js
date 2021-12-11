@@ -244,4 +244,46 @@ exports.cancelExistingActions = function (name, namespace, activitiId) {
     if(getScopedState(namespace) && getScopedState(namespace).cancelers) {
       getScopedState(namespace).cancelers[name] = canceller;
     }
+    return namespace
+}
+
+exports.startedToPrepare = function(namespace, screenName){
+    if(getConstState(namespace)){
+      getConstState(namespace)[screenName] = getConstState(namespace)[screenName] || {};
+      getConstState(namespace)[screenName].prepareStarted = true;
+      getConstState(namespace)[screenName].prepareStartedQueue = [];
+    }
+}
+
+exports.getAndSetEventFromState = function(namespace, screenName, def) {
+    state.scopedState[namespace][state.currentActivity] = getScopedState(namespace) || {}
+    getScopedState(namespace).eventIOs = getScopedState(namespace).eventIOs || {}
+    getScopedState(namespace).eventIOs[screenName] = getScopedState(namespace).eventIOs[screenName] || def();
+    return getScopedState(namespace).eventIOs[screenName];
+}
+
+exports.isScreenPushActive = function(namespace) {
+    return function(screenName) {
+        return function(activityID){
+            return function () {
+                state.scopedState[namespace][activityID] = getScopedState(namespace, activityID) || {}
+                getScopedState(namespace, activityID).pushActive = getScopedState(namespace, activityID).pushActive || {}
+                return getScopedState(namespace, activityID).pushActive[screenName] || false;
+            }
+        }
+    }
+}
+
+exports.cachePushEvents = function(namespace) {
+    return function(screenName) {
+      return function(efn) {
+        return function(activityID){
+          return function () {
+            getScopedState(namespace, activityID).queuedEvents = getScopedState(namespace, activityID).queuedEvents || {}
+            getScopedState(namespace, activityID).queuedEvents[screenName] = getScopedState(namespace, activityID).queuedEvents[screenName] || []
+            getScopedState(namespace, activityID).queuedEvents[screenName].push(efn)
+          }
+        }
+      }
+    }
   }

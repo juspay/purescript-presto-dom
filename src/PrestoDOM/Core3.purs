@@ -19,6 +19,26 @@ import Foreign (Foreign, unsafeToForeign)
 import Foreign.Object (Object)
 import PrestoDOM.Types.Core (class Loggable, PrestoWidget(..), Prop, ScopedScreen, Controller, ScreenBase)
 import PrestoDOM.Utils (continue, logAction)
+import Tracker (trackScreen)
+import Tracker.Labels as L
+import Tracker.Types (Level(..), Screen(..)) as T
+import Control.Alt ((<|>))
+import FRP.Event as E
+import Foreign (Foreign, unsafeToForeign)
+import Foreign.Generic (encode, decode, class Decode)
+import Control.Monad.Except(runExcept)
+import Halogen.VDom (Step, VDom, VDomSpec(..), buildVDom, extract, step)
+
+
+foreign import startedToPrepare :: EFn.EffectFn2 String String Unit
+
+foreign import getAndSetEventFromState :: forall a. EFn.EffectFn3 String String (Effect (EventIO a)) (EventIO a)
+
+foreign import getCurrentActivity :: Effect String
+
+foreign import cachePushEvents :: String -> String -> Effect Unit -> String -> Effect Unit
+
+foreign import isScreenPushActive :: String -> String -> String -> Effect Boolean
 
 foreign import setScreenPushActive :: String -> String -> String -> Effect Unit
 foreign import cancelExistingActions :: EFn.EffectFn2 String String Unit
@@ -79,3 +99,32 @@ controllerActions {event, push} {initialState, eval, name, globalEvents, parent}
         , currentAction : Just action
         , eitherState : (st.eitherState >>= (eval action <<< fst))
         }
+
+getEventIO :: forall action. String -> Maybe String -> Effect (EventIO action)
+getEventIO screenName parent = do
+  ns <- sanitiseNamespace parent
+  {event, push} <- Efn.runEffectFn3 getAndSetEventFromState ns screenName E.create
+  activityId <- getCurrentActivity
+  pure $ {event, push : createPushQueue ns screenName push activityId}
+
+createPushQueue :: forall action. String -> String -> (action -> Effect Unit) -> String -> action -> Effect Unit
+createPushQueue namespace screenName push activityId action = do
+  isScreenPushActive namespace screenName activityId >>=
+    if _
+      then push action
+      else cachePushEvents namespace screenName (push action) activityId
+
+prepareScreen :: forall action state returnType
+  . Show action => Loggable action
+  => ScopedScreen action state returnType
+  -> Object Foreign
+  -> Aff Unit
+prepareScreen screen@{name, parent, view} json = do
+  if not (canPreRender unit)
+    then pure unit
+    else do 
+      ns <- liftEffect $ sanitiseNamespace parent
+      liftEffect <<< setUpBaseState ns $ encode (Nothing :: Maybe String )
+      liftEffect $ EFn.runEffectFn2 startedToPrepare ns name
+      liftEffect $ trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" screen.name json
+      let myDom = view (\_ -> pure unit) screen.initialState
