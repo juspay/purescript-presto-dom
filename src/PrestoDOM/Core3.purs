@@ -1,4 +1,4 @@
-module Core3 where
+module PrestoDOM.Core3 where
   
 import Prelude
 import Data.Either (Either(..), either, hush)
