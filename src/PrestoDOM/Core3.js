@@ -204,3 +204,47 @@ exports.render = function (namespace) {
     }
   } catch (e) {}
 };
+
+exports.getCurrentActivity = function () {
+    return state.currentActivity;
+  }
+  
+
+exports.cancelExistingActions = function (name, namespace, activitiId) {
+    // Added || false to return false when value is undefined
+    try{
+      if(getScopedState(namespace, activitiId) && getScopedState(namespace, activitiId).cancelers && typeof getScopedState(namespace, activitiId).cancelers[name] == "function") {
+        getScopedState(namespace).cancelers[name]();
+      }
+    }catch(e){
+      console.error("cancelExistingActions:",e);
+    }
+  }
+
+  exports.setScreenPushActive = function(namespace) {
+    return function(screenName) {
+      return function(activityID){
+        return function () {
+          getScopedState(namespace, activityID).pushActive = getScopedState(namespace, activityID).pushActive || {}
+          getScopedState(namespace, activityID).queuedEvents = getScopedState(namespace, activityID).queuedEvents || {}
+          getScopedState(namespace, activityID).pushActive[screenName] = true
+          while(getScopedState(namespace, activityID).queuedEvents[screenName] && getScopedState(namespace, activityID).queuedEvents[screenName][0]) {
+            getScopedState(namespace, activityID).queuedEvents[screenName].shift()();
+          }
+        }
+      }
+    }
+  }
+
+
+exports.saveCanceller = function (name, namespace, activityId, canceller) {
+    // Added || false to return false when value is undefined
+    if (namespace && namespace.indexOf(state.currentActivity) == -1) {
+      namespace = namespace + state.currentActivity;
+    }
+    state.scopedState[namespace] = getScopedState(namespace) || {}
+    getScopedState(namespace, activityId).cancelers = getScopedState(namespace, activityId).cancelers || {}
+    if(getScopedState(namespace, activityId) && getScopedState(namespace, activityId).cancelers) {
+      getScopedState(namespace, activityId).cancelers[name] = canceller;
+    }
+  }
