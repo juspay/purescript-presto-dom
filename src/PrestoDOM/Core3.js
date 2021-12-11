@@ -236,15 +236,12 @@ exports.cancelExistingActions = function (name, namespace, activitiId) {
     }
   }
 
-
-exports.saveCanceller = function (name, namespace, activityId, canceller) {
+  exports.saveCanceller = function (name, namespace, canceller) {
     // Added || false to return false when value is undefined
-    if (namespace && namespace.indexOf(state.currentActivity) == -1) {
-      namespace = namespace + state.currentActivity;
-    }
-    state.scopedState[namespace] = getScopedState(namespace) || {}
-    getScopedState(namespace, activityId).cancelers = getScopedState(namespace, activityId).cancelers || {}
-    if(getScopedState(namespace, activityId) && getScopedState(namespace, activityId).cancelers) {
-      getScopedState(namespace, activityId).cancelers[name] = canceller;
+    let activity = state.currentActivity;
+    state.scopedState[namespace][activity] = getScopedState(namespace) || {}
+    getScopedState(namespace).cancelers = getScopedState(namespace).cancelers || {}
+    if(getScopedState(namespace) && getScopedState(namespace).cancelers) {
+      getScopedState(namespace).cancelers[name] = canceller;
     }
   }

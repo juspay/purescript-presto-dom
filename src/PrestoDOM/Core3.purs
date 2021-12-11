@@ -21,8 +21,8 @@ import PrestoDOM.Types.Core (class Loggable, PrestoWidget(..), Prop, ScopedScree
 import PrestoDOM.Utils (continue, logAction)
 
 foreign import setScreenPushActive :: String -> String -> String -> Effect Unit
-foreign import cancelExistingActions :: EFn.EffectFn3 String String String Unit
-foreign import saveCanceller :: EFn.EffectFn4 String String String (Effect Unit) Unit
+foreign import cancelExistingActions :: EFn.EffectFn2 String String Unit
+foreign import saveCanceller :: EFn.EffectFn3 String String (Effect Unit) Unit
 foreign import getCurrentActivity :: Effect String
 foreign import setUpBaseState :: String -> Foreign -> Effect Unit
 foreign import render :: EFn.EffectFn1 String Unit
@@ -53,23 +53,22 @@ controllerActions :: forall action state returnType a
   -> Effect Canceler
 controllerActions {event, push} {initialState, eval, name, globalEvents, parent} json emitter cb = do
   ns <- sanitiseNamespace parent
-  activityId <- getCurrentActivity
-  _ <- EFn.runEffectFn3 cancelExistingActions name ns activityId
+  _ <- EFn.runEffectFn2 cancelExistingActions name ns
   timerRef <- Ref.new Nothing
   let stateBeh = unfold execEval event { previousAction : Nothing, currentAction : Nothing, eitherState : (continue initialState)}
-  canceller <- sample_ stateBeh event `subscribe` (\a -> either (onExit a.previousAction a.currentAction timerRef ns activityId) (onStateChange a.previousAction a.currentAction timerRef) a.eitherState)
-
+  canceller <- sample_ stateBeh event `subscribe` (\a -> either (onExit a.previousAction a.currentAction timerRef) (onStateChange a.previousAction a.currentAction timerRef) a.eitherState)
+  activityId <- getCurrentActivity
   _ <- setScreenPushActive ns name activityId
   cancellers <- traverse registerEvents globalEvents
-  EFn.runEffectFn4 saveCanceller name ns activityId $ joinCancellers cancellers canceller
-  pure $ effectCanceler (EFn.runEffectFn3 cancelExistingActions name ns activityId)
+  EFn.runEffectFn3 saveCanceller name ns $ joinCancellers cancellers canceller
+  pure $ effectCanceler (EFn.runEffectFn2 cancelExistingActions name ns)
     where
       onStateChange previousAction currentAction timerRef (Tuple state cmds) = do
         result <- emitter state
         _ <- for_ cmds (\effAction -> effAction >>= push)
         logAction timerRef previousAction currentAction false json -- debounce
-      onExit previousAction currentAction timerRef ns activityId (Tuple st ret) = do
-        EFn.runEffectFn3 cancelExistingActions name ns activityId
+      onExit previousAction currentAction timerRef (Tuple st ret) = do
+        EFn.runEffectFn2 cancelExistingActions name =<< sanitiseNamespace parent
         result <- fromMaybe (pure unit) $ st <#> emitter
         cb $ Right ret
         logAction timerRef previousAction currentAction true json-- logNow
