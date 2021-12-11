@@ -8,3 +8,4 @@ sanitiseNamespace :: Maybe String -> Effect String
 sanitiseNamespace maybeNS = do
   let ns = fromMaybe "default" maybeNS
   pure ns
+

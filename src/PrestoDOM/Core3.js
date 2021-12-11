@@ -11,11 +11,15 @@ const state = {
 , activityNamespaces: {}
 , currentActivity: 'default'
 , cachedMachine : {}
-    , constState : {}
+, constState : {}
 }
 
 const getScopedState = function (namespace, activityID) {
     return state.scopedState[getNamespace(namespace, activityID)];
+}
+
+const getConstState = function (namespace) {
+    return state.constState[namespace];
 }
   
 const getNamespace = function (namespace, activityID) {
