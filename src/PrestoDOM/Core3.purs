@@ -42,6 +42,8 @@ foreign import isScreenPushActive :: String -> String -> String -> Effect Boolea
 
 foreign import setScreenPushActive :: String -> String -> String -> Effect Unit
 foreign import cancelExistingActions :: EFn.EffectFn2 String String Unit
+foreign import addChildImpl :: forall a b. String -> String -> EFn.EffectFn3 a b Int InsertState
+foreign import moveChild :: forall a b. String -> EFn.EffectFn3 a b Int Unit
 foreign import addViewToParent :: EFn.EffectFn1 InsertState Unit
 foreign import setControllerStates :: String -> String -> Effect Unit
 foreign import saveCanceller :: EFn.EffectFn3 String String (Effect Unit) Unit
