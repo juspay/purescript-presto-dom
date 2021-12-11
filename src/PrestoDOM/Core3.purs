@@ -7,7 +7,7 @@ import Data.Foldable (for_)
 import Data.Tuple (Tuple(..), fst)
 import Data.Traversable (traverse)
 import Effect (Effect)
-import Effect.Aff (Canceler, effectCanceler, Aff)
+import Effect.Aff (Canceler, effectCanceler, Aff, makeAff, forkAff, joinFiber, launchAff_, nonCanceler)
 import Effect.Class (liftEffect)
 import Effect.Exception (Error)
 import Effect.Uncurried as EFn
@@ -28,7 +28,6 @@ import Foreign (Foreign, unsafeToForeign)
 import Foreign.Generic (encode, decode, class Decode)
 import Control.Monad.Except(runExcept)
 import Halogen.VDom (Step, VDom, VDomSpec(..), buildVDom, extract, step)
-
 
 foreign import startedToPrepare :: EFn.EffectFn2 String String Unit
 
@@ -128,3 +127,80 @@ prepareScreen screen@{name, parent, view} json = do
       liftEffect $ EFn.runEffectFn2 startedToPrepare ns name
       liftEffect $ trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" screen.name json
       let myDom = view (\_ -> pure unit) screen.initialState
+
+runScreen :: forall action state returnType
+  . Show action => Loggable action
+  => ScopedScreen action state returnType
+  -> (Object Foreign)
+  -> Aff returnType
+runScreen st@{ name, parent, view} json = do
+  ns <- liftEffect $ sanitiseNamespace parent
+  makeAff (\cb -> Efn.runEffectFn3 awaitPrerenderFinished ns name (cb $ Right unit) $> nonCanceler )
+  liftEffect $ EFn.runEffectFn2 checkAndDeleteFromHideAndRemoveStacks ns name
+  check <- liftEffect $  EFn.runEffectFn2 isInStack name ns <#> not
+  eventIO <- liftEffect $ getEventIO name parent
+  _ <- liftEffect $ trackScreen T.Screen T.Info L.CURRENT_SCREEN "screen" name json
+  _ <- liftEffect $ trackScreen T.Screen T.Info L.UPCOMING_SCREEN "screen" name json
+  liftEffect $ Efn.runEffectFn1 hideCacheRootOnAnimationEnd ns
+  liftEffect $ EFn.runEffectFn2 setToTopOfStack ns name
+  renderOrPatch eventIO st check false
+  makeAff $ controllerActions eventIO st json (patchAndRun name parent (view eventIO.push))
+
+renderOrPatch :: forall action state returnType
+  . Show action => Loggable action
+  => EventIO action
+  -> ScopedScreen action state returnType
+  -> Boolean -> Boolean -> Aff Unit
+renderOrPatch {event, push} st@{ initialState, view, eval, name , globalEvents, parent } true isCache = do
+  let myDom = view push initialState
+  ns <- liftEffect $ sanitiseNamespace parent
+  prMachine <- if isCache then pure Nothing else getCachedMachine ns name
+  case prMachine of
+    Just machine -> liftEffect do
+      EFn.runEffectFn3 attachScreen ns name (extract machine)
+      newMachine <- EFn.runEffectFn2 step machine myDom
+      EFn.runEffectFn3 storeMachine newMachine name ns
+      EFn.runEffectFn3 addScreenWithAnim (extract newMachine) name ns
+      setPatchToActive ns name
+      EFn.runEffectFn1 attachUrlImages (ns <> name)
+    Nothing -> do
+      machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns name)) myDom
+      insertState <- liftEffect $ EFn.runEffectFn4 insertDom ns name (extract machine) isCache
+      -- DO NOT CHANGE THIS TO ENCODE,
+      -- THE JSON IN THIS BLOCK IS MODIFIED IN JS
+      -- AND CAN IMPACT ALL ENCODE USAGES
+      domAllOut <- domAll st (unsafeToForeign {}) insertState.dom
+      liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
+      liftEffect $ EFn.runEffectFn3 storeMachine machine name ns
+renderOrPatch {event, push} { initialState, view, eval, name , globalEvents, parent }false isCache = liftEffect do
+  patchAndRun name parent (view push) initialState
+  ns <- sanitiseNamespace parent
+  EFn.runEffectFn2 makeScreenVisible ns name
+  EFn.runEffectFn3 callAnimation name ns isCache
+
+domAll :: forall a. {name :: String, parent :: Maybe String | a} -> Foreign -> Foreign -> Aff Foreign
+domAll {name, parent} ids dom = {--dom--} do
+  ns <- liftEffect $ sanitiseNamespace parent
+  {ids: i, dom:d} <- liftEffect $ EFn.runEffectFn4 parseProps dom name ids ns
+  case hush $ runExcept $ decode d of
+    Just (vdomTree :: VdomTree) -> do
+      fontFiber <- forkAff $ verifyFont $ extractAndDecode "fontStyle" vdomTree.props
+      imageFiber <- forkAff $ verifyImage vdomTree.__ref (ns <> name) $ extractAndDecode "imageUrl" vdomTree.props
+      placeFiber <- forkAff $ verifyImage Nothing "" $ extractAndDecode "placeHolder" vdomTree.props
+      listFiber <- forkoutListState ns name vdomTree."type" vdomTree.props
+      children <- domAll {name, parent} i `traverse` vdomTree.children
+      font <- joinFiber fontFiber
+      image <- joinFiber imageFiber
+      placeHolder <- joinFiber placeFiber
+      listData <- joinFiber listFiber >>= liftEffect
+          <<< \u -> do
+            case u of
+             Just uld -> Just <$> EFn.runEffectFn2 getListDataCommands uld dom
+             _ -> pure Nothing
+      let props = vdomTree.props
+            # update (const font) "fontStyle"
+            # update (const image) "imageUrl"
+            # update (const placeHolder) "placeHolder"
+            # update (const listData) "listData"
+      pure $ generateCommands $ vdomTree {children = children, props = props}
+    a -> pure $ encode a

@@ -749,3 +749,315 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
   props.id = elem.__ref.__id;
   return {dom : { type : type, props:props, children:elem.children, parentType : elem.parentType, __ref : elem.__ref}, ids : VALIDATE_ID}
 }
+
+exports.awaitPrerenderFinished = function(namespace, screenName, cb){
+    if(getConstState(namespace) && getConstState(namespace)[screenName] && getConstState(namespace)[screenName].prepareStarted){
+      getConstState(namespace)[screenName].prepareStartedQueue = getConstState(namespace)[screenName].prepareStartedQueue || [];
+      getConstState(namespace)[screenName].prepareStartedQueue.push(cb);
+    }else{
+      cb();
+    }
+}
+
+
+exports.checkAndDeleteFromHideAndRemoveStacks = function (namespace, screenName) {
+    try {
+      var index = getScopedState(namespace).hideList.indexOf(screenName)
+      if(index != -1) {
+        delete getScopedState(namespace).hideList[index];
+      }
+      var index = getScopedState(namespace).removeList.indexOf(screenName)
+      if(index != -1) {
+        delete getScopedState(namespace).removeList[index];
+      }
+    } catch(e) {
+      // Ignored this will happen ever first time for each screen
+    }
+}
+
+exports.isInStack = function (name, namespace) {
+    // Added || false to return false when value is undefined
+    try {
+      return getScopedState(namespace).screenStack.indexOf(name) != -1
+    } catch (e) {
+      console.error( "Call initUI with for namespace :: " + namespace , e );
+    }
+    return false
+}
+
+exports.hideCacheRootOnAnimationEnd = function(namespace) {
+    getScopedState(namespace).shouldHideCacheRoot = true;
+}
+
+exports.setToTopOfStack = function (namespace, screenName) {
+    try {
+      if(getScopedState(namespace).screenStack.indexOf(screenName) != -1) {
+        var index = getScopedState(namespace).screenStack.indexOf(screenName)
+        var removedScreens = getScopedState(namespace).screenStack.splice(index + 1)
+        getScopedState(namespace).removeList = getScopedState(namespace).removeList.concat(removedScreens)
+      } else {
+        getScopedState(namespace).screenStack.push(screenName)
+      }
+  
+    } catch (e) {
+      console.error("Call Init UI for namespace :: ", namespace, e)
+    }
+}
+
+/**
+ * returns Nothing if __CACHED_MACHINE don't have machine
+ * This function will make sure that addScreen logic don't get executed
+ * if machine not present.
+ *
+ */
+ exports.getCachedMachineImpl = function(just,nothing,namespace,screenName) {
+    if (window.__OS === "ANDROID"){
+      var curNamespace = getNamespace(namespace);
+      var machine = state.cachedMachine.hasOwnProperty(curNamespace) ? state.cachedMachine[curNamespace][screenName] : null;
+      if (machine != null && (typeof machine == "object")){
+        return just(machine);
+      } else {
+        return nothing;
+      }
+    } else {
+      return nothing;
+    }
+}
+
+/**
+ * This will return dui commands  to reset scrolled screen state
+ * @param {object} dom
+ * @return {string}
+ */
+ function getScrollViewResetCmds(dom){
+    var scrollViewIDs = getScrollViewIDs(dom);
+    var cmdScrollViewReset = "";
+    /**
+     * genrate cmds for resetting scrolled view
+     */
+    for(var i =0; i< scrollViewIDs.length; i++){
+      cmdScrollViewReset += "set_view=ctx->findViewById:i_"+ scrollViewIDs[i] +";get_view->scrollTo:i_0,i_0;";
+    }
+    return cmdScrollViewReset;
+  
+}
+  
+/**
+ * This will return the ID of scrollView to reset scrolled screen state
+ * @param {object} dom
+ * @return {array Int}
+ */
+function getScrollViewIDs(dom){
+    var idArray = [];
+    if (dom["type"] == "scrollView"){
+      idArray.push(dom["__ref"]["__id"]);
+    }
+    for (var i= 0; i < dom["children"].length; i++){
+      idArray = idArray.concat(getScrollViewIDs(dom["children"][i]));
+    }
+    return idArray;
+}
+
+exports.attachScreen = function(namespace, name, dom){
+    if(!namespace) {
+      console.error("Call initUI for namespace :: " + namespace + "before triggering run/show screen")
+      return;
+    }
+    if (window.__OS == "ANDROID") {
+      var rootId = getScopedState(namespace).stackRoot;
+      var length = getScopedState(namespace).screenStack.length;
+      var screenName = namespace + name
+  
+      var cmds = getScrollViewResetCmds(dom);
+      Android.addStoredViewToParent(
+        rootId + "",
+        screenName,
+        length - 1,
+        null,
+        null,
+        cmds
+      );
+    }else{
+      console.warn("Implementation of addScreen function missing for "+ window.__OS );
+    }
+}
+
+/**
+ * Will be called after patch on screen is complete. It'll set visiblity to visible
+ * again, and then start animation on atttached screen.
+ * @param {object} dom - dom object to get ID
+ * @param {String} screenName - to start animation
+ * @return {void}
+ */
+ exports.addScreenWithAnim = function (dom,  screenName, namespace){
+    if (window.__OS == "ANDROID") {
+    //   var namespace = getNamespace(namespace_);
+      makeRootVisible(namespace);
+      exports.makeScreenVisible(namespace, screenName);
+      executePostProcess(screenName, namespace, false)();
+    }
+}
+
+const makeRootVisible = function(namespace) {
+    getScopedState(namespace).rootVisible = true;
+    showViewInNameSpace(getScopedState(namespace).rootId, namespace)();
+}
+
+function showViewInNameSpace (id, namespace) {
+    // Return callback to show screens
+    return function () {
+      var prop = {
+        id: id,
+        visibility: "visible"
+      };
+      if (window.__OS == "ANDROID") {
+        var cmd = cmdForAndroid(prop, true, "relativeLayout");
+        AndroidWrapper.runInUI(cmd.runInUI, null);
+      } else if (window.__OS == "IOS") {
+        AndroidWrapper.runInUI(prop, getIdFromNamespace(namespace));
+      } else {
+        AndroidWrapper.runInUI(webParseParams("relativeLayout", prop, "set"), getIdFromNamespace(namespace));
+      }
+    }
+}
+
+exports.makeScreenVisible = function (namespace, name) {
+    try {
+      var cb = getConstState(namespace).screenShowCallbacks[name];
+      if(typeof cb == "function") {
+        cb()
+      }
+    } catch(e) {
+      console.log("Call InitUI first for namespace ", namespace, e)
+    }
+}
+
+function executePostProcess(nam, namespace, cache) {
+    return function() {
+      callAnimation__(nam, namespace, cache);
+      processMapps(namespace, nam, 75);
+      triggerAfterRender(namespace, nam);
+    };
+}
+  
+function triggerAfterRender(namespace, screenName) {
+    while(getScopedState(namespace).afterRenderFunctions[screenName] && typeof getScopedState(namespace).afterRenderFunctions[screenName][0] == "function") {
+        getScopedState(namespace).afterRenderFunctions[screenName].pop()();
+    }
+}
+
+exports.insertDom = function(namespace, name, dom, cache) {
+    if(!getScopedState(namespace)) {
+      console.error("Call initUI for namespace :: " + namespace + "before triggering run/show screen")
+      return;
+    }
+    if(!getScopedState(namespace).rootVisible) {
+      makeRootVisible(namespace);
+    }
+
+    getConstState(namespace).animations.entry[name] = {}
+    getConstState(namespace).animations.exit[name] = {}
+    getConstState(namespace).animations.entryF[name] = {}
+    getConstState(namespace).animations.exitF[name] = {}
+    getConstState(namespace).animations.entryB[name] = {}
+    getConstState(namespace).animations.exitB[name] = {}
+    getScopedState(namespace).root.children.push(dom);
+    if (dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()) {
+        dom.__ref = {__id: (dom.props.id).toString().trim()};
+    } else {
+        dom.__ref = createPrestoElement();
+    }
+    if(dom.props) {
+        dom.props.root = true
+    }
+    var rootId = cache ? getScopedState(namespace).cacheRoot : getScopedState(namespace).stackRoot
+    var length = cache ? getScopedState(namespace).screenCache.length : getScopedState(namespace).screenStack.length
+    // TODO implement cache limit later
+    getConstState(namespace).screenHideCallbacks[name] = hideViewInNameSpace(dom.__ref.__id, namespace)
+    getConstState(namespace).screenShowCallbacks[name] = showViewInNameSpace(dom.__ref.__id, namespace)
+    getConstState(namespace).screenRemoveCallbacks[name] = removeViewFromNameSpace(namespace, dom.__ref.__id)
+    var callback = callbackMapper.map(executePostProcess(name, namespace, cache))
+    return {
+      rootId : window.__OS == "ANDROID" ? rootId + "" : rootId
+    , dom : dom
+    //, name, namespace
+    , length : length -1
+    , callback : callback
+    , id : getIdFromNamespace(namespace)
+    }
+}
+
+exports.addViewToParent = function (insertObject) {
+    var dom = insertObject.dom
+    AndroidWrapper.addViewToParent(
+      insertObject.rootId,
+      window.__OS == "ANDROID" ? JSON.stringify(dom) : dom,
+      insertObject.length,
+      insertObject.callback,
+      null,
+      insertObject.id
+    );
+}
+
+exports.getListDataCommands = function (listData, element) {
+    var x = ["background", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "text", "color", "onClick"]
+    var y = [];
+    var keyPropMap = state.listViewKeys[element.__ref.__id]
+    var animPropMap = state.listViewAnimationKeys[element.__ref.__id]
+    var final = [];
+    for(var j = 0; j < listData.length; ++j) {
+    var item = {};
+    for(var id in keyPropMap) {
+        var ps = {}
+        var backMap = {runInUI : "runInUI" + id}
+        for(var prop in keyPropMap[id]) {
+        if(x.indexOf(keyPropMap[id][prop]) != -1 || window.__OS == "WEB") {
+          if(keyPropMap[id][prop] == "imageUrl" && window.__OS != "WEB") {
+            try {
+              new URL(listData[j][prop])
+              listData[j][prop] = "url->" + listData[j][prop] + ","
+            } catch (e) { /** Ignored */ }
+          }
+          item[prop] = listData[j][prop];
+          continue
+        }
+        ps[keyPropMap[id][prop]] = listData[j][prop];
+        backMap[keyPropMap[id][prop]] = prop;
+        }
+        if(animPropMap.hasOwnProperty(id)) {
+          var animations = []
+          for(var anim in animPropMap[id]) {
+            if(listData[j][anim]) {
+              animations = animations.concat(animPropMap[id][anim])
+            }
+          }
+          ps.inlineAnimation = JSON.stringify( animations.map(createAnimationObject))
+          y.push(id);
+          backMap.inlineAnimation = "inlineAnimation" + id;
+        }
+        if(window.__OS == "ANDROID" || window.__OS == "IOS" ) {
+          // TODO add cross platform support
+          ps = exports.parseParams("linearLayout", ps, "get")
+        }
+        ps.runInUI = (ps.runInUI || "")
+        if(ps.runInUI == "")
+            delete ps.runInUI;
+        for(var prop in ps) {
+            item[backMap[prop]] = ps[prop];
+        }
+    }
+    for(var id in animPropMap) {
+      if(y.indexOf(id) == -1) {
+        var animations = []
+        for(var anim in animPropMap[id]) {
+          if(listData[j][anim]) {
+            animations = animations.concat(animPropMap[id][anim])
+          }
+        }
+        item["inlineAnimation" + id] = JSON.stringify( animations.map(createAnimationObject))
+      }
+    }
+    final.push(item);
+    }
+    return JSON.stringify(final)
+}
