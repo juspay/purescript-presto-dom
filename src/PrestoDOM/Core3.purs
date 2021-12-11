@@ -30,6 +30,15 @@ import Control.Monad.Except(runExcept)
 import Halogen.VDom (Step, VDom, VDomSpec(..), buildVDom, extract, step)
 
 foreign import startedToPrepare :: EFn.EffectFn2 String String Unit
+
+foreign import cacheMachine :: forall a b . EFn.EffectFn3 (Step a b) String String Unit
+
+foreign import replaceView :: forall a. String -> EFn.EffectFn2 a (Array String) Unit
+
+foreign import removeChild :: forall a b. String -> EFn.EffectFn3 a b Int Unit
+
+foreign import setManualEvents :: forall a b. String -> String -> a -> b -> Effect Unit
+
 foreign import getAndSetEventFromState :: forall a. EFn.EffectFn3 String String (Effect (EventIO a)) (EventIO a)
 foreign import getCurrentActivity :: Effect String
 foreign import cachePushEvents :: String -> String -> Effect Unit -> String -> Effect Unit
@@ -49,6 +58,65 @@ foreign import addToPatchQueue :: String -> String -> Effect Unit -> Effect Unit
 foreign import getLatestMachine :: forall a b . EFn.EffectFn2 String String (Step a b)
 foreign import storeMachine :: forall a b . EFn.EffectFn3 (Step a b) String String Unit
 
+
+foreign import prepareDom :: forall a. EFn.EffectFn3 a String String Foreign
+
+
+
+
+updateProperties :: forall a b. String -> String -> EFn.EffectFn2 a b Unit
+updateProperties namespace screenName = do
+  let
+    function = updatePropertiesImpl namespace
+  Efn.mkEffectFn2
+    $ \elem rawProps -> do
+        let
+          default = Efn.runEffectFn2 function rawProps elem
+          aff = rawProps # unsafeCoerce
+            # decode # runExcept # hush
+            <#> \props ->
+                  launchAffWithCounter namespace screenName do
+                    updatedProps <- props
+                      # updateProp "fontStyle" verifyFont
+                      >>= updateProp "imageUrl" (verifyImage Nothing "" )
+                      >>= updateProp "placeHolder" (verifyImage Nothing "")
+                      >>= getListDataFromMapps namespace screenName elem
+                      >>= getPaddingForStroke namespace screenName elem
+                      <#> delete "payload"
+                    if isEmpty $ delete "id" updatedProps
+                      then pure unit -- Don't send if payload is the only changed key
+                      else liftEffect $ Efn.runEffectFn2 function (unsafeCoerce $ encode updatedProps) elem
+        fromMaybe default aff
+
+updateMicroAppPayload ∷ forall b. String -> EFn.EffectFn3 String b Boolean Unit
+updateMicroAppPayload screenName =
+  Efn.mkEffectFn3
+    $ \val elem isPatch -> do
+        let (vdomTree :: Maybe VdomTree) = hush $ runExcept $ decode $ unsafeToForeign elem
+        case vdomTree, isPatch of
+          Just tree@{"type" : "listView"}, true -> pure unit
+          _, _ -> Efn.runEffectFn3 updateMicroAppPayloadImpl val elem isPatch
+
+updateChildren :: forall a. String -> String -> EFn.EffectFn1 a Unit
+updateChildren namespace screenName =
+  Efn.mkEffectFn1
+    $ \rawActions -> do
+          rawActions # unsafeCoerce
+            # decode # runExcept # hush
+            <#> updateChildrenImpl namespace screenName <#> launchAffWithCounter namespace screenName
+            # fromMaybe (pure unit)
+
+updateChildrenImpl :: String -> String -> Array UpdateActions -> Aff (Array Unit)
+updateChildrenImpl namespace screenName =
+  traverse
+    \{action, parent, elem, index} ->
+        case action of
+          "add" -> do
+              insertState <- liftEffect $ Efn.runEffectFn3 (addChildImpl namespace screenName) (encode elem) (encode parent) index
+              domAllOut <- domAll {name : screenName, parent : Just namespace} (unsafeToForeign {}) insertState.dom
+              liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
+          "move" -> liftEffect $ EFn.runEffectFn3 (moveChild namespace) elem parent index
+          _ -> pure unit -- Should never reach here
 
 sanitiseNamespace :: Maybe String -> Effect String
 sanitiseNamespace maybeNS = do
@@ -128,6 +196,34 @@ createPushQueue namespace screenName push activityId action = do
       then push action
       else cachePushEvents namespace screenName (push action) activityId
 
+spec
+  :: String
+  -> String
+  -> VDomSpec (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit))
+spec namespace screen =
+  VDomSpec
+    { buildWidget : buildThunk (un PrestoWidget)
+    , buildAttributes: buildProp identity
+    , fnObject : fun
+    }
+  where
+  fun :: FnObject
+  fun = { replaceView : replaceView namespace
+        , setManualEvents : setManualEvents namespace screen
+        , updateChildren : updateChildren namespace screen
+        {--
+        Compresss into a update children interface
+        , moveChild : moveChild namespace
+        --}
+        , removeChild : removeChild namespace
+        , createPrestoElement
+        , updateProperties : updateProperties namespace screen
+        , cancelBehavior
+        , manualEventsName : manualEventsName unit
+        , updateMicroAppPayload : updateMicroAppPayload namespace
+        , parseParams : parseParams
+        }
+
 prepareScreen :: forall action state returnType
   . Show action => Loggable action
   => ScopedScreen action state returnType
@@ -142,6 +238,19 @@ prepareScreen screen@{name, parent, view} json = do
       liftEffect $ EFn.runEffectFn2 startedToPrepare ns name
       liftEffect $ trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" screen.name json
       let myDom = view (\_ -> pure unit) screen.initialState
+
+      machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns name)) myDom
+
+      liftEffect $ EFn.runEffectFn3 cacheMachine machine name ns
+
+      dom <- liftEffect $ EFn.runEffectFn3 prepareDom (extract machine) name ns
+      -- DO NOT CHANGE THIS TO ENCODE,
+      -- THE JSON IN THIS BLOCK IS MODIFIED IN JS
+      -- AND CAN IMPACT ALL ENCODE USAGES
+      domAllOut <- domAll screen (unsafeToForeign {}) dom
+      makeAff $ \cB -> do
+         EFn.runEffectFn5 prepareAndStoreView (callBack cB) domAllOut (ns <> name) ns name
+         pure nonCanceler
 
 runScreen :: forall action state returnType
   . Show action => Loggable action

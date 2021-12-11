@@ -1,5 +1,7 @@
 const prestoUI = require("presto-ui")
 const prestoDayum = prestoUI.doms;
+const callbackMapper = prestoUI.callbackMapper;
+
 const state = {
   scopedState: {},
   fragments: {},
@@ -13,6 +15,16 @@ const state = {
   cachedMachine: {},
   constState: {},
 };
+
+var webParseParams, iOSParseParams, parseParams;
+
+if (window.__OS === "WEB") {
+  webParseParams = prestoUI.helpers.web.parseParams;
+} else if (window.__OS == "IOS") {
+  iOSParseParams = prestoUI.helpers.ios.parseParams;
+} else {
+  parseParams = prestoUI.helpers.android.parseParams;
+}
 
 exports.updateActivity = function (activityId) {
   return function () {
@@ -1267,3 +1279,483 @@ exports.setPatchToActive = function(namespace) {
         getScopedState(namespace).patchState[screenName].started = false;
     }
   }
+
+  exports.setManualEvents = setManualEvents;
+
+  function setManualEvents (namespace) {
+    return function(screen) {
+      return function(eventName) {
+        return function(callbackFunction) {
+          return function() {
+            var screenName = screen;
+            // function was getting cleared when placed outside
+            var isDefined = function(val){
+              return (typeof val !== "undefined");
+            }
+            try {
+              getConstState(namespace) = getConstState(namespace) || {}
+              getConstState(namespace).registeredEvents = getConstState(namespace).registeredEvents || {}
+              getConstState(namespace).registeredEvents[eventName] =
+                isDefined(getConstState(namespace).registeredEvents[eventName])
+                  ? getConstState(namespace).registeredEvents[eventName]
+                  : {};
+              getConstState(namespace).registeredEvents[eventName][screenName] = callbackFunction;
+            } catch (e) {
+              console.log("Call init UI first", e)
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  exports.cacheMachine = function(machine, screenName, namespace) {
+      getConstState()
+      if (!state.cachedMachine.hasOwnProperty(curNamespace)){
+        state.cachedMachine[curNamespace] = {}
+      }
+      state.cachedMachine[curNamespace][screenName] = machine;
+  };
+  
+  
+  exports.callAnimation = callAnimation__
+  
+  function callAnimation__ (screenName, namespace, cache) {
+      getScopedState(namespace).activateScreen = false;
+      getScopedState(namespace).activeScreen = screenName;
+      if (screenName == getConstState(namespace).animations.lastAnimatedScreen) {
+        getScopedState(namespace).activateScreen = true;
+        return;
+      }
+      var isRunScreen = getConstState(namespace).animations.animationStack.indexOf(screenName) != -1;
+      var isShowScreen = getConstState(namespace).animations.animationCache.indexOf(screenName) != -1;
+      var isLastAnimatedCache = getConstState(namespace).animations.animationCache.indexOf(getConstState(namespace).animations.lastAnimatedScreen) != -1;
+      var topOfStack = getConstState(namespace).animations.animationStack[getConstState(namespace).animations.animationStack.length - 1];
+      var animationArray = []
+      if (isLastAnimatedCache) {
+        animationArray.push({ screenName : getConstState(namespace).animations.lastAnimatedScreen + "", tag : "exit"});
+        getScopedState(namespace).hideList.push(getConstState(namespace).animations.lastAnimatedScreen);
+      }
+      if (isRunScreen || isShowScreen) {
+        if(isRunScreen) {
+          if(topOfStack != screenName) {
+            animationArray.push({ screenName : screenName, tag : "entryB"})
+            animationArray.push({ screenName : topOfStack, tag : "exitB"})
+            while (getConstState(namespace).animations.animationStack[getConstState(namespace).animations.animationStack.length - 1] != screenName) {
+              var page = getConstState(namespace).animations.animationStack.pop();
+              if (getConstState(namespace).cachedMachine.hasOwnProperty(namespace) &&
+                  getConstState(namespace).cachedMachine[namespace].hasOwnProperty(page)){
+              getConstState(namespace).animations.prerendered.push(page)
+              }
+            }
+          }
+        } else {
+          animationArray.push({ screenName : screenName, tag : "entry"})
+        }
+      } else {
+        // Newscreen case
+        if (cache){
+          getConstState(namespace).animations.animationCache.push(screenName); // TODO :: Use different data structure. Array does not realy fit the bill.
+        } else {
+          // new runscreen case call forward exit animation of previous runscreen
+          var previousScreen = getConstState(namespace).animations.animationStack[getConstState(namespace).animations.animationStack.length - 1]
+          animationArray.push({ screenName : previousScreen, tag : "exitF"})
+          if (getConstState(namespace).animations.prerendered.indexOf(screenName) != -1){
+            animationArray.push({ screenName : screenName, tag : "entryF"})
+          }
+          getScopedState(namespace).hideList.push(previousScreen);
+          getConstState(namespace).animations.animationStack.push(screenName);
+        }
+      }
+      callAnimation_(namespace, animationArray, false, screenName)
+      getConstState(namespace).animations.lastAnimatedScreen = screenName;
+  }
+  
+  function callAnimation_ (namespace, screenArray, resetAnimation, screenName) {
+      window.enableBackpress = false;
+      var hasAnimation = false;
+      screenArray.forEach(
+        function (animationJson) {
+          if (getConstState(namespace).animations[animationJson.tag] && getConstState(namespace).animations[animationJson.tag][animationJson.screenName]) {
+            var animationJson = getConstState(namespace).animations[animationJson.tag][animationJson.screenName]
+            for (var key in animationJson) {
+              if (key == "hasAnimation")
+                continue;
+              hasAnimation = true;
+              var config = {
+                id: key,
+                inlineAnimation: animationJson[key].inlineAnimation,
+                onAnimationEnd: animationJson[key].onAnimationEnd,
+                visibility: animationJson[key].visibility
+              };
+              if (resetAnimation){
+                config["resetAnimation"] = true;
+              }
+              if (window.__OS == "ANDROID") {
+                var cmd = cmdForAndroid(
+                  config,
+                  true,
+                  animationJson[key].type
+                );
+                if (AndroidWrapper.updateProperties) {
+                  AndroidWrapper.updateProperties(JSON.stringify(cmd), getIdFromNamespace(namespace));
+                } else {
+                  AndroidWrapper.runInUI(cmd.runInUI, null);
+                }
+              } else if (window.__OS == "IOS") {
+                AndroidWrapper.runInUI(config, getIdFromNamespace(namespace));
+              } else {
+                AndroidWrapper.runInUI(webParseParams("linearLayout", config, "set"), getIdFromNamespace(namespace));
+              }
+            }
+          }
+        }
+      );
+      if (!hasAnimation){
+        getScopedState(namespace).activateScreen = true;
+        hideOldScreenNow(namespace, screenName)
+      }
+  }
+  
+  exports.storeMachine = function (dom, name, namespace) {
+      getScopedState(namespace).MACHINE_MAP[name] = dom;
+      if (getConstState(namespace).cachedMachine.hasOwnProperty(namespace) &&
+          getConstState(namespace).cachedMachine[namespace].hasOwnProperty(name)){
+            getConstState(namespace).cachedMachine[namespace][name] = dom;
+      }
+  }
+  
+  exports.getAndSetEventFromState = function(namespace, screenName, def) {
+      getScopedState(namespace) = getScopedState(namespace) || {}
+      getScopedState(namespace).eventIOs = getScopedState(namespace).eventIOs || {}
+      getScopedState(namespace).eventIOs[screenName] = getScopedState(namespace).eventIOs[screenName] || def();
+      return getScopedState(namespace).eventIOs[screenName];
+  }
+  
+  exports.getCachedMachineImpl = function(just,nothing,namespace,screenName) {
+      if (window.__OS === "ANDROID"){
+        var machine = getConstState(namespace).cachedMachine.hasOwnProperty(namespace) ? getConstState(namespace).cachedMachine[namespace][screenName] : null;
+        if (machine != null && (typeof machine == "object")){
+          return just(machine);
+        } else {
+          return nothing;
+        }
+      } else {
+        return nothing;
+      }
+  }
+  
+  exports.prepareDom = prepareDom;
+  function prepareDom (dom, name, namespace){
+    if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()){
+      dom.__ref = {__id: (dom.props.id).toString().trim()};
+    }else{
+      dom.__ref = window.createPrestoElement();
+    }
+  
+    if(dom.props) {
+      dom.props.root = true;
+    }
+    getConstState(namespace).screenHideCallbacks[name] = hideViewInNameSpace(dom.__ref.__id, namespace)
+    getConstState(namespace).screenShowCallbacks[name] = showViewInNameSpace(dom.__ref.__id, namespace)
+    getConstState(namespace).screenRemoveCallbacks[name] = removeViewFromNameSpace(namespace, dom.__ref.__id)
+    return dom;
+  }
+  
+  exports.prepareAndStoreView = function (callback, dom, key, namespace, screenName){
+      /*
+       * Adding callback to make sure that prepareScreen returns controll only
+       * after native rendering is completed
+       */
+      var callB = callbackMapper.map(function(){
+        try{
+          getConstState(namespace)[screenName].prepareStarted = false;
+          while(getConstState(namespace)[screenName].prepareStartedQueue[0]){
+            var fn = getConstState(namespace)[screenName].prepareStartedQueue.pop();
+            fn();
+          }
+        }catch(err){
+          console.error("call InitUI for namespace", namespace);
+        }
+        callback();
+      });
+      Android.prepareAndStoreView(
+        key,
+        window.__OS == "ANDROID" ? JSON.stringify(dom) : dom,
+        callB
+      );
+  }
+  
+  exports.replaceView = function (namespace) {
+      return function (element, removedProps) {
+        // console.log("REPLACE VIEW", element.__ref.__id, element.props);
+        var props = prestoUI.prestoClone(element.props);
+        props.id = element.__ref.__id;
+        var rep;
+        var viewGroups = [
+          "linearLayout",
+          "relativeLayout",
+          "scrollView",
+          "frameLayout",
+          "horizontalScrollView"
+        ];
+        if (viewGroups.indexOf(element.type) != -1) {
+          props.root = true;
+          rep = prestoDayum(element.type, props, []);
+        } else if (window.__OS == "ANDROID") {
+          rep = prestoDayum(
+            {
+              elemType: element.type,
+              parentType: element.parentNode.type
+            },
+            props,
+            []
+          );
+        } else {
+          rep = prestoDayum(element.type, props, []);
+        }
+        if (window.__OS == "ANDROID") {
+          AndroidWrapper.replaceView(
+              JSON.stringify(rep)
+            , element.__ref.__id
+            , getIdFromNamespace(namespace)
+            );
+        } else {
+          AndroidWrapper.replaceView(rep, element.__ref.__id, getIdFromNamespace(namespace));
+        }
+        if (removedProps != null && removedProps.length >0 && removedProps.indexOf("handler/afterRender") != -1){
+          if (window["afterRender"] && window["afterRender"][window.__dui_screen]) {
+            delete window["afterRender"][window.__dui_screen][element.__ref.__id];
+          }
+        }
+      }
+  }
+  
+  exports.addChildImpl = function (namespace) {
+      return function(screenName) {
+        return function (child, parent, index) {
+          if (child.type == null) {
+            console.warn("child null");
+          }
+          var cb = callbackMapper.map(function(){
+                if (window.__OS ===  "WEB"){
+                  setTimeout(function(){ processMapps(namespace, screenName, 75)},500)
+                } else {
+                  processMapps(namespace, screenName, 75)
+                }
+              }
+             )
+          // console.log("Add child :", child.__ref.__id, child.type);
+          var viewGroups = [
+            "linearLayout",
+            "relativeLayout",
+            "scrollView",
+            "frameLayout",
+            "horizontalScrollView"
+          ];
+          if (window.__OS == "ANDROID") {
+            if (viewGroups.indexOf(child.type) != -1) {
+              child.props.root = true;
+            } else {
+              child.parentType = parent.type;
+            }
+          }
+          if(child.props && (!child.props.id) && child.__ref) {
+            child.props.id = child.__ref.__id
+          }
+          return { rootId : window.__OS == "ANDROID" ? parent.__ref.__id + "" : parent.__ref.__id
+          , dom : child
+          , length : index
+          , callback : cb
+          , id :  getIdFromNamespace(namespace)
+          }
+        }
+      }
+  }
+  
+  
+  function processMapps(namespace, nam, timeout) {
+      setTimeout(function () {
+        if (!getScopedState(namespace).mappQueue)
+          return;
+        var cachedObject = getScopedState(namespace).mappQueue.shift();
+        while (cachedObject) {
+          var fragId = AndroidWrapper.addToContainerList(parseInt(cachedObject.elemId), getIdFromNamespace(namespace));
+          if (fragId == "__failed") {
+            setTimeout( processMapps(namespace, nam, (timeout|| 75)*2), (timeout|| 75))
+            return;
+          }
+          cachedObject.fragId = fragId;
+          var cb = function (code) {
+            return function (message) {
+              return function () {
+                var test = JSON.parse(message)
+                if(!test.stopAtDom) {
+                  getScopedState(namespace).fragmentCallbacks[nam] = getScopedState(namespace).fragmentCallbacks[nam] || [];
+                  getScopedState(namespace).fragmentCallbacks[nam].push({
+                    payload: {
+                      code: code,
+                      message: message,
+                    },
+                    callback: this.object.callback
+                  });
+                  if (typeof this.object.callback == "function")
+                      this.object.callback({
+                      code: code,
+                      message: message,
+                      elemId : this.object.fragId
+                    });
+                  else
+                    console.log("Mapp response", code, message)
+                } else {
+                    try {
+                      var plds = getScopedState(namespace).fragmentCallbacks[nam] || [];
+                      getScopedState(namespace).fragmentCallbacks[nam] = plds.filter(function(x) {
+                        return !(test.id == x.payload.elemId)
+                      })
+                    } catch (e) {
+                      console.log("flushFragmentCallbacks Error => ", e)
+                    }
+                }
+              }.bind({
+                object: this.object
+              });
+            }.bind({
+              object: this.object
+            });
+          }.bind({
+            object: cachedObject
+          });
+    
+          var p = JSON.parse(cachedObject.payload);
+          p.fragmentViewGroups = p.fragmentViewGroups || {};
+          p.fragmentViewGroups[cachedObject.viewGroupTag] = fragId;
+          state.fragmentIdMap[cachedObject.requestId] = p.fragmentViewGroups[cachedObject.viewGroupTag];
+          var x = cachedObject.unNestPayload ? p : {
+            service: cachedObject.service,
+            requestId: cachedObject.requestId,
+            payload: p
+          };
+    
+          if (cachedObject.useStartApp) {
+            JOS.startApp(cachedObject.service)(x)(cb)()
+          } else if(window.JOS && typeof JOS.isMAppPresent == "function" &&  typeof JOS.isMAppPresent(cachedObject.service) == "function" && JOS.isMAppPresent(cachedObject.service)()) {
+            JOS.emitEvent(cachedObject.service)("onMerchantEvent")(["process", JSON.stringify(x)])(cb)();
+          } else {
+            cb(0)("error")()
+          }
+          cachedObject = getScopedState(namespace).mappQueue.shift();
+        }
+      }, 32);
+  }
+  
+  exports.removeChild = function(namespace) {
+      return function removeChild(child, parent, index) {
+        AndroidWrapper.removeView(child.__ref.__id,  getIdFromNamespace(namespace));
+      }
+  }
+  
+  exports.updatePropertiesImpl = function (namespace) {
+      return function (props, el) {
+        for(var key in props) {
+          el.props[key] = props[key];
+        }
+        // TODO evaluate all the set = true / false logic
+        // Looks wrong
+        applyProps(el, props, false, namespace)
+      }
+  }
+  
+  function applyProps(element, prop, set, namespace) {
+      prop.id =element.__ref.__id
+      if (
+        prop.hasOwnProperty("focus") &&
+        prop.focus === false &&
+        window.__OS == "ANDROID"
+      ) {
+        delete prop.focus;
+      }
+    
+      if (window.__OS == "ANDROID") {
+        var cmd = cmdForAndroid(prop, set, element.type);
+        if (AndroidWrapper.updateProperties) {
+          AndroidWrapper.updateProperties(JSON.stringify(cmd),  getIdFromNamespace(namespace));
+        } else {
+          AndroidWrapper.runInUI(cmd.runInUI, null);
+        }
+      } else if (window.__OS == "IOS") {
+        AndroidWrapper.runInUI(prop, getIdFromNamespace(namespace));
+      } else {
+        AndroidWrapper.runInUI(webParseParams("linearLayout", prop, "set"),getIdFromNamespace(namespace));
+      }
+      // Android.runInUI(parseParams("linearLayout", prop, "set"));
+  }
+  
+  function cmdForAndroid(config, set, type) {
+      if (set) {
+        if (config.id) {
+          var obj = parseParams(type, config, "set");
+          var cmd = obj.runInUI
+            .replace("this->setId", "set_view=ctx->findViewById")
+            .replace(/this->/g, "get_view->");
+          cmd = cmd.replace(/PARAM_CTR_HOLDER[^;]*/g, "get_view->getLayoutParams;");
+          obj.runInUI = cmd;
+          return obj;
+        } else {
+          console.error(
+            "ID null, this is not supposed to happen. Debug this or/and raise a issue in bitbucket."
+          );
+        }
+        return {};
+      }
+    
+      var id = config.id;
+      var cmd = "set_view=ctx->findViewById:i_" + id + ";";
+      delete config.id;
+      config.root = "true";
+      var obj = parseParams(type, config, "get");
+      obj.runInUI = cmd + obj.runInUI + ";";
+      obj.id = id;
+      return obj;
+  }
+  
+exports.updateMicroAppPayloadImpl = function (payload, element, isPatch) {
+    element.props.payload = payload
+    if(isPatch) {
+        var payload = JSON.parse( payload || {})
+        payload.fragmentViewGroups = {}
+        payload.fragmentViewGroups[element.props.viewGroupTag || "main"] = state.fragmentIdMap[element.requestId]
+        var x = element.props.unNestPayload ? payload : {
+            service : element.service
+        , requestId : element.requestId
+        , payload : payload
+        }
+        var cb = function(code){return function(message){ return function(){
+            if (typeof element.props.onMicroappResponse == "function"){
+            element.props.onMicroappResponse({
+                code: code,
+                message: message,
+            })
+            }
+        }}}
+        setTimeout( function() {
+            if(window.JOS && typeof JOS.isMAppPresent == "function" &&  typeof JOS.isMAppPresent(element.service) == "function" && JOS.isMAppPresent(element.service)()) {
+            JOS.emitEvent(element.service)("onMerchantEvent")(["update", JSON.stringify(x)])(cb)();
+            } else {
+            cb(0)("error")()
+            }
+        }, 32);
+    }
+}
+
+  
+exports.parseParams = function (a,b, c) {
+    // ADD OS CHECK
+    if (window.__OS === "WEB") {
+        return webParseParams(a,b,c);
+    } else if (window.__OS == "IOS") {
+        return iOSParseParams(a,b,c);
+    } else {
+        return parseParams(a,b,c);
+    }
+}
