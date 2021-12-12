@@ -75,21 +75,18 @@ const deleteConstState = function (namespace) {
 const getScopedState = function (namespace, activityID) {
   const activityIDToUse = activityID || state.currentActivity;
   return state.scopedState.hasOwnProperty(namespace)
-    ? state.scopedState[namespace][activityIDToUse] ||
-        state.scopedState[namespace]["default"]
+    ? state.scopedState[namespace][activityIDToUse]
     : undefined;
 };
 
-const ensureScopeStateExists = function() {
-  const activityIDToUse = activityID || state.currentActivity;
-  state.scopedState.hasOwnProperty(namespace)
-    ? (state.scopedState.namespace[activityIDToUse] =
-        state.scopedState.namespace[activityIDToUse] || {})
-    : (state.scopedState = { [namespace]: { [activityIDToUse]: {} } });
+const ensureScopeStateExists = function(namespace) {
+  const activityIDToUse = state.currentActivity;
+  state.scopedState[namespace] = state.scopedState[namespace] || {}
+  state.scopedState[namespace][activityIDToUse] = state.scopedState[namespace][activityIDToUse] || {}
 }
 
 const setFragmentIdInScopedState = function (namespace, id, activityID) {
-  ensureScopeStateExists()
+  ensureScopeStateExists(namespace)
   getScopedState(namespace).id = id;
 };
 
@@ -313,22 +310,6 @@ exports.setScreenPushActive = function (namespace) {
       };
     };
   };
-};
-
-exports.saveCanceller = function (name, namespace, activityId, canceller) {
-  // Added || false to return false when value is undefined
-  if (namespace && namespace.indexOf(state.currentActivity) == -1) {
-    namespace = namespace + state.currentActivity;
-  }
-  state.scopedState[namespace] = getScopedState(namespace) || {};
-  getScopedState(namespace, activityId).cancelers =
-    getScopedState(namespace, activityId).cancelers || {};
-  if (
-    getScopedState(namespace, activityId) &&
-    getScopedState(namespace, activityId).cancelers
-  ) {
-    getScopedState(namespace, activityId).cancelers[name] = canceller;
-  }
 };
 
 exports.addViewToParent = function (insertObject) {
@@ -1071,7 +1052,7 @@ exports.getListDataCommands = function (listData, element) {
 exports.setControllerStates = function(namespace) {
   return function (screenName) {
     return function () {
-      ensureScopeStateExists()
+      ensureScopeStateExists(namespace)
       getScopedState(namespace).activeScreen = screenName;
       getScopedState(namespace).activateScreen = true;
     }
