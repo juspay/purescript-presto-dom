@@ -74,10 +74,11 @@ const deleteConstState = function (namespace) {
 
 const getScopedState = function (namespace, activityID) {
   const activityIDToUse = activityID || state.currentActivity;
-  return state.scopedState.hasOwnProperty(namespace)
+  state.scopedState.hasOwnProperty(namespace)
     ? state.scopedState[namespace][activityIDToUse] ||
         state.scopedState[namespace]["default"]
-    : undefined;
+    : state.scopedState[namespace] = {[activityIDToUse]:{}};
+  return state.scopedState[namespace][activityIDToUse]
 };
 
 const ensureScopeStateExists = function() {
@@ -185,6 +186,7 @@ exports.setUpBaseState = function (namespace) {
       getScopedState(namespace).queuedEvents = {};
       getScopedState(namespace).pushActive = {};
       getScopedState(namespace).rootVisible = false;
+      getScopedState(namespace).patchState = {};
 
       if (!state.constState.hasOwnProperty(namespace)) {
         state.constState[namespace] = {};
@@ -1233,14 +1235,12 @@ exports.setPatchToActive = function(namespace) {
     return function(screenName) {
       return function(patchFn) {
         return function () {
-          getScopedState(namespace).
-          state.patchState = state.patchState || {}
-          state.patchState[namespace] = state.patchState[namespace] || {}
+          getScopedState(namespace).patchState = getScopedState(namespace).patchState || {}
           getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
-          getScopedState(namespace).patchState[screenName].queue = state.patchState[namespace][screenName].queue || []
+          getScopedState(namespace).patchState[screenName].queue = getScopedState(namespace).patchState[screenName].queue || []
           getScopedState(namespace).patchState[screenName].queue.push(patchFn);
-          if(!state.patchState[namespace][screenName].started) {
-            state.patchState[namespace][screenName].started = true;
+          if(!getScopedState(namespace).patchState[screenName].started) {
+            getScopedState(namespace).patchState[screenName].started = true;
             triggerPatchQueue(namespace, screenName);
           }
         }
@@ -1296,7 +1296,6 @@ exports.decrementPatchCounter = function(namespace) {
               return (typeof val !== "undefined");
             }
             try {
-              getConstState(namespace) = getConstState(namespace) || {}
               getConstState(namespace).registeredEvents = getConstState(namespace).registeredEvents || {}
               getConstState(namespace).registeredEvents[eventName] =
                 isDefined(getConstState(namespace).registeredEvents[eventName])
@@ -1428,7 +1427,6 @@ exports.decrementPatchCounter = function(namespace) {
   }
   
   exports.getAndSetEventFromState = function(namespace, screenName, def) {
-      getScopedState(namespace) = getScopedState(namespace) || {}
       getScopedState(namespace).eventIOs = getScopedState(namespace).eventIOs || {}
       getScopedState(namespace).eventIOs[screenName] = getScopedState(namespace).eventIOs[screenName] || def();
       return getScopedState(namespace).eventIOs[screenName];
