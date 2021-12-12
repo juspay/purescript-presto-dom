@@ -12,7 +12,6 @@ const state = {
   bitMap: {},
   activityNamespaces: {},
   currentActivity: "default",
-  cachedMachine: {},
   constState: {},
 };
 
@@ -41,6 +40,7 @@ exports.updateActivity = function (activityId) {
     });
   }
 }
+exports.createPrestoElement = createPrestoElement;
 
 function createPrestoElement() {
   if (
@@ -209,6 +209,7 @@ exports.setUpBaseState = function (namespace) {
         getConstState(namespace).screenRemoveCallbacks = {};
         getConstState(namespace).registeredEvents = {};
         getConstState(namespace).afterRenderFunctions = {};
+        getConstState(namespace).cachedMachine = {};
       }
       // https://juspay.atlassian.net/browse/PICAF-6628
       getScopedState(namespace).afterRenderFunctions = prestoUI.prestoClone(
@@ -832,19 +833,6 @@ exports.setToTopOfStack = function (namespace, screenName) {
  * if machine not present.
  *
  */
- exports.getCachedMachineImpl = function(just,nothing,namespace,screenName) {
-    if (window.__OS === "ANDROID"){
-      var curNamespace = getNamespace(namespace);
-      var machine = state.cachedMachine.hasOwnProperty(curNamespace) ? state.cachedMachine[curNamespace][screenName] : null;
-      if (machine != null && (typeof machine == "object")){
-        return just(machine);
-      } else {
-        return nothing;
-      }
-    } else {
-      return nothing;
-    }
-}
 
 /**
  * This will return dui commands  to reset scrolled screen state
@@ -1224,9 +1212,9 @@ exports.getLatestMachine = function (name, namespace) {
   
   exports.storeMachine = function (dom, name, namespace) {
     getScopedState(namespace).MACHINE_MAP[name] = dom;
-    if (getConstState(namespace).cachedMachine.hasOwnProperty(namespace) &&
-        getConstState(namespace).cachedMachine[namespace].hasOwnProperty(name)){
-          getConstState(namespace).cachedMachine[namespace][name] = dom;
+    if (getConstState(namespace).cachedMachine &&
+        getConstState(namespace).cachedMachine.hasOwnProperty(name)){
+          getConstState(namespace).cachedMachine[name] = dom;
     }
 }
 
@@ -1263,7 +1251,32 @@ exports.setPatchToActive = function(namespace) {
       }
     }
   }
-  
+
+exports.incrementPatchCounter = function(namespace) {
+  return function(screenName) {
+    return function() {
+      getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
+      getScopedState(namespace).patchState[screenName].counter = getScopedState(namespace).patchState[screenName].counter || 0
+      getScopedState(namespace).patchState[screenName].counter++;
+    }
+  }
+}
+
+exports.decrementPatchCounter = function(namespace) {
+  return function(screenName) {
+    return function () {
+      getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
+      getScopedState.patchState[screenName].counter = getScopedState(namespace).patchState[screenName].counter || 1
+      if(getScopedState(namespace).patchState[screenName].counter > 0) {
+        getScopedState(namespace).patchState[screenName].counter--;
+      }
+      if(getScopedState(namespace).patchState[screenName].counter === 0 && getScopedState(namespace).patchState[screenName].active) {
+        triggerPatchQueue(namespace, screenName)
+      }
+    }
+  }
+}
+
   function triggerPatchQueue(namespace, screenName) {
     getScopedState(namespace).patchState[screenName].active = false;
     var nextPatch = (getScopedState(namespace).patchState[screenName].queue || []).shift();
@@ -1304,11 +1317,10 @@ exports.setPatchToActive = function(namespace) {
   }
   
   exports.cacheMachine = function(machine, screenName, namespace) {
-      getConstState()
-      if (!state.cachedMachine.hasOwnProperty(curNamespace)){
-        state.cachedMachine[curNamespace] = {}
+      if (!getConstState(namespace).cachedMachine){
+        getConstState(namespace).cachedMachine = {}
       }
-      state.cachedMachine[curNamespace][screenName] = machine;
+      getConstState(namespace).cachedMachine[screenName] = machine;
   };
   
   
@@ -1337,8 +1349,8 @@ exports.setPatchToActive = function(namespace) {
             animationArray.push({ screenName : topOfStack, tag : "exitB"})
             while (getConstState(namespace).animations.animationStack[getConstState(namespace).animations.animationStack.length - 1] != screenName) {
               var page = getConstState(namespace).animations.animationStack.pop();
-              if (getConstState(namespace).cachedMachine.hasOwnProperty(namespace) &&
-                  getConstState(namespace).cachedMachine[namespace].hasOwnProperty(page)){
+              if (getConstState(namespace).cachedMachine &&
+                  getConstState(namespace).cachedMachine.hasOwnProperty(page)){
               getConstState(namespace).animations.prerendered.push(page)
               }
             }
@@ -1413,9 +1425,9 @@ exports.setPatchToActive = function(namespace) {
   
   exports.storeMachine = function (dom, name, namespace) {
       getScopedState(namespace).MACHINE_MAP[name] = dom;
-      if (getConstState(namespace).cachedMachine.hasOwnProperty(namespace) &&
-          getConstState(namespace).cachedMachine[namespace].hasOwnProperty(name)){
-            getConstState(namespace).cachedMachine[namespace][name] = dom;
+      if (getConstState(namespace).cachedMachine &&
+          getConstState(namespace).cachedMachine.hasOwnProperty(name)){
+            getConstState(namespace).cachedMachine[name] = dom;
       }
   }
   
@@ -1428,7 +1440,7 @@ exports.setPatchToActive = function(namespace) {
   
   exports.getCachedMachineImpl = function(just,nothing,namespace,screenName) {
       if (window.__OS === "ANDROID"){
-        var machine = getConstState(namespace).cachedMachine.hasOwnProperty(namespace) ? getConstState(namespace).cachedMachine[namespace][screenName] : null;
+        var machine = getConstState(namespace).cachedMachine ? getConstState(namespace).cachedMachine[screenName] : null;
         if (machine != null && (typeof machine == "object")){
           return just(machine);
         } else {
@@ -1752,16 +1764,94 @@ exports.parseParams = function (a,b, c) {
     } else {
         return parseParams(a,b,c);
     }
+}
+
+exports.processEventWithId = function (fragmentId) {
+    var ns = state.fragments[fragmentId];
+    if(ns)
+      return fireManualEvent(ns)("update");
+    else
+      return function() { return function() {}}
+}
+
+exports.fireManualEvent = fireManualEvent()
+
+function fireManualEvent (namespace, nam) {
+  return function (eventName) {
+    return function (payload) {
+      return function() {
+        var screenName = (getConstState(namespace) || {}).activeScreen
+        if(namespace && (nam == screenName || !nam)) {
+          if(getConstState(namespace) && getConstState(namespace).registeredEvents && getConstState(namespace).registeredEvents.hasOwnProperty(eventName)) {
+            if(screenName && typeof getConstState(namespace).registeredEvents[eventName][screenName] == "function")
+              getConstState(namespace).registeredEvents[eventName][screenName](payload);
+          }
+          return;
+        }
+        for (var key in state.scopedState) {
+          if(getConstState(key) && getConstState(key).registeredEvents && getConstState(key).registeredEvents.hasOwnProperty(eventName)) {
+            var screenName = getScopedState(key).activeScreen
+            var isNotAnimating = getScopedState(key).activateScreen
+            if(isNotAnimating && screenName && typeof getConstState(key).registeredEvents[eventName][screenName] == "function")
+              getConstState(key).registeredEvents[eventName][screenName](payload);
+          }
+        }
+      }
+    }
+  };
+}
+
+exports.canPreRender = function (){
+  if (window.__OS == "ANDROID"){
+    if ( typeof Android.addStoredViewToParent == "function" &&
+      typeof Android.prepareAndStoreView == "function"
+    ) {
+      return true;
+    } else{
+      console.warn("Mystique version not compatible. Skipping pre-rendering");
+      return false;
+    }
+  } else {
+    console.warn("Skipping Pre-Rendering for " + window.__OS );
+    return false;
   }
+}
+
+exports.cancelBehavior = function (ty) {
+  var canceler = window.__CANCELER[ty];
+  canceler();
+}
+
+exports.addToCachedList = function (namespace, screenName) {
+  try {
+    if(!(getScopedState(namespace).screenCache.indexOf(screenName)!= -1)) {
+      getScopedState(namespace).screenCache.push(screenName);
+    }
+  } catch (e) {
+    console.log("Call InitUI first for namespace ", namespace, e)
+  }
+}
+
+exports.isCached = function (name, namespace) {
+  // Added || false to return false when value is undefined
+  try {
+    return getScopedState(namespace).screenCache.indexOf(name) != -1
+  } catch (e) {
+    console.error( "Call initUI with for namespace :: " + namespace , e );
+  }
+  return false
+}
+
+exports.makeCacheRootVisible = function(namespace) {
+  getScopedState(namespace).shouldHideCacheRoot = false;
+  showViewInNameSpace(getScopedState(namespace).cacheRoot, namespace)();
+}
 
 exports["replayFragmentCallbacks'"] = function (namespace) {
   return function (nam) {
     return function (push) {
       return function() {
         try {
-          if (namespace && namespace.indexOf(state.currentActivity) == -1) {
-            namespace = namespace + state.currentActivity;
-          }
           getScopedState(namespace).shouldReplayCallbacks[nam] = true
           if(window.__OS == "WEB") {
             (getScopedState(namespace).fragmentCallbacks[nam] || []).forEach (function(x) {
@@ -1774,9 +1864,6 @@ exports["replayFragmentCallbacks'"] = function (namespace) {
         }
         return function() {
           try {
-            if (namespace && namespace.indexOf(state.currentActivity) == -1) {
-              namespace = namespace + state.currentActivity;
-            }
             getScopedState(namespace).shouldReplayCallbacks[nam] = false
           } catch (err) {
             console.warn("TODO:: Fix this", err);
@@ -1785,4 +1872,47 @@ exports["replayFragmentCallbacks'"] = function (namespace) {
       }
     }
   }
+}
+
+exports.addProperty = function (namespace) {
+    return function (key, val, obj) {
+      addAttribute(obj, {value0: key, value1: val}, namespace)
+    }
+  };
+  
+  function addAttribute(element, attribute, namespace) {
+    // console.log("add attr :", attribute);
+    element.props[attribute.value0] = attribute.value1;
+    applyProp(element, attribute, true, namespace);
+  }
+  
+  function applyProp(element, attribute, set, namespace) {
+    var prop = {};
+    prop[attribute.value0] = attribute.value1;
+    applyProps(element, prop, set, namespace)
+  }
+  
+  function applyProps(element, prop, set, namespace) {
+    prop.id =element.__ref.__id
+    if (
+      prop.hasOwnProperty("focus") &&
+      prop.focus === false &&
+      window.__OS == "ANDROID"
+    ) {
+      delete prop.focus;
+    }
+  
+    if (window.__OS == "ANDROID") {
+      var cmd = cmdForAndroid(prop, set, element.type);
+      if (AndroidWrapper.updateProperties) {
+        AndroidWrapper.updateProperties(JSON.stringify(cmd),  getIdFromNamespace(namespace));
+      } else {
+        AndroidWrapper.runInUI(cmd.runInUI, null);
+      }
+    } else if (window.__OS == "IOS") {
+      AndroidWrapper.runInUI(prop, getIdFromNamespace(namespace));
+    } else {
+      AndroidWrapper.runInUI(webParseParams("linearLayout", prop, "set"),getIdFromNamespace(namespace));
+    }
+    // Android.runInUI(parseParams("linearLayout", prop, "set"));
 }
