@@ -982,7 +982,15 @@ function executePostProcess(nam, namespace, cache) {
       triggerAfterRender(namespace, nam);
     };
 }
-  
+
+function removeViewFromNameSpace (namespace, id) {
+  // Return a callback, which can be used to remove the screen
+  return function() {
+    AndroidWrapper.removeView(id, getIdFromNamespace(namespace))
+  }
+}
+
+
 function triggerAfterRender(namespace, screenName) {
     while(getScopedState(namespace).afterRenderFunctions[screenName] && typeof getScopedState(namespace).afterRenderFunctions[screenName][0] == "function") {
         getScopedState(namespace).afterRenderFunctions[screenName].pop()();
