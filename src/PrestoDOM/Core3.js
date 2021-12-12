@@ -1299,7 +1299,7 @@ exports.decrementPatchCounter = function(namespace) {
   return function(screenName) {
     return function () {
       getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
-      getScopedState.patchState[screenName].counter = getScopedState(namespace).patchState[screenName].counter || 1
+      getScopedState(namespace).patchState[screenName].counter = getScopedState(namespace).patchState[screenName].counter || 1
       if(getScopedState(namespace).patchState[screenName].counter > 0) {
         getScopedState(namespace).patchState[screenName].counter--;
       }
