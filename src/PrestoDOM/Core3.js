@@ -74,11 +74,10 @@ const deleteConstState = function (namespace) {
 
 const getScopedState = function (namespace, activityID) {
   const activityIDToUse = activityID || state.currentActivity;
-  state.scopedState.hasOwnProperty(namespace)
+  return state.scopedState.hasOwnProperty(namespace)
     ? state.scopedState[namespace][activityIDToUse] ||
         state.scopedState[namespace]["default"]
-    : state.scopedState[namespace] = {[activityIDToUse]:{}};
-  return state.scopedState[namespace][activityIDToUse]
+    : undefined;
 };
 
 const ensureScopeStateExists = function() {
