@@ -40,7 +40,10 @@ exports.updateActivity = function (activityId) {
     });
   }
 }
+
 exports.createPrestoElement = createPrestoElement;
+
+window.createPrestoElement = createPrestoElement;
 
 function createPrestoElement() {
   if (
@@ -85,8 +88,9 @@ const ensureScopeStateExists = function(namespace) {
   state.scopedState[namespace][activityIDToUse] = state.scopedState[namespace][activityIDToUse] || {}
 }
 
-const setFragmentIdInScopedState = function (namespace, id, activityID) {
-  ensureScopeStateExists(namespace)
+
+const setFragmentIdInScopedState = function (namespace, id) {
+  ensureScopeStateExists(namespace);
   getScopedState(namespace).id = id;
 };
 
@@ -313,6 +317,7 @@ exports.setScreenPushActive = function (namespace) {
 };
 
 exports.addViewToParent = function (insertObject) {
+  console.log("inside addViewToParent pring state",  state);
   var dom = insertObject.dom
   AndroidWrapper.addViewToParent(
     insertObject.rootId,
@@ -909,6 +914,56 @@ function showViewInNameSpace (id, namespace) {
     }
 }
 
+
+function hideViewInNameSpace (id, namespace) {
+  // Return callback to hide screens
+  return function () {
+    var __visibility = window.__OS == "IOS" ? "invisible" : "gone";
+    var prop = {
+      id: id,
+      visibility: __visibility
+    };
+    if (window.__OS == "ANDROID") {
+
+      var cmd = cmdForAndroid(prop, true, "relativeLayout");
+      AndroidWrapper.runInUI(cmd.runInUI, null);
+    } else if (window.__OS == "IOS") {
+      AndroidWrapper.runInUI(prop, getIdFromNamespace(namespace));
+    } else  {
+      AndroidWrapper.runInUI(webParseParams("relativeLayout", prop, "set"), getIdFromNamespace(namespace));
+    }
+  }
+}
+
+function hideOldScreenNow(namespace, screenName) {
+  var sn = screenName;
+  while(getScopedState(namespace).hideList.length > 0) {
+    var screenName = getScopedState(namespace).hideList.pop();
+    var cb = getConstState(namespace).screenHideCallbacks[screenName];
+    if(typeof cb == "function") {
+      cb();
+    }
+  }
+  while(getScopedState(namespace).removeList.length > 0) {
+    var screenName = getScopedState(namespace).removeList.pop();
+    var cb = getConstState(namespace).screenRemoveCallbacks[screenName]
+    if(typeof cb == "function") {
+      cb();
+    }
+  }
+  if (getScopedState(namespace).shouldHideCacheRoot){
+    getScopedState(namespace).shouldHideCacheRoot = false
+    hideViewInNameSpace(getScopedState(namespace).cacheRoot, namespace)()
+  }
+  if(getScopedState(namespace).shouldReplayCallbacks[sn]) {
+    getScopedState(namespace).shouldReplayCallbacks[sn] = false;
+    var cbs = getScopedState(namespace).fragmentCallbacks[sn] || []
+    cbs.forEach (function(x) {
+      if (typeof x.callback == "function") { x.callback(x.payload); }
+    })
+  }
+}
+
 exports.makeScreenVisible = function (namespace, name) {
     try {
       var cb = getConstState(namespace).screenShowCallbacks[name];
@@ -1189,7 +1244,9 @@ exports.getLatestMachine = function (name, namespace) {
 
   
   exports.storeMachine = function (dom, name, namespace) {
+    console.log("inside storeMachine logging out the old machine ", getScopedState(namespace).MACHINE_MAP[name]);
     getScopedState(namespace).MACHINE_MAP[name] = dom;
+    console.log("inside storeMachine logging out the new machine ", getScopedState(namespace).MACHINE_MAP[name]);
     if (getConstState(namespace).cachedMachine &&
         getConstState(namespace).cachedMachine.hasOwnProperty(name)){
           getConstState(namespace).cachedMachine[name] = dom;
@@ -1442,6 +1499,7 @@ exports.decrementPatchCounter = function(namespace) {
     return dom;
   }
   
+
   exports.prepareAndStoreView = function (callback, dom, key, namespace, screenName){
       /*
        * Adding callback to make sure that prepareScreen returns controll only

@@ -275,7 +275,7 @@ updateMicroAppPayload screenName =
           _, _ -> Efn.runEffectFn3 updateMicroAppPayloadImpl val elem isPatch
 
 updateChildren :: forall a. String -> String -> EFn.EffectFn1 a Unit
-updateChildren namespace screenName =
+updateChildren namespace screenName = do
   Efn.mkEffectFn1
     $ \rawActions -> do
           rawActions # unsafeCoerce
@@ -284,7 +284,7 @@ updateChildren namespace screenName =
             # fromMaybe (pure unit)
 
 updateChildrenImpl :: String -> String -> Array UpdateActions -> Aff (Array Unit)
-updateChildrenImpl namespace screenName =
+updateChildrenImpl namespace screenName = do
   traverse
     \{action, parent, elem, index} ->
         case action of
@@ -415,7 +415,6 @@ prepareScreen screen@{name, parent, view} json = do
       liftEffect $ EFn.runEffectFn2 startedToPrepare ns name
       liftEffect $ trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" screen.name json
       let myDom = view (\_ -> pure unit) screen.initialState
-
       machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns name)) myDom
 
       liftEffect $ EFn.runEffectFn3 cacheMachine machine name ns
