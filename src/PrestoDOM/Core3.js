@@ -68,11 +68,7 @@ const deleteScopedState = function (namespace, activityID) {
   }
 };
 
-const deleteConstState = function (namespace, activityID) {
-  var id = activityID || state.currentActivity;
-  if (namespace && namespace.indexOf(id) == -1) {
-    namespace = namespace + id;
-  }
+const deleteConstState = function (namespace) {
   delete state.constState[namespace];
 };
 
