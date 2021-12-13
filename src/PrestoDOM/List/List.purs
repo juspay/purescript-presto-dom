@@ -30,6 +30,7 @@ module PrestoDOM.List
 
 import Prelude
 
+import Debug.Trace(spy)
 import Control.Monad.Except (runExcept)
 import Data.Array (catMaybes, cons)
 import Data.Either (Either(..), hush)
@@ -46,7 +47,7 @@ import Effect.Ref (Ref, new, read, modify) as Ref
 import Effect.Uncurried as EFn
 import Foreign (Foreign, unsafeToForeign)
 import Foreign.Class (encode, decode)
-import Foreign.Object (Object, empty, insert, singleton, update, fromHomogeneous, alter, union)
+import Foreign.Object (Object, empty, insert, singleton, update, fromHomogeneous, alter, union,lookup)
 import Halogen.VDom.DOM.Prop (Prop(..), PropValue) as P
 import Halogen.VDom.Types (VDom(..), ElemName(..))
 import Presto.Core.Flow (Flow, doAff)
@@ -54,7 +55,7 @@ import Presto.Core.Types.API (class StandardEncode, standardEncode)
 import PrestoDOM (PropName(..))
 import PrestoDOM.Animation (AnimProp)
 import PrestoDOM.Core.Types (ListItemType)
-import PrestoDOM.Core.Utils (callbackMapper, setDebounceToCallback, callMicroAppList, generateCommands)
+import PrestoDOM.Core.Utils (callbackMapper, setDebounceToCallback, callMicroAppList, generateCommands,extractAndDecode)
 import PrestoDOM.Core2 (createPrestoElement)
 import PrestoDOM.Elements.Elements (element)
 import PrestoDOM.Events (makeEvent)
@@ -129,6 +130,9 @@ extractView hv kpm klm aim parentType (Keyed _ (ElemName name) p c) = do
 extractView hv kpm klm aim parentType (Microapp s p ch) = do
   children' <- catMaybes <$> (extractView hv kpm klm aim (encode $ (Nothing :: Maybe String)) `traverse` (fromMaybe [] ch))
   props <- addRunInUI hv =<< foldM (parseProps hv kpm klm aim) {id : Nothing , props : empty} p
+  let useLinearLayout = case (extractAndDecode "useLinearLayout" props) of --value is Maybe a
+        Just a -> a
+        Nothing -> false
   listItem_ <- hush <<< runExcept <<< decode <$> (doAff $ makeAff $ \cb -> callMicroAppList s props (cb <<< Right) <#> effectCanceler)
   children <- case listItem_ of
     Just ({holderViews, itemView, keyPropMap, keyIdMap, animationIdMap} :: ListItemType) -> do
@@ -139,7 +143,7 @@ extractView hv kpm klm aim parentType (Microapp s p ch) = do
         pure $ children' <> [itemView]
     _ -> pure []
   pure $ Just $ generateCommands
-    { "type" : "relativeLayout"
+    { "type" : if useLinearLayout then "linearLayout" else "relativeLayout"
     , props : props
     , children : children
     , parentType

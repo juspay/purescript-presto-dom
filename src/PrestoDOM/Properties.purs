@@ -163,6 +163,7 @@ module PrestoDOM.Properties
     , pattern
     , shimmerActive
     , viewGroupTag
+    , useLinearLayout
     , payload
     ) where
 
@@ -787,6 +788,9 @@ shimmerActive false = prop (PropName "shimmerInactive") true
 
 viewGroupTag :: forall i. String -> Prop i
 viewGroupTag = prop (PropName "viewGroupTag")
+
+useLinearLayout :: forall i. Boolean -> Prop i
+useLinearLayout = prop (PropName "useLinearLayout")
 
 useStartApp :: forall i. Boolean -> Prop i
 useStartApp = prop (PropName "useStartApp")
