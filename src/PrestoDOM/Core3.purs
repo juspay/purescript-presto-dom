@@ -119,9 +119,9 @@ import Halogen.VDom.Types (FnObject)
 import PrestoDOM.Events (manualEventsName)
 import PrestoDOM.Types.Core (class Loggable, PrestoWidget(..), Prop, ScopedScreen, Controller, ScreenBase)
 import PrestoDOM.Utils (continue, logAction)
-import Tracker (trackScreen)
+import Tracker (trackScreen, trackLifeCycle)
 import Tracker.Labels as L
-import Tracker.Types (Level(..), Screen(..)) as T
+import Tracker.Types (Level(..), Screen(..), Lifecycle(..)) as T
 import Unsafe.Coerce (unsafeCoerce)
 
 import PrestoDOM.Core.Types (InsertState, UpdateActions, VdomTree)
@@ -190,6 +190,8 @@ foreign import startedToPrepare :: EFn.EffectFn2 String String Unit
 foreign import awaitPrerenderFinished :: EFn.EffectFn3 String String (Effect Unit) Unit
 
 foreign import addScreenWithAnim :: EFn.EffectFn3 Foreign String String Unit
+
+foreign import getTimeInMillis :: Effect Number
 
 
 
@@ -413,6 +415,7 @@ prepareScreen screen@{name, parent, view} json = do
       ns <- liftEffect $ sanitiseNamespace parent
       liftEffect <<< setUpBaseState ns $ encode (Nothing :: Maybe String )
       liftEffect $ EFn.runEffectFn2 startedToPrepare ns name
+      pre_rendering_started <- liftEffect getTimeInMillis
       liftEffect $ trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" screen.name json
       let myDom = view (\_ -> pure unit) screen.initialState
       machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns name)) myDom
@@ -425,12 +428,15 @@ prepareScreen screen@{name, parent, view} json = do
       -- AND CAN IMPACT ALL ENCODE USAGES
       domAllOut <- domAll screen (unsafeToForeign {}) dom
       makeAff $ \cB -> do
-         EFn.runEffectFn5 prepareAndStoreView (callBack cB) domAllOut (ns <> name) ns name
+         EFn.runEffectFn5 prepareAndStoreView (callBack cB pre_rendering_started) domAllOut (ns <> name) ns name
          pure nonCanceler
 
     where
-    callBack cb = do
+    callBack cb pre_rendering_started = do
+        pre_rendering_ended <- getTimeInMillis
+        let latency = (pre_rendering_ended - pre_rendering_started)
         trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_finished" screen.name json
+        trackLifeCycle T.Microapp T.Info L.PRERENDERED_SCREEN "latency" (unsafeToForeign {pre_rendering_started : pre_rendering_started, pre_rendering_ended : pre_rendering_ended, pre_rendering_latency : latency}) json
         cb (Right unit)
 
 runScreen :: forall action state returnType

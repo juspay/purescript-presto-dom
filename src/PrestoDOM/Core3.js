@@ -35,8 +35,9 @@ exports.updateActivity = function (activityId) {
       if (typeof getScopedState(a) != "undefined") {
         return;
       }
-      deleteScopedState(a, oldActivity);
+      // deleteScopedState(a, oldActivity);
       exports.setUpBaseState(a)()();
+      exports.render(a)
     });
   }
 }
@@ -1982,4 +1983,8 @@ exports.addProperty = function (namespace) {
       AndroidWrapper.runInUI(webParseParams("linearLayout", prop, "set"),getIdFromNamespace(namespace));
     }
     // Android.runInUI(parseParams("linearLayout", prop, "set"));
+}
+
+exports.getTimeInMillis = function(){
+    return Date.now();
 }
