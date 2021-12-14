@@ -524,7 +524,7 @@ maxSeek = prop (PropName "maxSeek")
 
 -- | Int
 maxWidth :: forall i. Int -> Prop i
-maxWidth = prop (PropName "maxWidth")
+maxWidth = prop (if __IS_ANDROID then (PropName "maxWidth2") else (PropName "maxWidth"))
 
 -- | L, // long
 minDate :: forall i. String -> Prop i
