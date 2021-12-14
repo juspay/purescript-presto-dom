@@ -975,8 +975,29 @@ exports.makeScreenVisible = function (namespace, name) {
     }
 }
 
+const getTracker = function () {
+  var trackerJson = JOS.tracker || {};
+  if (typeof trackerJson._trackContext != "function") {
+    trackerJson._trackContext = loopedFunction;
+  }
+  if (typeof trackerJson._trackAction != "function") {
+    trackerJson._trackAction = loopedFunction;
+  }
+  if (typeof trackerJson._trackLifeCycle != "function") {
+    trackerJson._trackLifeCycle = loopedFunction;
+  }
+  return trackerJson;
+};
+
+const tracker = getTracker()
+
 function executePostProcess(nam, namespace, cache) {
-    return function() {
+    return function(a) {
+      if(a != undefined && typeof a == "string" && a.toLowerCase() == "failure"){
+        tracker._trackException("system")("error")("execute_post_process")("error")({"namespace":namespace, "name":nam, "callbackWithParam": a})();
+      } else {
+        tracker._trackAction("system")("info")("execute_post_process")({"namespace":namespace, "name":nam, "callbackWithParam": a})();
+      }
       callAnimation__(nam, namespace, cache);
       processMapps(namespace, nam, 75);
       triggerAfterRender(namespace, nam);
@@ -1513,14 +1534,20 @@ exports.decrementPatchCounter = function(namespace) {
        * Adding callback to make sure that prepareScreen returns controll only
        * after native rendering is completed
        */
-      var callB = callbackMapper.map(function(){
+      var callB = callbackMapper.map(function(a){
         try{
+          if(a != undefined && typeof a == "string" && a.toLowerCase() == "failure"){
+            tracker._trackException("system")("error")("prepare_and_store_view")("error")({"namespace":namespace, "key":key,  "callbackWithParam": a})();
+          } else {
+            tracker._trackAction("system")("info")("prepare_and_store_view")({"namespace":namespace, "key":key, "callbackWithParam": a})();
+          }
           getConstState(namespace)[screenName].prepareStarted = false;
           while(getConstState(namespace)[screenName].prepareStartedQueue[0]){
             var fn = getConstState(namespace)[screenName].prepareStartedQueue.pop();
             fn();
           }
         }catch(err){
+          tracker._trackException("system")("error")("prepare_and_store_view_catch")("error")({"namespace":namespace, "key":key, "callbackException": err})();
           console.error("call InitUI for namespace", namespace);
         }
         callback();
