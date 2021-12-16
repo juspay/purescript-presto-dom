@@ -999,6 +999,7 @@ function executePostProcess(nam, namespace, cache) {
       } else {
         tracker._trackAction("system")("info")("execute_post_process")({"namespace":namespace, "name":nam, "callbackWithParam": a})();
       }
+      console.log("triggering after render", getScopedState(namespace).afterRenderFunctions.toString())
       callAnimation__(nam, namespace, cache);
       processMapps(namespace, nam, 75);
       triggerAfterRender(namespace, nam);
@@ -1062,6 +1063,7 @@ exports.insertDom = function(namespace, name, dom, cache) {
 
 exports.addViewToParent = function (insertObject) {
     var dom = insertObject.dom
+    console.log("this is pulp file", insertObject);
     AndroidWrapper.addViewToParent(
       insertObject.rootId,
       window.__OS == "ANDROID" ? JSON.stringify(dom) : dom,
