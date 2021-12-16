@@ -45,8 +45,8 @@ import Data.Foldable (foldr)
 import Data.Generic.Rep (class Generic)
 import Data.Either (Either(..))
 import Data.String.Common (toLower)
-import Foreign.Class (class Decode)
-import Foreign (ForeignError(..), unsafeFromForeign)
+import Foreign.Class (class Decode, class Encode)
+import Foreign (Foreign, ForeignError(..), unsafeFromForeign, unsafeToForeign)
 import Data.List.NonEmpty (NonEmptyList, singleton)
 import Effect (Effect)
 
@@ -113,8 +113,19 @@ instance showRepeatCount :: Show RepeatCount where
 -- | Interpolator Type
 
 type InterpolatorType = {type :: String, value :: Array Number}
-instance decodeInterpolator :: Decode Interpolator where decode = decodeInterpolatorUtil <<< unsafeFromForeign
 
+instance encodeInterpolator :: Encode Interpolator where encode = encodeInterpolatorUtil
+encodeInterpolatorUtil :: Interpolator -> Foreign
+encodeInterpolatorUtil = 
+  unsafeToForeign <<< case _ of
+    EaseIn  -> "easein"
+    EaseOut -> "easeout"
+    EaseInOut -> "easeinout"
+    Linear -> "linear"
+    Bounce -> "bounce"
+    Bezier a b c d -> show {type: "bezier", value: [show a, show b, show c, show d]}
+
+instance decodeInterpolator :: Decode Interpolator where decode = decodeInterpolatorUtil <<< unsafeFromForeign
 decodeInterpolatorUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Interpolator
 decodeInterpolatorUtil json = let
   (parsedFont :: Either (NonEmptyList ForeignError) InterpolatorType) = toSafeInterpolator json (Left <<< singleton <<< ForeignError) Right
@@ -146,6 +157,13 @@ decodeRepeatModeUtil json =
         "reverse" -> Right Reverse
         _         -> (Left <<< singleton <<< ForeignError) $ "Repeat Mode is not supported"
 
+instance encodeRepeatMode :: Encode RepeatMode where encode = encodeRepeatModeUtil
+encodeRepeatModeUtil :: RepeatMode -> Foreign
+encodeRepeatModeUtil =
+  unsafeToForeign <<< case _ of
+    Restart -> "restart"
+    Reverse -> "reverse"
+
 -- | Repeat Count
 type RepeatCountType = {type :: String, value :: String}
 
@@ -163,6 +181,14 @@ decodeRepeatCountUtil json = let
           "norepeat"  -> Right NoRepeat
           "infinite"  -> Right Infinite
           _           -> (Left <<< singleton <<< ForeignError) $ "Repeat Count is not supported"
+
+instance encodeRepeatCount :: Encode RepeatCount where encode = encodeRepeatCountUtil
+encodeRepeatCountUtil :: RepeatCount -> Foreign
+encodeRepeatCountUtil =
+  unsafeToForeign <<< case _ of
+    NoRepeat -> "norepeat"
+    Repeat a -> show $ {type: "repeat", value: show a }
+    Infinite -> "infinite"
 
 -- | Base animation prop handler
 animProp :: forall a. Show a => String -> a -> AnimProp
