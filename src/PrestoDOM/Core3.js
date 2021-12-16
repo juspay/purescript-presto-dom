@@ -42,6 +42,14 @@ exports.updateActivity = function (activityId) {
   }
 }
 
+exports.setPreRender = function (screenName) {
+  return function (namespace) {
+    return function () {
+      getConstState(namespace).prerenderScreens.push(screenName);
+    }
+  }
+}
+
 exports.createPrestoElement = createPrestoElement;
 
 window.createPrestoElement = createPrestoElement;
@@ -209,6 +217,7 @@ exports.setUpBaseState = function (namespace) {
         getConstState(namespace).registeredEvents = {};
         getConstState(namespace).afterRenderFunctions = {};
         getConstState(namespace).cachedMachine = {};
+        getConstState(namespace).prerenderScreens = [];
       }
       // https://juspay.atlassian.net/browse/PICAF-6628
       getScopedState(namespace).afterRenderFunctions = prestoUI.prestoClone(
@@ -667,8 +676,10 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
     type = "relativeLayout"
   }
   if(props.hasOwnProperty("afterRender")) {
-    getConstState(namespace).afterRenderFunctions[screenName] = getConstState(namespace).afterRenderFunctions[screenName] || []
-    getConstState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
+    if (getConstState(namespace).prerenderScreens.indexOf(screenName) != -1) {
+      getConstState(namespace).afterRenderFunctions[screenName] = getConstState(namespace).afterRenderFunctions[screenName] || []
+      getConstState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
+    }
     getScopedState(namespace).afterRenderFunctions[screenName] = getScopedState(namespace).afterRenderFunctions[screenName] || []
     getScopedState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
     delete props.afterRender

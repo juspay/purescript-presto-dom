@@ -193,6 +193,8 @@ foreign import addScreenWithAnim :: EFn.EffectFn3 Foreign String String Unit
 
 foreign import getTimeInMillis :: Effect Number
 
+foreign import setPreRender :: String -> String -> Effect Unit
+
 
 
 
@@ -415,6 +417,7 @@ prepareScreen screen@{name, parent, view} json = do
       ns <- liftEffect $ sanitiseNamespace parent
       liftEffect <<< setUpBaseState ns $ encode (Nothing :: Maybe String )
       liftEffect $ EFn.runEffectFn2 startedToPrepare ns name
+      _ <- liftEffect $ setPreRender name ns
       pre_rendering_started <- liftEffect getTimeInMillis
       liftEffect $ trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" screen.name json
       let myDom = view (\_ -> pure unit) screen.initialState
