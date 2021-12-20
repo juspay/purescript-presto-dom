@@ -1,93 +1,4 @@
-module PrestoDOM.Core3
-  ( addChildImpl
-  , addProperty
-  , addScreenWithAnim
-  , addToCachedList
-  , addToPatchQueue
-  , addViewToParent
-  , attachScreen
-  , awaitPrerenderFinished
-  , cacheMachine
-  , cachePushEvents
-  , callAnimation
-  , canPreRender
-  , cancelBehavior
-  , cancelExistingActions
-  , checkAndDeleteFromHideAndRemoveStacks
-  , controllerActions
-  , createPrestoElement
-  , createPushQueue
-  , decrementPatchCounter
-  , domAll
-  , fireManualEvent
-  , getAndSetEventFromState
-  , getCachedMachine
-  , getCachedMachineImpl
-  , getCurrentActivity
-  , getEventIO
-  , getLatestMachine
-  , getListDataCommands
-  , getListDataFromMapps
-  , getPaddingForStroke
-  , getPushFn
-  , hideCacheRootOnAnimationEnd
-  , incrementPatchCounter
-  , initUIWithNameSpace
-  , initUIWithScreen
-  , insertDom
-  , isCached
-  , isInStack
-  , isScreenPushActive
-  , joinCancellers
-  , launchAffWithCounter
-  , makeCacheRootVisible
-  , makeScreenVisible
-  , moveChild
-  , parseParams
-  , parseProps
-  , patchAndRun
-  , patchBlock
-  , prepareAndStoreView
-  , prepareDom
-  , prepareScreen
-  , processEvent
-  , processEventWithId
-  , removeChild
-  , render
-  , renderOrPatch
-  , replaceView
-  , replayFragmentCallbacks
-  , replayFragmentCallbacks'
-  , replayListFragmentCallbacks
-  , runController
-  , runScreen
-  , sanitiseNamespace
-  , saveCanceller
-  , setControllerStates
-  , setManualEvents
-  , setPatchToActive
-  , setScreenPushActive
-  , setToTopOfStack
-  , setUpBaseState
-  , showScreen
-  , spec
-  , startedToPrepare
-  , storeMachine
-  , terminateUI
-  , terminateUIImpl
-  , terminateUIImplWithCallback
-  , terminateUIWithCallback
-  , updateChildren
-  , updateChildrenImpl
-  , updateMicroAppPayload
-  , updateMicroAppPayloadImpl
-  , updateProp
-  , updateProperties
-  , updatePropertiesImpl
-  , updateScreen
-  , updateActivity
-  )
-  where
+module PrestoDOM.Core3 where
 
 import Prelude
 
@@ -192,11 +103,35 @@ foreign import awaitPrerenderFinished :: EFn.EffectFn3 String String (Effect Uni
 foreign import addScreenWithAnim :: EFn.EffectFn3 Foreign String String Unit
 
 foreign import getTimeInMillis :: Effect Number
-
 foreign import setPreRender :: String -> String -> Effect Unit
 
+updateChildren :: forall a. String -> String -> EFn.EffectFn1 a Unit
+updateChildren namespace screenName = do
+  Efn.mkEffectFn1
+    $ \rawActions -> do
+          rawActions # unsafeCoerce
+            # decode # runExcept # hush
+            <#> updateChildrenImpl namespace screenName <#> launchAffWithCounter namespace screenName
+            # fromMaybe (pure unit)
 
+launchAffWithCounter :: forall a. String -> String -> Aff a -> Effect Unit
+launchAffWithCounter namespace screenName aff = do
+  _ <- incrementPatchCounter namespace screenName
+  launchAff_ do
+    _ <- aff
+    liftEffect $ decrementPatchCounter namespace screenName
 
+updateChildrenImpl :: String -> String -> Array UpdateActions -> Aff (Array Unit)
+updateChildrenImpl namespace screenName = do
+  traverse
+    \{action, parent, elem, index} ->
+        case action of
+          "add" -> do
+              insertState <- liftEffect $ Efn.runEffectFn3 (addChildImpl namespace screenName) (encode elem) (encode parent) index
+              domAllOut <- domAll {name : screenName, parent : Just namespace} (unsafeToForeign {}) insertState.dom
+              liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
+          "move" -> liftEffect $ EFn.runEffectFn3 (moveChild namespace) elem parent index
+          _ -> pure unit -- Should never reach here
 
 updateProperties :: forall a b. String -> String -> EFn.EffectFn2 a b Unit
 updateProperties namespace screenName = do
@@ -227,13 +162,7 @@ updateProp key checkFunc props = do
   a <- checkFunc $ extractAndDecode key props
   pure $ update (const a) key props
 
-launchAffWithCounter :: forall a. String -> String -> Aff a -> Effect Unit
-launchAffWithCounter namespace screenName aff = do
-  _ <- incrementPatchCounter namespace screenName
-  launchAff_ do
-    _ <- aff
-    liftEffect $ decrementPatchCounter namespace screenName
-
+-- Function aimed at merging mapp responses and m-app listdata
 getListDataFromMapps :: forall elem. String -> String -> elem -> Object Foreign -> Aff (Object Foreign)
 getListDataFromMapps namespace screenName elem props = do
   let (vdomTree :: Maybe VdomTree) = hush $ runExcept $ decode $ unsafeToForeign elem
@@ -256,6 +185,7 @@ getListDataFromMapps namespace screenName elem props = do
         _ -> pure props
     _ -> pure props
 
+-- Function aimed at merging mapp responses and m-app listdata
 getPaddingForStroke :: forall elem. String -> String -> elem -> Object Foreign -> Aff (Object Foreign)
 getPaddingForStroke namespace screenName elem props = do
   let (vdomTree :: Maybe VdomTree) = hush $ runExcept $ decode $ unsafeToForeign elem
@@ -278,104 +208,29 @@ updateMicroAppPayload screenName =
           Just tree@{"type" : "listView"}, true -> pure unit
           _, _ -> Efn.runEffectFn3 updateMicroAppPayloadImpl val elem isPatch
 
-updateChildren :: forall a. String -> String -> EFn.EffectFn1 a Unit
-updateChildren namespace screenName = do
-  Efn.mkEffectFn1
-    $ \rawActions -> do
-          rawActions # unsafeCoerce
-            # decode # runExcept # hush
-            <#> updateChildrenImpl namespace screenName <#> launchAffWithCounter namespace screenName
-            # fromMaybe (pure unit)
-
-updateChildrenImpl :: String -> String -> Array UpdateActions -> Aff (Array Unit)
-updateChildrenImpl namespace screenName = do
-  traverse
-    \{action, parent, elem, index} ->
-        case action of
-          "add" -> do
-              insertState <- liftEffect $ Efn.runEffectFn3 (addChildImpl namespace screenName) (encode elem) (encode parent) index
-              domAllOut <- domAll {name : screenName, parent : Just namespace} (unsafeToForeign {}) insertState.dom
-              liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
-          "move" -> liftEffect $ EFn.runEffectFn3 (moveChild namespace) elem parent index
-          _ -> pure unit -- Should never reach here
-
 sanitiseNamespace :: Maybe String -> Effect String
 sanitiseNamespace maybeNS = do
   let ns = fromMaybe "default" maybeNS
   pure ns
+  -- activityId <- getCurrentActivity
+  -- pure $ if contains (Pattern activityId) ns
+  --   then ns
+  --   else ns -- <> activityId
 
-initUIWithNameSpace :: String -> Maybe String -> Effect Unit
-initUIWithNameSpace namespace id = do
-  setUpBaseState namespace $ encode id
-  EFn.runEffectFn1 render namespace
+patchAndRun :: forall w i state. String -> Maybe String -> (state -> VDom (Array (Prop i)) w) -> state -> Effect Unit
+patchAndRun screenName namespace emitter state = do
+  let myDom = emitter state
+  let patchFunc = patchBlock screenName namespace myDom
+  ns <- sanitiseNamespace namespace
+  addToPatchQueue ns screenName patchFunc
 
-initUIWithScreen ::
-  forall action state returnType.
-  String -> Maybe String -> ScopedScreen action state returnType -> Aff Unit
-initUIWithScreen namespace id screen = do
-  liftEffect $ initUIWithNameSpace namespace id
-  let myDom = screen.view (\_ -> pure unit) screen.initialState
-  ns <- liftEffect $ sanitiseNamespace screen.parent
-  machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns screen.name)) myDom
-  insertState <- liftEffect $ EFn.runEffectFn4 insertDom ns screen.name (extract machine) false
-  domAllOut <- domAll screen (unsafeToForeign {}) insertState.dom
-  liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
-
-joinCancellers :: Array (Effect Unit) -> Effect Unit -> Effect Unit
-joinCancellers cancellers canceller = do
-  _ <- traverse identity cancellers
-  canceller
-
-controllerActions :: forall action state returnType a
-  . Show action => Loggable action
-  => EventIO action
-  -> ScreenBase action state returnType (parent :: Maybe String| a)
-  -> (Object Foreign)
-  -> (state -> Effect Unit)
-  -> (Either Error returnType -> Effect Unit)
-  -> Effect Canceler
-controllerActions {event, push} {initialState, eval, name, globalEvents, parent} json emitter cb = do
-  ns <- sanitiseNamespace parent
-  _ <- EFn.runEffectFn2 cancelExistingActions name ns
-  timerRef <- Ref.new Nothing
-  let stateBeh = unfold execEval event { previousAction : Nothing, currentAction : Nothing, eitherState : (continue initialState)}
-  canceller <- sample_ stateBeh event `subscribe` (\a -> either (onExit a.previousAction a.currentAction timerRef) (onStateChange a.previousAction a.currentAction timerRef) a.eitherState)
-  activityId <- getCurrentActivity
-  _ <- setScreenPushActive ns name activityId
-  cancellers <- traverse registerEvents globalEvents
-  EFn.runEffectFn3 saveCanceller name ns $ joinCancellers cancellers canceller
-  pure $ effectCanceler (EFn.runEffectFn2 cancelExistingActions name ns)
-    where
-      onStateChange previousAction currentAction timerRef (Tuple state cmds) = do
-        result <- emitter state
-        _ <- for_ cmds (\effAction -> effAction >>= push)
-        logAction timerRef previousAction currentAction false json -- debounce
-      onExit previousAction currentAction timerRef (Tuple st ret) = do
-        EFn.runEffectFn2 cancelExistingActions name =<< sanitiseNamespace parent
-        result <- fromMaybe (pure unit) $ st <#> emitter
-        cb $ Right ret
-        logAction timerRef previousAction currentAction true json-- logNow
-      registerEvents =
-        (\f -> f push)
-      execEval action st =
-        { previousAction : st.currentAction
-        , currentAction : Just action
-        , eitherState : (st.eitherState >>= (eval action <<< fst))
-        }
-
-getEventIO :: forall action. String -> Maybe String -> Effect (EventIO action)
-getEventIO screenName parent = do
-  ns <- sanitiseNamespace parent
-  {event, push} <- Efn.runEffectFn3 getAndSetEventFromState ns screenName E.create
-  activityId <- getCurrentActivity
-  pure $ {event, push : createPushQueue ns screenName push activityId}
-
-createPushQueue :: forall action. String -> String -> (action -> Effect Unit) -> String -> action -> Effect Unit
-createPushQueue namespace screenName push activityId action = do
-  isScreenPushActive namespace screenName activityId >>=
-    if _
-      then push action
-      else cachePushEvents namespace screenName (push action) activityId
+patchBlock :: forall w i. String -> Maybe String -> VDom (Array (Prop i)) w -> Effect Unit
+patchBlock screenName namespace myDom = do
+  ns <- sanitiseNamespace namespace
+  machine <- EFn.runEffectFn2 getLatestMachine screenName ns
+  newMachine <- EFn.runEffectFn2 step (machine) (myDom)
+  EFn.runEffectFn3 storeMachine newMachine screenName ns
+  setPatchToActive ns screenName
 
 spec
   :: String
@@ -405,60 +260,17 @@ spec namespace screen =
         , parseParams : parseParams
         }
 
-prepareScreen :: forall action state returnType
-  . Show action => Loggable action
-  => ScopedScreen action state returnType
-  -> Object Foreign
-  -> Aff Unit
-prepareScreen screen@{name, parent, view} json = do
-  if not (canPreRender unit)
-    then pure unit
-    else do 
-      ns <- liftEffect $ sanitiseNamespace parent
-      liftEffect <<< setUpBaseState ns $ encode (Nothing :: Maybe String )
-      liftEffect $ EFn.runEffectFn2 startedToPrepare ns name
-      _ <- liftEffect $ setPreRender name ns
-      pre_rendering_started <- liftEffect getTimeInMillis
-      liftEffect $ trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" screen.name json
-      let myDom = view (\_ -> pure unit) screen.initialState
-      machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns name)) myDom
 
-      liftEffect $ EFn.runEffectFn3 cacheMachine machine name ns
+getCachedMachine :: ∀ a b. String -> String → Aff (Maybe (Step a b))
+getCachedMachine namespace name = liftEffect $ EFn.runEffectFn4 getCachedMachineImpl Just Nothing namespace name
 
-      dom <- liftEffect $ EFn.runEffectFn3 prepareDom (extract machine) name ns
-      -- DO NOT CHANGE THIS TO ENCODE,
-      -- THE JSON IN THIS BLOCK IS MODIFIED IN JS
-      -- AND CAN IMPACT ALL ENCODE USAGES
-      domAllOut <- domAll screen (unsafeToForeign {}) dom
-      makeAff $ \cB -> do
-         EFn.runEffectFn5 prepareAndStoreView (callBack cB pre_rendering_started) domAllOut (ns <> name) ns name
-         pure nonCanceler
 
-    where
-    callBack cb pre_rendering_started = do
-        pre_rendering_ended <- getTimeInMillis
-        let latency = (pre_rendering_ended - pre_rendering_started)
-        trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_finished" screen.name json
-        trackLifeCycle T.Microapp T.Info L.PRERENDERED_SCREEN "latency" (unsafeToForeign {pre_rendering_started : pre_rendering_started, pre_rendering_ended : pre_rendering_ended, pre_rendering_latency : latency}) json
-        cb (Right unit)
-
-runScreen :: forall action state returnType
-  . Show action => Loggable action
-  => ScopedScreen action state returnType
-  -> (Object Foreign)
-  -> Aff returnType
-runScreen st@{ name, parent, view} json = do
-  ns <- liftEffect $ sanitiseNamespace parent
-  makeAff (\cb -> Efn.runEffectFn3 awaitPrerenderFinished ns name (cb $ Right unit) $> nonCanceler )
-  liftEffect $ EFn.runEffectFn2 checkAndDeleteFromHideAndRemoveStacks ns name
-  check <- liftEffect $  EFn.runEffectFn2 isInStack name ns <#> not
-  eventIO <- liftEffect $ getEventIO name parent
-  _ <- liftEffect $ trackScreen T.Screen T.Info L.CURRENT_SCREEN "screen" name json
-  _ <- liftEffect $ trackScreen T.Screen T.Info L.UPCOMING_SCREEN "screen" name json
-  liftEffect $ Efn.runEffectFn1 hideCacheRootOnAnimationEnd ns
-  liftEffect $ EFn.runEffectFn2 setToTopOfStack ns name
-  renderOrPatch eventIO st check false
-  makeAff $ controllerActions eventIO st json (patchAndRun name parent (view eventIO.push))
+getEventIO :: forall action. String -> Maybe String -> Effect (EventIO action)
+getEventIO screenName parent = do
+  ns <- sanitiseNamespace parent
+  {event, push} <- Efn.runEffectFn3 getAndSetEventFromState ns screenName E.create
+  activityId <- getCurrentActivity
+  pure $ {event, push : createPushQueue ns screenName push activityId}
 
 renderOrPatch :: forall action state returnType
   . Show action => Loggable action
@@ -519,6 +331,101 @@ domAll {name, parent} ids dom = {--dom--} do
       pure $ generateCommands $ vdomTree {children = children, props = props}
     a -> pure $ encode a
     
+controllerActions :: forall action state returnType a
+  . Show action => Loggable action
+  => EventIO action
+  -> ScreenBase action state returnType (parent :: Maybe String| a)
+  -> (Object Foreign)
+  -> (state -> Effect Unit)
+  -> (Either Error returnType -> Effect Unit)
+  -> Effect Canceler
+controllerActions {event, push} {initialState, eval, name, globalEvents, parent} json emitter cb = do
+  ns <- sanitiseNamespace parent
+  _ <- EFn.runEffectFn2 cancelExistingActions name ns
+  timerRef <- Ref.new Nothing
+  let stateBeh = unfold execEval event { previousAction : Nothing, currentAction : Nothing, eitherState : (continue initialState)}
+  canceller <- sample_ stateBeh event `subscribe` (\a -> either (onExit a.previousAction a.currentAction timerRef) (onStateChange a.previousAction a.currentAction timerRef) a.eitherState)
+  activityId <- getCurrentActivity
+  _ <- setScreenPushActive ns name activityId
+  cancellers <- traverse registerEvents globalEvents
+  EFn.runEffectFn3 saveCanceller name ns $ joinCancellers cancellers canceller
+  pure $ effectCanceler (EFn.runEffectFn2 cancelExistingActions name ns)
+    where
+      onStateChange previousAction currentAction timerRef (Tuple state cmds) = do
+        result <- emitter state
+        _ <- for_ cmds (\effAction -> effAction >>= push)
+        logAction timerRef previousAction currentAction false json -- debounce
+      onExit previousAction currentAction timerRef (Tuple st ret) = do
+        EFn.runEffectFn2 cancelExistingActions name =<< sanitiseNamespace parent
+        result <- fromMaybe (pure unit) $ st <#> emitter
+        cb $ Right ret
+        logAction timerRef previousAction currentAction true json-- logNow
+      registerEvents =
+        (\f -> f push)
+      execEval action st =
+        { previousAction : st.currentAction
+        , currentAction : Just action
+        , eitherState : (st.eitherState >>= (eval action <<< fst))
+        }
+
+-- initUIWithNameSpace
+-- getId and namespace for the same
+-- createState in local state variable for the same
+
+initUIWithNameSpace :: String -> Maybe String -> Effect Unit
+initUIWithNameSpace namespace id = do
+  setUpBaseState namespace $ encode id
+  EFn.runEffectFn1 render namespace
+
+initUIWithScreen ::
+  forall action state returnType.
+  String -> Maybe String -> ScopedScreen action state returnType -> Aff Unit
+initUIWithScreen namespace id screen = do
+  liftEffect $ initUIWithNameSpace namespace id
+  let myDom = screen.view (\_ -> pure unit) screen.initialState
+  ns <- liftEffect $ sanitiseNamespace screen.parent
+  machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns screen.name)) myDom
+  insertState <- liftEffect $ EFn.runEffectFn4 insertDom ns screen.name (extract machine) false
+  domAllOut <- domAll screen (unsafeToForeign {}) insertState.dom
+  liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
+
+-- runScreen
+-- check if namespace exists
+-- else check if screen exists
+-- yes -> remove all screens above from stack
+--     -> Trigger patch and run for current screen
+--     -> trigger exitB animation of top screen on the stack (B != A)
+--     -> trigger entryB animation for current screen (B != A)
+--     -> onAnimationEnd remove previous top of stack (B != A)
+-- no  -> add screen on top of stack
+runScreen :: forall action state returnType
+  . Show action => Loggable action
+  => ScopedScreen action state returnType
+  -> (Object Foreign)
+  -> Aff returnType
+runScreen st@{ name, parent, view} json = do
+  ns <- liftEffect $ sanitiseNamespace parent
+  makeAff (\cb -> Efn.runEffectFn3 awaitPrerenderFinished ns name (cb $ Right unit) $> nonCanceler )
+  liftEffect $ EFn.runEffectFn2 checkAndDeleteFromHideAndRemoveStacks ns name
+  check <- liftEffect $  EFn.runEffectFn2 isInStack name ns <#> not
+  eventIO <- liftEffect $ getEventIO name parent
+  _ <- liftEffect $ trackScreen T.Screen T.Info L.CURRENT_SCREEN "screen" name json
+  _ <- liftEffect $ trackScreen T.Screen T.Info L.UPCOMING_SCREEN "screen" name json
+  liftEffect $ Efn.runEffectFn1 hideCacheRootOnAnimationEnd ns
+  liftEffect $ EFn.runEffectFn2 setToTopOfStack ns name
+  renderOrPatch eventIO st check false
+  makeAff $ controllerActions eventIO st json (patchAndRun name parent (view eventIO.push))
+
+createPushQueue :: forall action. String -> String -> (action -> Effect Unit) -> String -> action -> Effect Unit
+createPushQueue namespace screenName push activityId action = do
+  isScreenPushActive namespace screenName activityId >>=
+    if _
+      then push action
+      else cachePushEvents namespace screenName (push action) activityId
+
+getPushFn :: forall a. Maybe String -> String -> Effect (a -> Effect Unit)
+getPushFn parent name = getEventIO name parent <#> \{push} -> push
+
 runController :: forall action state returnType
   . Show action => Loggable action
   => Controller action state returnType
@@ -529,46 +436,14 @@ runController st@{name, parent, eval, initialState, globalEvents, emitter} json 
   eventIO <- liftEffect $ getEventIO name parent
   makeAff $ controllerActions eventIO st json emitter
 
-patchAndRun :: forall w i state. String -> Maybe String -> (state -> VDom (Array (Prop i)) w) -> state -> Effect Unit
-patchAndRun screenName namespace emitter state = do
-  let myDom = emitter state
-  let patchFunc = patchBlock screenName namespace myDom
-  ns <- sanitiseNamespace namespace
-  addToPatchQueue ns screenName patchFunc
-
-patchBlock :: forall w i. String -> Maybe String -> VDom (Array (Prop i)) w -> Effect Unit
-patchBlock screenName namespace myDom = do
-  ns <- sanitiseNamespace namespace
-  machine <- EFn.runEffectFn2 getLatestMachine screenName ns
-  newMachine <- EFn.runEffectFn2 step (machine) (myDom)
-  EFn.runEffectFn3 storeMachine newMachine screenName ns
-  setPatchToActive ns screenName
-
-getCachedMachine :: ∀ a b. String -> String → Aff (Maybe (Step a b))
-getCachedMachine namespace name = liftEffect $ EFn.runEffectFn4 getCachedMachineImpl Just Nothing namespace name
-
-processEvent :: forall a. String -> a -> Effect Unit
-processEvent = fireManualEvent
-
-getPushFn :: forall a. Maybe String -> String -> Effect (a -> Effect Unit)
-getPushFn parent name = getEventIO name parent <#> \{push} -> push
-
-replayFragmentCallbacks :: forall a.
-  String ->
-  String ->
-  ({code :: Int, message :: String} -> a) ->
-  (a -> Effect Unit) ->
-  Effect (Effect Unit)
-replayFragmentCallbacks nampespace name action push = replayFragmentCallbacks' nampespace name (push <<< action)
-
-replayListFragmentCallbacks :: forall a.
-  String ->
-  String ->
-  ({code :: Int, message :: String} -> a) ->
-  (a -> Effect Unit) ->
-  Effect (Effect Unit)
-replayListFragmentCallbacks nampespace name action push = replayListFragmentCallbacks' nampespace name (push <<< action)
-
+-- showScreen
+-- check if namespace exists
+-- check if screen was rendered before
+-- yes -> patch and run
+--     -> startAnimation entry animation (B != A)
+--     -> trigger exitAnimation, if previous screen was show screen (B != A)
+--     -> onAnimationEnd remove turn visibility to gone for previous show screen (B != A)
+-- no  -> add screen into cache list
 showScreen :: forall action state returnType
   . Show action => Loggable action
   => ScopedScreen action state returnType
@@ -597,9 +472,69 @@ updateScreen { initialState, view, eval, name , globalEvents, parent } = do
   -- MAKE POSSIBLE TO MOVE SCREENS BETWEEN RUN AND SHOW (EXTREMELY EXPERIMENTAL)
   patchAndRun name parent (view (\_ -> pure unit )) initialState
 
+prepareScreen :: forall action state returnType
+  . Show action => Loggable action
+  => ScopedScreen action state returnType
+  -> Object Foreign
+  -> Aff Unit
+prepareScreen screen@{name, parent, view} json = do
+  if not (canPreRender unit)
+    then pure unit
+    else do 
+      ns <- liftEffect $ sanitiseNamespace parent
+      liftEffect <<< setUpBaseState ns $ encode (Nothing :: Maybe String )
+      liftEffect $ EFn.runEffectFn2 startedToPrepare ns name
+      _ <- liftEffect $ setPreRender name ns
+      pre_rendering_started <- liftEffect getTimeInMillis
+      liftEffect $ trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_started" screen.name json
+      let myDom = view (\_ -> pure unit) screen.initialState
+      machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns name)) myDom
+
+      liftEffect $ EFn.runEffectFn3 cacheMachine machine name ns
+
+      dom <- liftEffect $ EFn.runEffectFn3 prepareDom (extract machine) name ns
+      -- DO NOT CHANGE THIS TO ENCODE,
+      -- THE JSON IN THIS BLOCK IS MODIFIED IN JS
+      -- AND CAN IMPACT ALL ENCODE USAGES
+      domAllOut <- domAll screen (unsafeToForeign {}) dom
+      makeAff $ \cB -> do
+         EFn.runEffectFn5 prepareAndStoreView (callBack cB pre_rendering_started) domAllOut (ns <> name) ns name
+         pure nonCanceler
+
+    where
+    callBack cb pre_rendering_started = do
+        pre_rendering_ended <- getTimeInMillis
+        let latency = (pre_rendering_ended - pre_rendering_started)
+        trackScreen T.Screen T.Info L.PRERENDERED_SCREEN "pre_rendering_finished" screen.name json
+        trackLifeCycle T.Microapp T.Info L.PRERENDERED_SCREEN "latency" (unsafeToForeign {pre_rendering_started : pre_rendering_started, pre_rendering_ended : pre_rendering_ended, pre_rendering_latency : latency}) json
+        cb (Right unit)
 
 terminateUI :: Maybe String -> Effect Unit
 terminateUI nameSpace = EFn.runEffectFn1 terminateUIImpl =<< sanitiseNamespace nameSpace
 
 terminateUIWithCallback :: (Int -> String -> Effect Unit) -> String -> Effect Unit
 terminateUIWithCallback cb nameSpace = EFn.runEffectFn1 (terminateUIImplWithCallback cb) nameSpace
+
+joinCancellers :: Array (Effect Unit) -> Effect Unit -> Effect Unit
+joinCancellers cancellers canceller = do
+  _ <- traverse identity cancellers
+  canceller
+
+processEvent :: forall a. String -> a -> Effect Unit
+processEvent = fireManualEvent
+
+replayFragmentCallbacks :: forall a.
+  String ->
+  String ->
+  ({code :: Int, message :: String} -> a) ->
+  (a -> Effect Unit) ->
+  Effect (Effect Unit)
+replayFragmentCallbacks nampespace name action push = replayFragmentCallbacks' nampespace name (push <<< action)
+
+replayListFragmentCallbacks :: forall a.
+  String ->
+  String ->
+  ({code :: Int, message :: String} -> a) ->
+  (a -> Effect Unit) ->
+  Effect (Effect Unit)
+replayListFragmentCallbacks nampespace name action push = replayListFragmentCallbacks' nampespace name (push <<< action)
