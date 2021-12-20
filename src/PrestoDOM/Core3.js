@@ -1840,8 +1840,8 @@ exports.awaitPrerenderFinished = function(namespace, screenName, cb){
 function clearStoredID () {
   if (typeof(window.__preRenderIds) === "object" && Android.runInUI && window.__OS == "ANDROID"){
     var cmd = ""
-    for (var i = 0, len = window.__preRenderIds.length; i < len; i++) {
-      cmd += "set_v=ctx->findViewById:i_" + window.__preRenderIds[i] + ";get_v->removeAllViews;"
+    for (var key in window.__preRenderIds) {
+      cmd += "set_v=ctx->findViewById:i_" + window.__preRenderIds[key] + ";get_v->removeAllViews;"
     }
     Android.runInUI(cmd, null);
   }
