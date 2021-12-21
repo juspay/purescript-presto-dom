@@ -19,6 +19,7 @@ module PrestoDOM.Properties.SetChildProps
     , buttonTint_c
 
     , checked_c
+    , circularLoader_c
     , clickable_c
     , clipChildren_c
     , color_c
@@ -205,6 +206,10 @@ buttonClickOverlay_c = Tuple "buttonClickOverlay" <<< NumberP
 -- | Boolean
 checked_c :: Boolean -> Tuple String GenProp
 checked_c = Tuple "checked" <<< BooleanP
+
+-- | Boolean
+circularLoader_c :: Boolean -> Tuple String GenProp
+circularLoader_c = Tuple "circularLoader" <<< BooleanP
 
 -- | Boolean
 clickable_c :: Boolean -> Tuple String GenProp

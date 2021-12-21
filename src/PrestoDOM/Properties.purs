@@ -30,6 +30,7 @@ module PrestoDOM.Properties
 
     , cardWidth
     , checked
+    , circularLoader
     , classList
     , className
     , clickable
@@ -270,6 +271,10 @@ cardWidth = prop (PropName "cardWidth")
 -- | Boolean
 checked :: forall i. Boolean -> Prop i
 checked = prop (PropName "checked")
+
+-- | Boolean
+circularLoader :: forall i. Boolean -> Prop i
+circularLoader = prop (PropName "circularLoader")
 
 -- | Array String
 classList :: forall i. Array String -> Prop i

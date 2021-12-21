@@ -20,6 +20,7 @@ module PrestoDOM.Properties.GetChildProps
     , buttonClickOverlay_p
 
     , checked_p
+    , circularLoader_p
     , clickable_p
     , clipChildren_p
     , color_p
@@ -230,6 +231,10 @@ buttonClickOverlay_p = fromGenProp "buttonClickOverlay"
 -- | Boolean
 checked_p :: forall i. Boolean -> Object GenProp -> Prop i
 checked_p = fromGenProp "checked"
+
+-- | Boolean
+circularLoader_p :: forall i. Boolean -> Object GenProp -> Prop i
+circularLoader_p = fromGenProp "circularLoader"
 
 -- | Boolean
 clickable_p :: forall i. Boolean -> Object GenProp -> Prop i
