@@ -3,6 +3,7 @@ module PrestoDOM.Elements.Elements
     , Leaf
     , element
     , keyed
+    , chunk
 
     , linearLayout_
     , relativeLayout_
@@ -39,6 +40,7 @@ module PrestoDOM.Elements.Elements
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
 import Halogen.VDom.DOM.Prop (Prop)
+import Halogen.VDom.Types (ShimmerHolder, VDom(..))
 import PrestoDOM.Types.Core (ElemName(..), VDom(..), Namespace)
 
 type Node i p
@@ -64,6 +66,9 @@ element elemName = Elem Nothing elemName
 
 keyed :: forall i p. ElemName -> Array (Prop i) -> Array (Tuple String (VDom (Array (Prop i)) p)) -> VDom (Array (Prop i)) p
 keyed elemName = Keyed Nothing elemName
+
+chunk :: forall i p. ElemName -> Array (Prop i) -> ShimmerHolder (Array (Prop i)) p -> VDom (Array (Prop i)) p
+chunk elemName = Chunk Nothing elemName
 
 node :: forall i p. String -> Node (Prop i) p
 node elem = element (ElemName elem)

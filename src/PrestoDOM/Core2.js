@@ -296,7 +296,6 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
   } else if(!elem.__ref) {
     elem.__ref = createPrestoElement()
   }
-
   var type = prestoUI.prestoClone(elem.type);
   var props = prestoUI.prestoClone(elem.props);
 
@@ -337,6 +336,11 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
     getScopedState(namespace).afterRenderFunctions[screenName] = getScopedState(namespace).afterRenderFunctions[screenName] || []
     getScopedState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
     delete props.afterRender
+  }
+  if (elem.hasOwnProperty("chunkedLayout") && elem.chunkedLayout) {
+    elem.children.forEach(function(e, i) {
+      getScopedState(namespace).actualLayouts.push({'layout': elem.layouts[i], 'shimmerId': e.__ref.__id, 'parent': elem, 'index': i});
+    });
   }
   if (
     props.entryAnimation ||
@@ -697,7 +701,31 @@ function executePostProcess(nam, namespace, cache) {
       callAnimation__(nam, namespace, cache);
       processMapps(namespace, nam, 75);
       triggerAfterRender(namespace, nam);
+      triggerChunkCascade(namespace, nam);
     };
+}
+
+function triggerChunkCascade(namespace, screenName) {
+  var chunk = getScopedState(namespace).actualLayouts.shift();
+  if (chunk == undefined)
+    return;
+  if (chunk.layout.props) {
+    chunk.layout.props.root = true;
+  }
+  var dom = domAll(chunk.layout, screenName, namespace);
+  chunk.parent.children.splice(chunk.index, 1, chunk.layout);
+  var cb = callbackMapper.map(function() { 
+    triggerChunkCascade(namespace, screenName);
+  });
+  removeViewFromNameSpace(namespace, chunk.shimmerId)();
+  AndroidWrapper.addViewToParent(
+    window.__OS == "ANDROID" ? chunk.parent.__ref.__id + "" : chunk.parent.__ref.__id,
+    window.__OS == "ANDROID" ? JSON.stringify(dom) : dom,
+    chunk.index,
+    cb,
+    null,
+    getIdFromNamespace(namespace)
+  );
 }
 
 exports.checkAndDeleteFromHideAndRemoveStacks = function (namespace, screenName) {
@@ -811,6 +839,7 @@ exports.setUpBaseState = function (namespace) {
       }
       // https://juspay.atlassian.net/browse/PICAF-6628
       getScopedState(namespace).afterRenderFunctions = prestoUI.prestoClone( getConstState(namespace).afterRenderFunctions || {});
+      getScopedState(namespace).actualLayouts = []
 
       // rethink Logic
       getScopedState(namespace).mappQueue = []
