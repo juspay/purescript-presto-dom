@@ -8,7 +8,7 @@ import Effect.Class (liftEffect)
 import Presto.Core.Flow (Flow, doAff)
 import Presto.Core.Types.Language.Flow(getLogFields)
 import Effect(Effect)
-import PrestoDOM.Core2 as PrestoDOM2
+import PrestoDOM.Core3 as PrestoDOM2
 import PrestoDOM.Types.Core (class Loggable, ScopedScreen, Controller, Screen)
 
 initUI :: forall a. Flow a Unit

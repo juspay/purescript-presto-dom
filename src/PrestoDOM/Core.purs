@@ -37,7 +37,7 @@ import Tracker.Types (Level(..), Screen(..)) as T
 import Tracker.Labels (Label(..)) as L
 import Web.DOM.Document (Document) as DOM
 import Effect.Ref as Ref
-import PrestoDOM.Core2 (updateMicroAppPayload, updateProperties, updateChildren, parseParams)
+import PrestoDOM.Core3 (updateMicroAppPayload, updateProperties, updateChildren, parseParams)
 
 foreign import terminateUI :: Effect Unit
 
