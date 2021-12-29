@@ -1,5 +1,6 @@
 "use strict";
 
+const scrollState = {};
 exports.saveScrollPush = function(scrollPush){
   return function (identifier){
     return function (){

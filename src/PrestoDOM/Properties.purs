@@ -1,6 +1,7 @@
 module PrestoDOM.Properties
     ( prop
     , id
+    , testID
 
     , root
     , a_duration
@@ -29,6 +30,7 @@ module PrestoDOM.Properties
 
     , cardWidth
     , checked
+    , circularLoader
     , classList
     , className
     , clickable
@@ -176,6 +178,9 @@ prop (PropName name) = Property name <<< toPropValue
 id :: forall i. String -> Prop i
 id = prop (PropName "id")
 
+testID :: forall i. String -> Prop i
+testID = prop (PropName "testID")
+
 retFontFamilyAndroid :: forall i. String -> Prop i
 retFontFamilyAndroid str = case (toLower str) of
   "regular" -> fontFamily "sans-serif,normal"
@@ -266,6 +271,10 @@ cardWidth = prop (PropName "cardWidth")
 -- | Boolean
 checked :: forall i. Boolean -> Prop i
 checked = prop (PropName "checked")
+
+-- | Boolean
+circularLoader :: forall i. Boolean -> Prop i
+circularLoader = prop (PropName "circularLoader")
 
 -- | Array String
 classList :: forall i. Array String -> Prop i
