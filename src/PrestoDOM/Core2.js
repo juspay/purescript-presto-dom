@@ -95,15 +95,15 @@ const AndroidWrapper = createAndroidWrapper()
 
 const state = {
   scopedState : {}
-  , fragments : {}
-  , fragmentIdMap : {}
-  , listViewKeys : {}
-  , listViewAnimationKeys : {}
-  , counter: 0
-  , bitMap: {}
-  , activityNamespaces: {}
-  , currentActivity: "default"
-  , constState : {}
+, fragments : {}
+, fragmentIdMap : {}
+, listViewKeys : {}
+, listViewAnimationKeys : {}
+, counter: 0
+, bitMap: {}
+, activityNamespaces: {}
+, currentActivity: "default"
+, constState : {}
 }
 
 if(!isPreRenderSupported()) {
