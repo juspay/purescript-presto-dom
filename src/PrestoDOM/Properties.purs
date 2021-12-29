@@ -162,6 +162,7 @@ module PrestoDOM.Properties
     , shimmerActive
     , viewGroupTag
     , payload
+    , cursorColor
     ) where
 
 import Prelude
@@ -778,6 +779,9 @@ shimmerActive false = prop (PropName "shimmerInactive") true
 
 viewGroupTag :: forall i. String -> Prop i
 viewGroupTag = prop (PropName "viewGroupTag")
+
+cursorColor :: forall i. String -> Prop i
+cursorColor = prop (PropName "cursorColor")
 
 useStartApp :: forall i. Boolean -> Prop i
 useStartApp = prop (PropName "useStartApp")
