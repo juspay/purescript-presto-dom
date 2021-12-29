@@ -76,3 +76,6 @@ mapToScopedScreen screen =
   , eval : screen.eval
   , parent : Nothing
   }
+
+terminateUI :: forall a. Flow a Unit
+terminateUI = doAff do liftEffect $ PrestoDOM2.terminateUI Nothing

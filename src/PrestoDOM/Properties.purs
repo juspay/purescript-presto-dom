@@ -51,6 +51,7 @@ module PrestoDOM.Properties
     , fillViewport
     , focus
     , focusable
+    , focusableInTouchMode
     , focusOut
     , fontFamily
     , fontSize
@@ -157,6 +158,7 @@ module PrestoDOM.Properties
     , width
     , alignParentBottom
     , alignParentLeft
+    , alignParentRight
     , popupMenu
     , pattern
     , shimmerActive
@@ -345,6 +347,10 @@ focus = prop (PropName "focus")
 -- | Boolean
 focusable :: forall i. Boolean -> Prop i
 focusable = prop (PropName "focusable")
+
+-- | Boolean
+focusableInTouchMode :: forall i. Boolean -> Prop i
+focusableInTouchMode = prop (PropName "focusableInTouchMode")
 
 focusOut :: forall i. String -> Prop i
 focusOut = prop (PropName "focusOut")
@@ -743,6 +749,9 @@ alignParentBottom = prop (PropName "alignParentBottom")
 alignParentLeft :: forall i. String -> Prop i
 alignParentLeft = prop (PropName "alignParentLeft")
 
+-- | Unknown
+alignParentRight :: forall i. String -> Prop i
+alignParentRight = prop (PropName "alignParentRight")
 
 pattern :: forall i. String -> Prop i
 pattern = prop (PropName "pattern")
