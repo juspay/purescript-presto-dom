@@ -1707,7 +1707,7 @@ exports.updateActivity = function (activityId) {
       }
       if(!isPreRenderSupported()) deleteScopedState(a, oldActivity);
       exports.setUpBaseState(a)()();
-      if(isPreRenderSupported()) exports.render(a);
+      exports.render(a);
     });
   }
 }
