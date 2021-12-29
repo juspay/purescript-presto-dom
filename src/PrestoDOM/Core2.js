@@ -11,6 +11,18 @@ if (window.__OS === "WEB") {
   parseParams = prestoUI.helpers.android.parseParams;
 }
 
+const isPreRenderSupported = function(){
+  var isSupported = false;
+  try{
+    var preRenderVersion = JBridge.getResourceByName("pre_render_version");
+    var clientId = window.__payload.payload.clientId.split("_")[0];
+    var sdkConfigFile = JSON.parse(JBridge.loadFileInDUI("sdk_config.json") || "");
+    isSupported = preRenderVersion >= (sdkConfigFile.preRenderConfig[clientId] || sdkConfigFile.preRenderConfig.common)
+  } catch(e) {
+    console.log(e, "error in pre-render support check");
+  }
+  return isSupported
+}
 
 function createAndroidWrapper () {
   if(window.__OS == "ANDROID" && window.Android && typeof window.Android.addToContainerList != "function") {
@@ -94,18 +106,43 @@ const state = {
   , constState: {}
 }
 
+if(!isPreRenderSupported()) {
+  state.patchState = {}
+  state.cachedMachine = {}
+}
+
 window.getState = state
 
 const getScopedState = function (namespace, activityID) {
-  const activityIDToUse = activityID || state.currentActivity;
-  return state.scopedState.hasOwnProperty(namespace)
-    ? state.scopedState[namespace][activityIDToUse]
-    : undefined;
+  if(isPreRenderSupported()) {
+    const activityIDToUse = activityID || state.currentActivity;
+    return state.scopedState.hasOwnProperty(namespace)
+      ? state.scopedState[namespace][activityIDToUse]
+      : undefined;
+  } else {
+    return state.scopedState[getNamespace(namespace, activityID)];
+  }
+
 };
 
-const getConstState = function (namespace) {
-  return state.constState[namespace];
+const getConstState = function (namespace, activityID) {
+  if(isPreRenderSupported()) {
+    return state.constState[namespace];
+  } else {
+    var id = activityID || state.currentActivity
+    if (namespace && namespace.indexOf(id) == -1) {
+      namespace = namespace + id;
+    }
+    return state.constState[namespace];
+  }
 };
+const getNamespace = function (namespace, activityID) {
+  var id = activityID || state.currentActivity
+  if (namespace && namespace.indexOf(id) == -1) {
+    namespace = namespace + id;
+  }
+  return namespace
+}
 
 const deleteScopedState = function (namespace, activityID) {
   var id = activityID || state.currentActivity;
@@ -486,9 +523,16 @@ function callAnimation__ (screenName, namespace, cache) {
         animationArray.push({ screenName : topOfStack, tag : "exitB"})
         while (getConstState(namespace).animations.animationStack[getConstState(namespace).animations.animationStack.length - 1] != screenName) {
           var page = getConstState(namespace).animations.animationStack.pop();
-          if (getConstState(namespace).cachedMachine &&
-              getConstState(namespace).cachedMachine.hasOwnProperty(page)){
-          getConstState(namespace).animations.prerendered.push(page)
+          if(isPreRenderSupported()) {
+            if (getConstState(namespace).cachedMachine && getConstState(namespace).cachedMachine.hasOwnProperty(page)){
+              getConstState(namespace).animations.prerendered.push(page)
+            }
+          }
+          else {
+            var namespace_ = getNamespace(namespace);
+            if (state.cachedMachine.hasOwnProperty(namespace_) && state.cachedMachine[namespace_].hasOwnProperty(page)){
+              getConstState(namespace).animations.prerendered.push(page)
+            }
           }
         }
       }
@@ -673,15 +717,18 @@ exports.checkAndDeleteFromHideAndRemoveStacks = function (namespace, screenName)
 exports.setUpBaseState = function (namespace) {
   return function (id) {
     return function () {
-      console.log("SETUP BASE STATE IN NEW CORE :: ", namespace, id);
+      if(isPreRenderSupported()) console.log("SETUP BASE STATE IN NEW CORE :: ", namespace, id);
+      else console.log("SETUP BASE STATE IN OLD CORE :: ", namespace, id);
       if(typeof getScopedState(namespace) != "undefined" && getConstState(namespace).hasRender) {
         terminateUIImpl()(namespace); 
       }else if (typeof getScopedState(namespace) != "undefined"){
         getScopedState(namespace).id = id
         return;
       }
+      if(!isPreRenderSupported()) namespace = getNamespace(namespace)
       if (state.currentActivity !== '') {
         var ns = namespace;
+        if(!isPreRenderSupported()) ns = namespace.substr(0, namespace.length - state.currentActivity.length);
         state.activityNamespaces[state.currentActivity] = state.activityNamespaces[state.currentActivity] || [];
         state.activityNamespaces[state.currentActivity].push(ns);
       }
@@ -911,11 +958,21 @@ exports.attachScreen = function(namespace, name, dom){
 }
 
 exports.storeMachine = function (dom, name, namespace) {
-  getScopedState(namespace).MACHINE_MAP[name] = dom;
-  if (getConstState(namespace).cachedMachine &&
-      getConstState(namespace).cachedMachine.hasOwnProperty(name)){
-        getConstState(namespace).cachedMachine[name] = dom;
+  if(isPreRenderSupported()) {
+    getScopedState(namespace).MACHINE_MAP[name] = dom;
+    if (getConstState(namespace).cachedMachine &&
+        getConstState(namespace).cachedMachine.hasOwnProperty(name)){
+          getConstState(namespace).cachedMachine[name] = dom;
+    }
+  } else {
+    var namespace = getNamespace(namespace);
+    state.scopedState[namespace].MACHINE_MAP[name] = dom;
+    if (state.cachedMachine.hasOwnProperty(namespace) &&
+         state.cachedMachine[namespace].hasOwnProperty(name)){
+      state.cachedMachine[namespace][name] = dom;
+    }
   }
+
 }
 
 exports.getLatestMachine = function (name, namespace) {
@@ -923,10 +980,19 @@ exports.getLatestMachine = function (name, namespace) {
 }
  
 exports.cacheMachine = function(machine, screenName, namespace) {
-  if (!getConstState(namespace).cachedMachine){
-    getConstState(namespace).cachedMachine = {}
+  if(isPreRenderSupported()) {
+    if (!getConstState(namespace).cachedMachine){
+      getConstState(namespace).cachedMachine = {}
+    }
+    getConstState(namespace).cachedMachine[screenName] = machine;
   }
-  getConstState(namespace).cachedMachine[screenName] = machine;
+  else {
+    var curNamespace = getNamespace(namespace);
+    if (!state.cachedMachine.hasOwnProperty(curNamespace)){
+      state.cachedMachine[curNamespace] = {}
+    }
+    state.cachedMachine[curNamespace][screenName] = machine;
+  }
 };
 
 exports.isInStack = function (name, namespace) {
@@ -962,8 +1028,13 @@ exports.cancelExistingActions = function (name, namespace) {
 
 exports.saveCanceller = function (name, namespace, canceller) {
   // Added || false to return false when value is undefined
-  var activity = state.currentActivity;
-  state.scopedState[namespace][activity] = getScopedState(namespace) || {}
+  if(!isPreRenderSupported()) {
+    namespace = namespace + state.currentActivity;
+    state.scopedState[namespace] = getScopedState(namespace) || {}
+  } else {
+    var activity = state.currentActivity;
+    state.scopedState[namespace][activity] = getScopedState(namespace) || {}
+  }
   getScopedState(namespace).cancelers = getScopedState(namespace).cancelers || {}
   if(getScopedState(namespace) && getScopedState(namespace).cancelers) {
     getScopedState(namespace).cancelers[name] = canceller;
@@ -982,7 +1053,7 @@ function terminateUIImpl(callback) {
       )()
     }
     window.__usedIDS = undefined;
-    clearStoredID();
+    if(isPreRenderSupported()) clearStoredID();
     if(window.__OS == "ANDROID"
     && AndroidWrapper.runInUI
     && getScopedState(namespace)
@@ -1310,7 +1381,13 @@ exports.hideCacheRootOnAnimationEnd = function(namespace) {
 exports.setControllerStates = function(namespace) {
   return function (screenName) {
     return function () {
-      ensureScopeStateExists(namespace)
+      if(isPreRenderSupported()) ensureScopeStateExists(namespace)
+      else {
+        if (namespace && namespace.indexOf(state.currentActivity) == -1) {
+          namespace = namespace + state.currentActivity;
+        }
+        state.scopedState[namespace] = getScopedState(namespace) || {}
+      }
       getScopedState(namespace).activeScreen = screenName;
       getScopedState(namespace).activateScreen = true;
     }
@@ -1322,6 +1399,7 @@ exports["replayFragmentCallbacks'"] = function (namespace) {
     return function (push) {
       return function() {
         try {
+          if(!isPreRenderSupported()) namespace = getNamespace(namespace)
           getScopedState(namespace).shouldReplayCallbacks[nam] = true
           if(window.__OS == "WEB") {
             (getScopedState(namespace).fragmentCallbacks[nam] || []).forEach (function(x) {
@@ -1334,6 +1412,7 @@ exports["replayFragmentCallbacks'"] = function (namespace) {
         }
         return function() {
           try {
+            if(!isPreRenderSupported()) namespace = getNamespace(namespace)
             getScopedState(namespace).shouldReplayCallbacks[nam] = false
           } catch (err) {
             console.warn("TODO:: Fix this", err);
@@ -1344,7 +1423,15 @@ exports["replayFragmentCallbacks'"] = function (namespace) {
   }
 }
 exports.getAndSetEventFromState = function(namespace, screenName, def) {
-  state.scopedState[namespace][state.currentActivity] = getScopedState(namespace) || {}
+  if(isPreRenderSupported()) {
+    state.scopedState[namespace][state.currentActivity] = getScopedState(namespace) || {}
+  }
+  else {
+    if (namespace && namespace.indexOf(state.currentActivity) == -1) {
+      namespace = namespace + state.currentActivity;
+    }
+    state.scopedState[namespace] = getScopedState(namespace) || {}
+  }
   getScopedState(namespace).eventIOs = getScopedState(namespace).eventIOs || {}
   getScopedState(namespace).eventIOs[screenName] = getScopedState(namespace).eventIOs[screenName] || def();
   return getScopedState(namespace).eventIOs[screenName];
@@ -1390,9 +1477,18 @@ exports.updateMicroAppPayloadImpl = function (payload, element, isPatch) {
 exports.incrementPatchCounter = function(namespace) {
   return function(screenName) {
     return function() {
-      getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
-      getScopedState(namespace).patchState[screenName].counter = getScopedState(namespace).patchState[screenName].counter || 0
-      getScopedState(namespace).patchState[screenName].counter++;
+      if(isPreRenderSupported()) {
+        getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
+        getScopedState(namespace).patchState[screenName].counter = getScopedState(namespace).patchState[screenName].counter || 0
+        getScopedState(namespace).patchState[screenName].counter++;
+      } else {
+        state.patchState = state.patchState || {}
+        state.patchState[namespace] = state.patchState[namespace] || {}
+        state.patchState[namespace][screenName] = state.patchState[namespace][screenName] || {}
+        state.patchState[namespace][screenName].counter = state.patchState[namespace][screenName].counter || 0
+        state.patchState[namespace][screenName].counter++;
+      }
+
     }
   }
 }
@@ -1400,25 +1496,48 @@ exports.incrementPatchCounter = function(namespace) {
 exports.decrementPatchCounter = function(namespace) {
   return function(screenName) {
     return function () {
-      getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
-      getScopedState(namespace).patchState[screenName].counter = getScopedState(namespace).patchState[screenName].counter || 1
-      if(getScopedState(namespace).patchState[screenName].counter > 0) {
-        getScopedState(namespace).patchState[screenName].counter--;
-      }
-      if(getScopedState(namespace).patchState[screenName].counter === 0 && getScopedState(namespace).patchState[screenName].active) {
-        triggerPatchQueue(namespace, screenName)
+      if(isPreRenderSupported()) {
+          getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
+          getScopedState(namespace).patchState[screenName].counter = getScopedState(namespace).patchState[screenName].counter || 1
+          if(getScopedState(namespace).patchState[screenName].counter > 0) {
+            getScopedState(namespace).patchState[screenName].counter--;
+          }
+          if(getScopedState(namespace).patchState[screenName].counter === 0 && getScopedState(namespace).patchState[screenName].active) {
+            triggerPatchQueue(namespace, screenName)
+          }
+      } else {
+        state.patchState = state.patchState || {}
+        state.patchState[namespace] = state.patchState[namespace] || {}
+        state.patchState[namespace][screenName] = state.patchState[namespace][screenName] || {}
+        state.patchState[namespace][screenName].counter = state.patchState[namespace][screenName].counter || 1
+        if(state.patchState[namespace][screenName].counter > 0) {
+          state.patchState[namespace][screenName].counter--;
+        }
+        if(state.patchState[namespace][screenName].counter === 0 && state.patchState[namespace][screenName].active) {
+          triggerPatchQueue(namespace, screenName)
+        }
       }
     }
   }
 }
 
 function triggerPatchQueue(namespace, screenName) {
-  getScopedState(namespace).patchState[screenName].active = false;
-  var nextPatch = (getScopedState(namespace).patchState[screenName].queue || []).shift();
-  if(typeof nextPatch == "function") {
-    nextPatch();
+  if(isPreRenderSupported()) {
+    getScopedState(namespace).patchState[screenName].active = false;
+    var nextPatch = (getScopedState(namespace).patchState[screenName].queue || []).shift();
+    if(typeof nextPatch == "function") {
+      nextPatch();
+    } else {
+      getScopedState(namespace).patchState[screenName].started = false;
+    }
   } else {
-    getScopedState(namespace).patchState[screenName].started = false;
+    state.patchState[namespace][screenName].active = false;
+    var nextPatch = (state.patchState[namespace][screenName].queue || []).shift();
+    if(typeof nextPatch == "function") {
+      nextPatch();
+    } else {
+      state.patchState[namespace][screenName].started = false;
+    }
   }
 }
 
@@ -1426,13 +1545,25 @@ exports.addToPatchQueue = function(namespace) {
   return function(screenName) {
     return function(patchFn) {
       return function () {
-        getScopedState(namespace).patchState = getScopedState(namespace).patchState || {}
-        getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
-        getScopedState(namespace).patchState[screenName].queue = getScopedState(namespace).patchState[screenName].queue || []
-        getScopedState(namespace).patchState[screenName].queue.push(patchFn);
-        if(!getScopedState(namespace).patchState[screenName].started) {
-          getScopedState(namespace).patchState[screenName].started = true;
-          triggerPatchQueue(namespace, screenName);
+        if(isPreRenderSupported()) {
+          getScopedState(namespace).patchState = getScopedState(namespace).patchState || {}
+          getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
+          getScopedState(namespace).patchState[screenName].queue = getScopedState(namespace).patchState[screenName].queue || []
+          getScopedState(namespace).patchState[screenName].queue.push(patchFn);
+          if(!getScopedState(namespace).patchState[screenName].started) {
+            getScopedState(namespace).patchState[screenName].started = true;
+            triggerPatchQueue(namespace, screenName);
+          }
+        } else {
+          state.patchState = state.patchState || {}
+          state.patchState[namespace] = state.patchState[namespace] || {}
+          state.patchState[namespace][screenName] = state.patchState[namespace][screenName] || {}
+          state.patchState[namespace][screenName].queue = state.patchState[namespace][screenName].queue || []
+          state.patchState[namespace][screenName].queue.push(patchFn);
+          if(!state.patchState[namespace][screenName].started) {
+            state.patchState[namespace][screenName].started = true;
+            triggerPatchQueue(namespace, screenName);
+          }
         }
       }
     }
@@ -1440,8 +1571,9 @@ exports.addToPatchQueue = function(namespace) {
 }
 
 exports.setPatchToActive = function(namespace) {
-    return function(screenName) {
-      return function () {
+  return function(screenName) {
+    return function () {
+      if(isPreRenderSupported()) {
         getScopedState(namespace).patchState = getScopedState(namespace).patchState || {}
         getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
         if(getScopedState(namespace).patchState[screenName].counter > 0) {
@@ -1449,8 +1581,18 @@ exports.setPatchToActive = function(namespace) {
         } else {
           triggerPatchQueue(namespace, screenName)
         }
+      } else {
+        state.patchState = state.patchState || {}
+        state.patchState[namespace] = state.patchState[namespace] || {}
+        state.patchState[namespace][screenName] = state.patchState[namespace][screenName] || {}
+        if(state.patchState[namespace][screenName].counter > 0) {
+          state.patchState[namespace][screenName].active = true;
+        } else {
+          triggerPatchQueue(namespace, screenName)
+        }
       }
     }
+  }
 }
 
 exports.parseParams = function (a,b, c) {
@@ -1565,9 +1707,9 @@ exports.updateActivity = function (activityId) {
       if (typeof getScopedState(a) != "undefined") {
         return;
       }
-      // deleteScopedState(a, oldActivity);
+      if(!isPreRenderSupported()) deleteScopedState(a, oldActivity);
       exports.setUpBaseState(a)()();
-      exports.render(a);
+      if(isPreRenderSupported()) exports.render(a);
     });
   }
 }
@@ -1594,6 +1736,12 @@ exports.isScreenPushActive = function(namespace) {
   return function(screenName) {
       return function(activityID){
         return function () {
+            if(isPreRenderSupported()) {
+              state.scopedState[namespace][activityID] = getScopedState(namespace, activityID) || {}
+            } else {
+              namespace = getNamespace(namespace, activityID);
+              state.scopedState[namespace] = getScopedState(namespace, activityID) || {}
+            }
             state.scopedState[namespace][activityID] = getScopedState(namespace, activityID) || {}
             getScopedState(namespace, activityID).pushActive = getScopedState(namespace, activityID).pushActive || {}
             return getScopedState(namespace, activityID).pushActive[screenName] || false;
@@ -1675,7 +1823,13 @@ function prepareDom (dom, name, namespace){
  */
 exports.getCachedMachineImpl = function(just,nothing,namespace,screenName) {
   if (window.__OS === "ANDROID"){
-    var machine = getConstState(namespace).cachedMachine ? getConstState(namespace).cachedMachine[screenName] : null;
+    var machine;
+    if (isPreRenderSupported()) {
+      machine = getConstState(namespace).cachedMachine ? getConstState(namespace).cachedMachine[screenName] : null;
+    } else {
+      var curNamespace = getNamespace(namespace);
+      machine = state.cachedMachine.hasOwnProperty(curNamespace) ? state.cachedMachine[curNamespace][screenName] : null;
+    }
     if (machine != null && (typeof machine == "object")){
       return just(machine);
     } else {
@@ -1696,6 +1850,7 @@ exports.getCachedMachineImpl = function(just,nothing,namespace,screenName) {
 exports.addScreenWithAnim = function (dom,  screenName, namespace){
   if (window.__OS == "ANDROID") {
   //   var namespace = getNamespace(namespace_);
+    if(!isPreRenderSupported()) namespace = getNamespace(namespace)
     makeRootVisible(namespace);
     exports.makeScreenVisible(namespace, screenName);
     executePostProcess(screenName, namespace, false)();
