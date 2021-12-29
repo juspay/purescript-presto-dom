@@ -500,7 +500,6 @@ prepareScreen screen@{name, parent, view} json = do
       makeAff $ \cB -> do
          EFn.runEffectFn5 prepareAndStoreView (callBack cB pre_rendering_started) domAllOut (ns <> name) ns name
          pure nonCanceler
-
     where
     callBack cb pre_rendering_started = do
         pre_rendering_ended <- getTimeInMillis

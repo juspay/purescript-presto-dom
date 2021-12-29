@@ -94,16 +94,16 @@ function createAndroidWrapper () {
 const AndroidWrapper = createAndroidWrapper()
 
 const state = {
-  scopedState: {}
-  , fragments: {}
-  , fragmentIdMap: {}
-  , listViewKeys: {}
-  , listViewAnimationKeys: {}
+  scopedState : {}
+  , fragments : {}
+  , fragmentIdMap : {}
+  , listViewKeys : {}
+  , listViewAnimationKeys : {}
   , counter: 0
   , bitMap: {}
   , activityNamespaces: {}
   , currentActivity: "default"
-  , constState: {}
+  , constState : {}
 }
 
 if(!isPreRenderSupported()) {
@@ -721,7 +721,7 @@ exports.setUpBaseState = function (namespace) {
       else console.log("SETUP BASE STATE IN OLD CORE :: ", namespace, id);
       if(typeof getScopedState(namespace) != "undefined" && getConstState(namespace).hasRender) {
         terminateUIImpl()(namespace); 
-      }else if (typeof getScopedState(namespace) != "undefined"){
+      }else if(typeof getScopedState(namespace) != "undefined"){
         getScopedState(namespace).id = id
         return;
       }
@@ -747,26 +747,26 @@ exports.setUpBaseState = function (namespace) {
             width: "match_parent",
             visibility : "gone"
         },
-        __ref: elemRef,
+        __ref : elemRef,
         children: [
-          { type: "relativeLayout",
-            props: {
-              id: stackRef.__id,
+          { type: "relativeLayout"
+          , props: {
+              id : stackRef.__id,
               height: "match_parent",
               width: "match_parent"
-            },
-            __ref: stackRef,
-            children: [],
+            }
+          , __ref : stackRef
+          , children: []
           },
-          { type: "relativeLayout",
-            props: {
-              id: cacheRef.__id,
+          { type: "relativeLayout"
+          , props: {
+              id : cacheRef.__id,
               height: "match_parent",
               width: "match_parent",
-              visibility: "gone"
-            },
-            __ref: cacheRef,
-            children: []
+              visibility : "gone"
+            }
+          , __ref : cacheRef
+          , children: []
           }
         ]
       };
@@ -783,7 +783,7 @@ exports.setUpBaseState = function (namespace) {
       getScopedState(namespace).eventIOs = {}
       getScopedState(namespace).queuedEvents = {}
       getScopedState(namespace).pushActive = {}
-      getScopedState(namespace).rootVisible = false
+      getScopedState(namespace).rootVisible = false;
       getScopedState(namespace).patchState = {}
 
       if (!state.constState.hasOwnProperty( namespace )){
@@ -820,7 +820,7 @@ exports.setUpBaseState = function (namespace) {
 }
 
 exports.render = function (namespace) {
-  getConstState(namespace).hasRender = true;
+  getConstState(namespace).hasRender = true
   var id = getIdFromNamespace(namespace);
   if (window.__OS == "ANDROID") {
     if (typeof AndroidWrapper.getNewID == "function") {
@@ -1049,8 +1049,7 @@ function terminateUIImpl(callback) {
       callback(-1)(JSON.stringify({
           stopAtDom : true,
           id : getScopedState(namespace).id
-        })
-      )()
+        }))()
     }
     window.__usedIDS = undefined;
     if(isPreRenderSupported()) clearStoredID();
@@ -1102,14 +1101,14 @@ function terminateUIImpl(callback) {
             }
           }
         // Adding var x so that openning paranthesis is not treated as argument
-        var x = top.removeRootScreen.bind(this)(JOS.self + "::" + namespace);
+        var x = (top.removeRootScreen.bind(this))(JOS.self + "::" + namespace);
       }
     } catch (e) {
       // incase of exception from using top
     }
-    deleteScopedState(namespace);
+    deleteScopedState(namespace)
     if (window.__OS != "ANDROID") {
-      deleteConstState(namespace);
+      deleteConstState(namespace)
     }
   }
 }
@@ -1488,7 +1487,6 @@ exports.incrementPatchCounter = function(namespace) {
         state.patchState[namespace][screenName].counter = state.patchState[namespace][screenName].counter || 0
         state.patchState[namespace][screenName].counter++;
       }
-
     }
   }
 }
