@@ -229,6 +229,7 @@ cacheMappPayload ref (NodeTree {requestId: (Just req), service: (Just ser), prop
               , requestId : req
               , service : ser
               , elemId : id
+              , useLinearLayout : extractAndDecode "useLinearLayout" p
               , callback : fromMaybe (unsafeCoerce $ (\_ -> pure unit :: Effect Unit)) $ unsafeCoerce <$> lookup "onMicroappResponse" p
               -- TODO
               -- 1) Make optional -- DONE

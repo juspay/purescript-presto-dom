@@ -74,6 +74,7 @@ type AnimationObject =
 type MicroappData =
   { payload :: String
   , viewGroupTag :: String
+  , useLinearLayout :: Maybe Boolean
   , requestId :: String
   , service :: String
   , elemId :: String

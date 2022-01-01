@@ -312,6 +312,7 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
     var mappBootData = {
       payload : props.payload
     , viewGroupTag : props.viewGroupTag || "main"
+    , useLinearLayout : props.useLinearLayout || false
     , unNestPayload : props.unNestPayload
     , useStartApp : props.useStartApp
     , requestId : elem.requestId
@@ -326,7 +327,7 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
       console.warn("Namespace", namespace);
       console.warn("state", state);
     }
-    type = "relativeLayout"
+    type = mappBootData.useLinearLayout ? "linearLayout" : "relativeLayout"
   }
   if(props.hasOwnProperty("afterRender")) {
     if (getConstState(namespace).prerenderScreens.indexOf(screenName) != -1) {
