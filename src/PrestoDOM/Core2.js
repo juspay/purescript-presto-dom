@@ -11,19 +11,6 @@ if (window.__OS === "WEB") {
   parseParams = prestoUI.helpers.android.parseParams;
 }
 
-const isPreRenderSupported = function(){
-  var isSupported = false;
-  try{
-    var preRenderVersion = JBridge.getResourceByName("pre_render_version");
-    var clientId = window.__payload.payload.clientId.split("_")[0];
-    var sdkConfigFile = JSON.parse(JBridge.loadFileInDUI("sdk_config.json") || "");
-    isSupported = preRenderVersion >= (sdkConfigFile.preRenderConfig[clientId] || sdkConfigFile.preRenderConfig.common)
-  } catch(e) {
-    console.log(e, "error in pre-render support check");
-  }
-  return isSupported
-}
-
 function createAndroidWrapper () {
   if(window.__OS == "ANDROID" && window.Android && typeof window.Android.addToContainerList != "function") {
     var android = {}
@@ -106,15 +93,33 @@ const state = {
 , constState : {}
 }
 
-if(!isPreRenderSupported()) {
+const isPreRenderSupported = function(){
+  let isSupported = false;
+  if(window.__OS == "ANDROID"){
+    try{
+      const preRenderVersion = JBridge.getResourceByName("pre_render_version");
+      const clientId = window.__payload.payload.clientId.split("_")[0];
+      const sdkConfigFile = JSON.parse(JBridge.loadFileInDUI("sdk_config.json") || "");
+      isSupported = preRenderVersion >= (sdkConfigFile.preRenderConfig[clientId] || sdkConfigFile.preRenderConfig.common)
+    } catch(e) {
+      tracker._trackException("system")("exception")("ma_pre_render_support")("error")({"namespace":namespace, "message":"error in multi-activity-pre-render support check", "stacktrace": e})();
+    }
+  }
+  state.isPreRenderEnabled = isSupported
+  return isSupported
+}
+
+state.isPreRenderEnabled = state.isPreRenderEnabled || isPreRenderSupported()
+window.getState = state
+
+if(!state.isPreRenderEnabled) {
   state.patchState = {}
   state.cachedMachine = {}
 }
 
-window.getState = state
 
 const getScopedState = function (namespace, activityID) {
-  if(isPreRenderSupported()) {
+  if(state.isPreRenderEnabled) {
     const activityIDToUse = activityID || state.currentActivity;
     return state.scopedState.hasOwnProperty(namespace)
       ? state.scopedState[namespace][activityIDToUse]
@@ -126,7 +131,7 @@ const getScopedState = function (namespace, activityID) {
 };
 
 const getConstState = function (namespace, activityID) {
-  if(isPreRenderSupported()) {
+  if(state.isPreRenderEnabled) {
     return state.constState[namespace];
   } else {
     var id = activityID || state.currentActivity
@@ -528,7 +533,7 @@ function callAnimation__ (screenName, namespace, cache) {
         animationArray.push({ screenName : topOfStack, tag : "exitB"})
         while (getConstState(namespace).animations.animationStack[getConstState(namespace).animations.animationStack.length - 1] != screenName) {
           var page = getConstState(namespace).animations.animationStack.pop();
-          if(isPreRenderSupported()) {
+          if(state.isPreRenderEnabled) {
             if (getConstState(namespace).cachedMachine && getConstState(namespace).cachedMachine.hasOwnProperty(page)){
               getConstState(namespace).animations.prerendered.push(page)
             }
@@ -641,7 +646,7 @@ function processMapps(namespace, nam, timeout) {
                   elemId : this.object.fragId
                 });
               else
-                console.log("Mapp response", code, message)
+                tracker._trackAction("system")("info")("process_mapps_response")({"namespace":namespace, "code":code, "message": message})();
             } else {
                 try {
                   var plds = getScopedState(namespace).fragmentCallbacks[nam] || [];
@@ -649,7 +654,7 @@ function processMapps(namespace, nam, timeout) {
                     return !(test.id == x.payload.elemId)
                   })
                 } catch (e) {
-                  console.log("flushFragmentCallbacks Error => ", e)
+                  tracker._trackException("system")("exception")("process_mapps")("error")({"namespace":namespace, "name":nam, "message": "flushFragmentCallbacks Error", "stacktrace": e})();
                 }
             }
           }.bind({
@@ -697,7 +702,6 @@ function executePostProcess(nam, namespace, cache) {
       } else {
         tracker._trackAction("system")("info")("execute_post_process")({"namespace":namespace, "name":nam, "callbackWithParam": a})();
       }
-      console.log("triggering after render", getScopedState(namespace).afterRenderFunctions.toString())
       callAnimation__(nam, namespace, cache);
       processMapps(namespace, nam, 75);
       triggerAfterRender(namespace, nam);
@@ -746,18 +750,17 @@ exports.checkAndDeleteFromHideAndRemoveStacks = function (namespace, screenName)
 exports.setUpBaseState = function (namespace) {
   return function (id) {
     return function () {
-      if(isPreRenderSupported()) console.log("SETUP BASE STATE IN NEW CORE :: ", namespace, id);
-      else console.log("SETUP BASE STATE IN OLD CORE :: ", namespace, id);
+      tracker._trackAction("system")("info")("setup_base_state")({"namespace":namespace, "id":id, "isMultiActivityPreRenderSupported": state.isPreRenderEnabled})();
       if(typeof getScopedState(namespace) != "undefined" && getConstState(namespace).hasRender) {
         terminateUIImpl()(namespace); 
       }else if(typeof getScopedState(namespace) != "undefined"){
         getScopedState(namespace).id = id
         return;
       }
-      if(!isPreRenderSupported()) namespace = getNamespace(namespace)
+      if(!state.isPreRenderEnabled) namespace = getNamespace(namespace)
       if (state.currentActivity !== '') {
         var ns = namespace;
-        if(!isPreRenderSupported()) ns = namespace.substr(0, namespace.length - state.currentActivity.length);
+        if(!state.isPreRenderEnabled) ns = namespace.substr(0, namespace.length - state.currentActivity.length);
         state.activityNamespaces[state.currentActivity] = state.activityNamespaces[state.currentActivity] || [];
         state.activityNamespaces[state.currentActivity].push(ns);
       }
@@ -951,8 +954,7 @@ exports.prepareAndStoreView = function (callback, dom, key, namespace, screenNam
         fn();
       }
     }catch(err){
-      tracker._trackException("system")("error")("prepare_and_store_view_catch")("error")({"namespace":namespace, "key":key, "callbackException": err})();
-      console.error("call InitUI for namespace", namespace);
+      tracker._trackException("system")("exception")("prepare_and_store_view_catch")("error")({"namespace":namespace, "key":key, "callbackException": err})();
     }
     callback();
   });
@@ -988,7 +990,7 @@ exports.attachScreen = function(namespace, name, dom){
 }
 
 exports.storeMachine = function (dom, name, namespace) {
-  if(isPreRenderSupported()) {
+  if(state.isPreRenderEnabled) {
     getScopedState(namespace).MACHINE_MAP[name] = dom;
     if (getConstState(namespace).cachedMachine &&
         getConstState(namespace).cachedMachine.hasOwnProperty(name)){
@@ -1010,7 +1012,7 @@ exports.getLatestMachine = function (name, namespace) {
 }
  
 exports.cacheMachine = function(machine, screenName, namespace) {
-  if(isPreRenderSupported()) {
+  if(state.isPreRenderEnabled) {
     if (!getConstState(namespace).cachedMachine){
       getConstState(namespace).cachedMachine = {}
     }
@@ -1058,7 +1060,7 @@ exports.cancelExistingActions = function (name, namespace) {
 
 exports.saveCanceller = function (name, namespace, canceller) {
   // Added || false to return false when value is undefined
-  if(!isPreRenderSupported()) {
+  if(!state.isPreRenderEnabled) {
     namespace = namespace + state.currentActivity;
     state.scopedState[namespace] = getScopedState(namespace) || {}
   } else {
@@ -1082,7 +1084,7 @@ function terminateUIImpl(callback) {
         }))()
     }
     window.__usedIDS = undefined;
-    if(isPreRenderSupported()) clearStoredID();
+    if(state.isPreRenderEnabled) clearStoredID();
     if(window.__OS == "ANDROID"
     && AndroidWrapper.runInUI
     && getScopedState(namespace)
@@ -1165,7 +1167,7 @@ exports.makeScreenVisible = function (namespace, name) {
       cb()
     }
   } catch(e) {
-    console.log("Call InitUI first for namespace ", namespace, e)
+    tracker._trackException("system")("exception")("make_screen_visible")("error")({"namespace":namespace, "name":name, "message": "Call InitUI first for the namespace", "stacktrace": e})();
   }
 }
 
@@ -1175,7 +1177,7 @@ exports.addToCachedList = function (namespace, screenName) {
       getScopedState(namespace).screenCache.push(screenName);
     }
   } catch (e) {
-    console.log("Call InitUI first for namespace ", namespace, e)
+    tracker._trackException("system")("exception")("add_to_cached_list")("error")({"namespace":namespace, "name":screenName, "message": "Call InitUI first for the namespace", "stacktrace": e})();
   }
 }
 
@@ -1358,7 +1360,7 @@ function setManualEvents (namespace) {
                 : {};
             getConstState(namespace).registeredEvents[eventName][screenName] = callbackFunction;
           } catch (e) {
-            console.log("Call init UI first", e)
+            tracker._trackException("system")("exception")("set_manual_events")("error")({"namespace":namespace, "name":screenName, "eventname": eventName, "message": "Call init UI first", "stacktrace": e})();
           }
         }
       }
@@ -1410,7 +1412,7 @@ exports.hideCacheRootOnAnimationEnd = function(namespace) {
 exports.setControllerStates = function(namespace) {
   return function (screenName) {
     return function () {
-      if(isPreRenderSupported()) ensureScopeStateExists(namespace)
+      if(state.isPreRenderEnabled) ensureScopeStateExists(namespace)
       else {
         if (namespace && namespace.indexOf(state.currentActivity) == -1) {
           namespace = namespace + state.currentActivity;
@@ -1428,7 +1430,7 @@ exports["replayFragmentCallbacks'"] = function (namespace) {
     return function (push) {
       return function() {
         try {
-          if(!isPreRenderSupported()) namespace = getNamespace(namespace)
+          if(!state.isPreRenderEnabled) namespace = getNamespace(namespace)
           getScopedState(namespace).shouldReplayCallbacks[nam] = true
           if(window.__OS == "WEB") {
             (getScopedState(namespace).fragmentCallbacks[nam] || []).forEach (function(x) {
@@ -1437,11 +1439,11 @@ exports["replayFragmentCallbacks'"] = function (namespace) {
           }
         }
         catch (e) {
-          console.log("Replay fragment Error => ", e)
+          tracker._trackException("system")("exception")("replay_fragment_callbacks")("error")({"namespace":namespace, "name":nam, "message": "Replay fragment Error", "stacktrace": e})();
         }
         return function() {
           try {
-            if(!isPreRenderSupported()) namespace = getNamespace(namespace)
+            if(!state.isPreRenderEnabled) namespace = getNamespace(namespace)
             getScopedState(namespace).shouldReplayCallbacks[nam] = false
           } catch (err) {
             console.warn("TODO:: Fix this", err);
@@ -1452,7 +1454,7 @@ exports["replayFragmentCallbacks'"] = function (namespace) {
   }
 }
 exports.getAndSetEventFromState = function(namespace, screenName, def) {
-  if(isPreRenderSupported()) {
+  if(state.isPreRenderEnabled) {
     state.scopedState[namespace][state.currentActivity] = getScopedState(namespace) || {}
   }
   else {
@@ -1506,7 +1508,7 @@ exports.updateMicroAppPayloadImpl = function (payload, element, isPatch) {
 exports.incrementPatchCounter = function(namespace) {
   return function(screenName) {
     return function() {
-      if(isPreRenderSupported()) {
+      if(state.isPreRenderEnabled) {
         getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
         getScopedState(namespace).patchState[screenName].counter = getScopedState(namespace).patchState[screenName].counter || 0
         getScopedState(namespace).patchState[screenName].counter++;
@@ -1524,7 +1526,7 @@ exports.incrementPatchCounter = function(namespace) {
 exports.decrementPatchCounter = function(namespace) {
   return function(screenName) {
     return function () {
-      if(isPreRenderSupported()) {
+      if(state.isPreRenderEnabled) {
           getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
           getScopedState(namespace).patchState[screenName].counter = getScopedState(namespace).patchState[screenName].counter || 1
           if(getScopedState(namespace).patchState[screenName].counter > 0) {
@@ -1550,7 +1552,7 @@ exports.decrementPatchCounter = function(namespace) {
 }
 
 function triggerPatchQueue(namespace, screenName) {
-  if(isPreRenderSupported()) {
+  if(state.isPreRenderEnabled) {
     getScopedState(namespace).patchState[screenName].active = false;
     var nextPatch = (getScopedState(namespace).patchState[screenName].queue || []).shift();
     if(typeof nextPatch == "function") {
@@ -1573,7 +1575,7 @@ exports.addToPatchQueue = function(namespace) {
   return function(screenName) {
     return function(patchFn) {
       return function () {
-        if(isPreRenderSupported()) {
+        if(state.isPreRenderEnabled) {
           getScopedState(namespace).patchState = getScopedState(namespace).patchState || {}
           getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
           getScopedState(namespace).patchState[screenName].queue = getScopedState(namespace).patchState[screenName].queue || []
@@ -1601,7 +1603,7 @@ exports.addToPatchQueue = function(namespace) {
 exports.setPatchToActive = function(namespace) {
   return function(screenName) {
     return function () {
-      if(isPreRenderSupported()) {
+      if(state.isPreRenderEnabled) {
         getScopedState(namespace).patchState = getScopedState(namespace).patchState || {}
         getScopedState(namespace).patchState[screenName] = getScopedState(namespace).patchState[screenName] || {}
         if(getScopedState(namespace).patchState[screenName].counter > 0) {
@@ -1731,11 +1733,11 @@ exports.updateActivity = function (activityId) {
     state.currentActivity = activityId;
     state.activityNamespaces[oldActivity] = state.activityNamespaces[oldActivity] || [];
     state.activityNamespaces[oldActivity].map(function(a) {
-      console.log("updateActivity called for ", activityId, a);
+      tracker._trackAction("system")("info")("update_activity")({"activityId": activityId, "namespace": a})();
       if (typeof getScopedState(a) != "undefined") {
         return;
       }
-      if(!isPreRenderSupported()) deleteScopedState(a, oldActivity);
+      if(!state.isPreRenderEnabled) deleteScopedState(a, oldActivity);
       exports.setUpBaseState(a)()();
       exports.render(a);
     });
@@ -1764,7 +1766,7 @@ exports.isScreenPushActive = function(namespace) {
   return function(screenName) {
       return function(activityID){
         return function () {
-            if(isPreRenderSupported()) {
+            if(state.isPreRenderEnabled) {
               state.scopedState[namespace][activityID] = getScopedState(namespace, activityID) || {}
             } else {
               namespace = getNamespace(namespace, activityID);
@@ -1852,7 +1854,7 @@ function prepareDom (dom, name, namespace){
 exports.getCachedMachineImpl = function(just,nothing,namespace,screenName) {
   if (window.__OS === "ANDROID"){
     var machine;
-    if (isPreRenderSupported()) {
+    if (state.isPreRenderEnabled) {
       machine = getConstState(namespace).cachedMachine ? getConstState(namespace).cachedMachine[screenName] : null;
     } else {
       var curNamespace = getNamespace(namespace);
@@ -1878,7 +1880,7 @@ exports.getCachedMachineImpl = function(just,nothing,namespace,screenName) {
 exports.addScreenWithAnim = function (dom,  screenName, namespace){
   if (window.__OS == "ANDROID") {
   //   var namespace = getNamespace(namespace_);
-    if(!isPreRenderSupported()) namespace = getNamespace(namespace)
+    if(!state.isPreRenderEnabled) namespace = getNamespace(namespace)
     makeRootVisible(namespace);
     exports.makeScreenVisible(namespace, screenName);
     executePostProcess(screenName, namespace, false)();
