@@ -93,8 +93,31 @@ const state = {
 , constState : {}
 }
 
+const loopedFunction = function(){
+  return loopedFunction
+}
+
+const getTracker = function () {
+  var trackerJson = JOS.tracker || {};
+  if (typeof trackerJson._trackContext != "function") {
+    trackerJson._trackContext = loopedFunction;
+  }
+  if (typeof trackerJson._trackAction != "function") {
+    trackerJson._trackAction = loopedFunction;
+  }
+  if (typeof trackerJson._trackException != "function") {
+    trackerJson._trackException = loopedFunction;
+  }
+  if (typeof trackerJson._trackLifeCycle != "function") {
+    trackerJson._trackLifeCycle = loopedFunction;
+  }
+  return trackerJson;
+};
+
+const tracker = getTracker()
+
 const isPreRenderSupported = function(){
-  let isSupported = false;
+  var isSupported = false;
   if(window.__OS == "ANDROID"){
     try{
       const preRenderVersion = JBridge.getResourceByName("pre_render_version");
@@ -102,7 +125,7 @@ const isPreRenderSupported = function(){
       const sdkConfigFile = JSON.parse(JBridge.loadFileInDUI("sdk_config.json") || "");
       isSupported = preRenderVersion >= (sdkConfigFile.preRenderConfig[clientId] || sdkConfigFile.preRenderConfig.common)
     } catch(e) {
-      tracker._trackException("system")("exception")("ma_pre_render_support")("error")({"namespace":namespace, "message":"error in multi-activity-pre-render support check", "stacktrace": e})();
+      tracker._trackException("system")("exception")("ma_pre_render_support")("error")({"message":"error in multi-activity-pre-render support check", "stacktrace": e})();
     }
   }
   state.isPreRenderEnabled = isSupported
@@ -1970,19 +1993,3 @@ exports.setPreRender = function (screenName) {
 exports.getTimeInMillis = function(){
     return Date.now();
 }
-
-const getTracker = function () {
-  var trackerJson = JOS.tracker || {};
-  if (typeof trackerJson._trackContext != "function") {
-    trackerJson._trackContext = loopedFunction;
-  }
-  if (typeof trackerJson._trackAction != "function") {
-    trackerJson._trackAction = loopedFunction;
-  }
-  if (typeof trackerJson._trackLifeCycle != "function") {
-    trackerJson._trackLifeCycle = loopedFunction;
-  }
-  return trackerJson;
-};
-
-const tracker = getTracker()
