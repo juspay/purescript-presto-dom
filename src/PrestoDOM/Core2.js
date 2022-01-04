@@ -89,7 +89,7 @@ const state = {
 , counter: 0
 , bitMap: {}
 , activityNamespaces: {}
-, currentActivity: "default"
+, currentActivity: "activity"
 , constState : {}
 }
 
