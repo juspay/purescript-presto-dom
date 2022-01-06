@@ -174,6 +174,11 @@ const getNamespace = function (namespace, activityID) {
 
 const deleteScopedState = function (namespace, activityID) {
   var id = activityID || state.currentActivity;
+  if(!state.isPreRenderEnabled) {
+    if (state.scopedState[getNamespace(namespace, activityID)]) {
+      delete state.scopedState[getNamespace(namespace, activityID)];
+    }
+  }
   if (state.scopedState[namespace] && state.scopedState[namespace][id]) {
     delete state.scopedState[namespace][id];
   }
@@ -741,7 +746,7 @@ function triggerChunkCascade(namespace, screenName) {
   }
   var dom = domAll(chunk.layout, screenName, namespace);
   chunk.parent.children.splice(chunk.index, 1, chunk.layout);
-  var cb = callbackMapper.map(function() { 
+  var cb = callbackMapper.map(function() {
     triggerChunkCascade(namespace, screenName);
   });
   removeViewFromNameSpace(namespace, chunk.shimmerId)();
@@ -775,7 +780,7 @@ exports.setUpBaseState = function (namespace) {
     return function () {
       tracker._trackAction("system")("info")("setup_base_state")({"namespace":namespace, "id":id, "isMultiActivityPreRenderSupported": state.isPreRenderEnabled})();
       if(typeof getScopedState(namespace) != "undefined" && getConstState(namespace).hasRender) {
-        terminateUIImpl()(namespace); 
+        terminateUIImpl()(namespace);
       }else if(typeof getScopedState(namespace) != "undefined"){
         getScopedState(namespace).id = id
         return;
@@ -789,7 +794,7 @@ exports.setUpBaseState = function (namespace) {
       }
       // var _namespace = "";
       setFragmentIdInScopedState(namespace, id);
-      state.fragments[id || "null"] = namespace; 
+      state.fragments[id || "null"] = namespace;
       var elemRef = createPrestoElement();
       var stackRef = createPrestoElement();
       var cacheRef = createPrestoElement();
@@ -1033,7 +1038,7 @@ exports.storeMachine = function (dom, name, namespace) {
 exports.getLatestMachine = function (name, namespace) {
     return getScopedState(namespace).MACHINE_MAP[name];
 }
- 
+
 exports.cacheMachine = function(machine, screenName, namespace) {
   if(state.isPreRenderEnabled) {
     if (!getConstState(namespace).cachedMachine){
@@ -1927,7 +1932,7 @@ function getScrollViewResetCmds(dom){
   return cmdScrollViewReset;
 
 }
-  
+
 /**
  * This will return the ID of scrollView to reset scrolled screen state
  * @param {object} dom
@@ -1981,7 +1986,7 @@ function clearStoredID () {
     Android.runInUI(cmd, null);
   }
 }
-  
+
 exports.setPreRender = function (screenName) {
   return function (namespace) {
     return function () {
@@ -1989,7 +1994,7 @@ exports.setPreRender = function (screenName) {
     }
   }
 }
-  
+
 exports.getTimeInMillis = function(){
     return Date.now();
 }
