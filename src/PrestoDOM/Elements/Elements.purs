@@ -33,6 +33,7 @@ module PrestoDOM.Elements.Elements
     , switch
     , viewWidget
     , webView
+    , videoView
     ) where
 
 
@@ -162,3 +163,6 @@ mapp service a = Microapp service a Nothing
 
 mappWithLoader :: forall i p. String -> Array (Prop i) -> Array (VDom (Array (Prop i)) p) -> VDom (Array (Prop i)) p
 mappWithLoader service a ch = Microapp service a (Just ch)
+
+videoView :: forall i p. Leaf (Prop i) p
+videoView = leaf "videoView"

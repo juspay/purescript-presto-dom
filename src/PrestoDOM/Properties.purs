@@ -168,6 +168,8 @@ module PrestoDOM.Properties
     , useLinearLayout
     , payload
     , cursorColor
+    , videoSource
+    , autoLoop
     ) where
 
 import Prelude
@@ -810,6 +812,12 @@ useStartApp = prop (PropName "useStartApp")
 
 unNestPayload :: forall i. Boolean -> Prop i
 unNestPayload = prop (PropName "unNestPayload")
+
+videoSource :: forall i. String -> Prop i
+videoSource = prop (PropName "source")
+
+autoLoop :: forall i. Boolean -> Prop i
+autoLoop = prop (PropName "autoloop")
 
 payload :: forall i. String -> Prop i
 payload = Payload
