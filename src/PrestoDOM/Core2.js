@@ -116,6 +116,10 @@ const getTracker = function () {
 
 const tracker = getTracker()
 
+const trackExceptionWrapper = function(label, message, err){
+  tracker._trackException("system")("exception")(label)(message)(err.stack)();
+}
+
 const isPreRenderSupported = function(){
   var isSupported = false;
   if(window.__OS == "ANDROID"){
@@ -125,7 +129,7 @@ const isPreRenderSupported = function(){
       const sdkConfigFile = JSON.parse(JBridge.loadFileInDUI("sdk_config.json") || "");
       isSupported = preRenderVersion >= (sdkConfigFile.preRenderConfig[clientId] || sdkConfigFile.preRenderConfig.common)
     } catch(e) {
-      tracker._trackException("system")("exception")("ma_pre_render_support")("error")({"message":"error in multi-activity-pre-render support check", "stacktrace": e})();
+      trackExceptionWrapper("ma_pre_render_support", "error in multi-activity-pre-render support check", e);
     }
   }
   state.isPreRenderEnabled = isSupported
@@ -674,7 +678,7 @@ function processMapps(namespace, nam, timeout) {
                   elemId : this.object.fragId
                 });
               else
-                tracker._trackAction("system")("info")("process_mapps_response")({"namespace":namespace, "code":code, "message": message})();
+                tracker._trackAction("system")("info")("process_mapps_response")({"namespace":namespace, "code":code, "description": message})();
             } else {
                 try {
                   var plds = getScopedState(namespace).fragmentCallbacks[nam] || [];
@@ -682,7 +686,7 @@ function processMapps(namespace, nam, timeout) {
                     return !(test.id == x.payload.elemId)
                   })
                 } catch (e) {
-                  tracker._trackException("system")("exception")("process_mapps")("error")({"namespace":namespace, "name":nam, "message": "flushFragmentCallbacks Error", "stacktrace": e})();
+                  trackExceptionWrapper("process_mapps", {"namespace":namespace, "name":nam, "description": "flushFragmentCallbacks Error"}, e);
                 }
             }
           }.bind({
@@ -726,7 +730,7 @@ function triggerAfterRender(namespace, screenName) {
 function executePostProcess(nam, namespace, cache) {
     return function(a) {
       if(a != undefined && typeof a == "string" && a.toLowerCase() == "failure"){
-        tracker._trackException("system")("error")("execute_post_process")("error")({"namespace":namespace, "name":nam, "callbackWithParam": a})();
+        tracker._trackAction("system")("error")("execute_post_process")({"namespace":namespace, "name":nam, "callbackWithParam": a})();
       } else {
         tracker._trackAction("system")("info")("execute_post_process")({"namespace":namespace, "name":nam, "callbackWithParam": a})();
       }
@@ -972,7 +976,7 @@ exports.prepareAndStoreView = function (callback, dom, key, namespace, screenNam
   var callB = callbackMapper.map(function(a){
     try{
       if(a != undefined && typeof a == "string" && a.toLowerCase() == "failure"){
-        tracker._trackException("system")("error")("prepare_and_store_view")("error")({"namespace":namespace, "key":key,  "callbackWithParam": a})();
+        tracker._trackAction("system")("error")("prepare_and_store_view")({"namespace":namespace, "key":key,  "callbackWithParam": a})();
       } else {
         tracker._trackAction("system")("info")("prepare_and_store_view")({"namespace":namespace, "key":key, "callbackWithParam": a})();
       }
@@ -982,7 +986,7 @@ exports.prepareAndStoreView = function (callback, dom, key, namespace, screenNam
         fn();
       }
     }catch(err){
-      tracker._trackException("system")("exception")("prepare_and_store_view_catch")("error")({"namespace":namespace, "key":key, "callbackException": err})();
+      trackExceptionWrapper("prepare_and_store_view_catch", {"namespace":namespace, "key":key}, err);
     }
     callback();
   });
@@ -1196,7 +1200,7 @@ exports.makeScreenVisible = function (namespace, name) {
       cb()
     }
   } catch(e) {
-    tracker._trackException("system")("exception")("make_screen_visible")("error")({"namespace":namespace, "name":name, "message": "Call InitUI first for the namespace", "stacktrace": e})();
+    trackExceptionWrapper("make_screen_visible", {"namespace":namespace, "name":name, "description": "Call InitUI first for the namespace"}, e);
   }
 }
 
@@ -1206,7 +1210,7 @@ exports.addToCachedList = function (namespace, screenName) {
       getScopedState(namespace).screenCache.push(screenName);
     }
   } catch (e) {
-    tracker._trackException("system")("exception")("add_to_cached_list")("error")({"namespace":namespace, "name":screenName, "message": "Call InitUI first for the namespace", "stacktrace": e})();
+    trackExceptionWrapper("add_to_cached_list", {"namespace":namespace, "name":screenName, "description": "Call InitUI first for the namespace"}, e);
   }
 }
 
@@ -1389,7 +1393,7 @@ function setManualEvents (namespace) {
                 : {};
             getConstState(namespace).registeredEvents[eventName][screenName] = callbackFunction;
           } catch (e) {
-            tracker._trackException("system")("exception")("set_manual_events")("error")({"namespace":namespace, "name":screenName, "eventname": eventName, "message": "Call init UI first", "stacktrace": e})();
+            trackExceptionWrapper("set_manual_events", {"namespace":namespace, "name":screenName, "eventname": eventName, "description": "Call init UI first"}, e);
           }
         }
       }
@@ -1464,7 +1468,7 @@ exports["replayFragmentCallbacks'"] = function (namespace) {
           }
         }
         catch (e) {
-          tracker._trackException("system")("exception")("replay_fragment_callbacks")("error")({"namespace":namespace, "name":nam, "message": "Replay fragment Error", "stacktrace": e})();
+          trackExceptionWrapper("replay_fragment_callbacks", {"namespace":namespace, "name":nam, "description": "Replay fragment Error"}, e);
         }
         return function() {
           try {
