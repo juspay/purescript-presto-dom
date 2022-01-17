@@ -779,7 +779,7 @@ exports.setUpBaseState = function (namespace) {
   return function (id) {
     return function () {
       tracker._trackAction("system")("info")("setup_base_state")({"namespace":namespace, "id":id, "isMultiActivityPreRenderSupported": state.isPreRenderEnabled})();
-      if(typeof getScopedState(namespace) != "undefined" && getConstState(namespace).hasRender) {
+      if(typeof getScopedState(namespace) != "undefined" && getScopedState(namespace).root && typeof getConstState(namespace) !== 'undefined' && getConstState(namespace).hasRender) {
         terminateUIImpl()(namespace);
       }else if(typeof getScopedState(namespace) != "undefined"){
         getScopedState(namespace).id = id
@@ -1090,6 +1090,7 @@ exports.saveCanceller = function (name, namespace, canceller) {
   // Added || false to return false when value is undefined
   if(!state.isPreRenderEnabled) {
     namespace = namespace + state.currentActivity;
+    // Todo :: Fix setting up of scopedState
     state.scopedState[namespace] = getScopedState(namespace) || {}
   } else {
     var activity = state.currentActivity;
@@ -1445,6 +1446,7 @@ exports.setControllerStates = function(namespace) {
         if (namespace && namespace.indexOf(state.currentActivity) == -1) {
           namespace = namespace + state.currentActivity;
         }
+        // Todo :: 
         state.scopedState[namespace] = getScopedState(namespace) || {}
       }
       getScopedState(namespace).activeScreen = screenName;
@@ -1483,12 +1485,14 @@ exports["replayFragmentCallbacks'"] = function (namespace) {
 }
 exports.getAndSetEventFromState = function(namespace, screenName, def) {
   if(state.isPreRenderEnabled) {
+    // Todo :: Fix setting up of scopedState
     state.scopedState[namespace][state.currentActivity] = getScopedState(namespace) || {}
   }
   else {
     if (namespace && namespace.indexOf(state.currentActivity) == -1) {
       namespace = namespace + state.currentActivity;
     }
+    // Todo :: Fix setting up of scopedState
     state.scopedState[namespace] = getScopedState(namespace) || {}
   }
   getScopedState(namespace).eventIOs = getScopedState(namespace).eventIOs || {}
@@ -1795,11 +1799,14 @@ exports.isScreenPushActive = function(namespace) {
       return function(activityID){
         return function () {
             if(state.isPreRenderEnabled) {
+              // Todo :: Fix setting up of scopedState
               state.scopedState[namespace][activityID] = getScopedState(namespace, activityID) || {}
             } else {
               namespace = getNamespace(namespace, activityID);
+              // Todo :: Fix setting up of scopedState
               state.scopedState[namespace] = getScopedState(namespace, activityID) || {}
             }
+            // Todo :: Repetition of line 1803
             state.scopedState[namespace][activityID] = getScopedState(namespace, activityID) || {}
             getScopedState(namespace, activityID).pushActive = getScopedState(namespace, activityID).pushActive || {}
             return getScopedState(namespace, activityID).pushActive[screenName] || false;
