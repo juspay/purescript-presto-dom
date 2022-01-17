@@ -781,7 +781,7 @@ exports.setUpBaseState = function (namespace) {
       tracker._trackAction("system")("info")("setup_base_state")({"namespace":namespace, "id":id, "isMultiActivityPreRenderSupported": state.isPreRenderEnabled})();
       if(typeof getScopedState(namespace) != "undefined" && getScopedState(namespace).root && typeof getConstState(namespace) !== 'undefined' && getConstState(namespace).hasRender) {
         terminateUIImpl()(namespace);
-      }else if(typeof getScopedState(namespace) != "undefined"){
+      }else if(typeof getScopedState(namespace) != "undefined" && getScopedState(namespace).root){
         getScopedState(namespace).id = id
         return;
       }
