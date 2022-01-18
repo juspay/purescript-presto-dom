@@ -1441,13 +1441,8 @@ exports.hideCacheRootOnAnimationEnd = function(namespace) {
 exports.setControllerStates = function(namespace) {
   return function (screenName) {
     return function () {
-      if(state.isPreRenderEnabled) ensureScopeStateExists(namespace)
-      else {
-        if (namespace && namespace.indexOf(state.currentActivity) == -1) {
-          namespace = namespace + state.currentActivity;
-        }
-        // Todo :: 
-        state.scopedState[namespace] = getScopedState(namespace) || {}
+      if(!getScopedState(namespace) || !getScopedState(namespace).root) {
+        exports.setUpBaseState(namespace)()();
       }
       getScopedState(namespace).activeScreen = screenName;
       getScopedState(namespace).activateScreen = true;
