@@ -170,6 +170,9 @@ module PrestoDOM.Properties
     , cursorColor
     , videoSource
     , autoLoop
+    , disableClickFeedback
+    , rippleColor
+    , enableRoundedRipple
     ) where
 
 import Prelude
@@ -821,3 +824,12 @@ autoLoop = prop (PropName "autoloop")
 
 payload :: forall i. String -> Prop i
 payload = Payload
+
+disableClickFeedback :: forall i. Boolean -> Prop i
+disableClickFeedback = prop (PropName "disableFeedback")
+
+rippleColor :: forall i. String -> Prop i
+rippleColor = prop (PropName "rippleColor")
+
+enableRoundedRipple :: forall i. Boolean -> Prop i
+enableRoundedRipple = prop (PropName "enableRoundedRipple")
