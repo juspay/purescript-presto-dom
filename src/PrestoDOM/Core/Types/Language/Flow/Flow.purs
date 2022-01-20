@@ -67,6 +67,9 @@ runController controller = do
 updateScreen :: forall action state retType a. Show action => Loggable action => Screen action state retType -> Flow a Unit
 updateScreen screen = doAff do liftEffect $ PrestoDOM2.updateScreen (mapToScopedScreen screen)
 
+updateScreenWithNameSpace :: forall action state retType a. Show action => Loggable action => ScopedScreen action state retType -> Flow a Unit
+updateScreenWithNameSpace screen = doAff do liftEffect $ PrestoDOM2.updateScreen screen
+
 mapToScopedScreen :: forall action state retType. Screen action state retType -> ScopedScreen action state retType
 mapToScopedScreen screen =
   { initialState : screen.initialState
