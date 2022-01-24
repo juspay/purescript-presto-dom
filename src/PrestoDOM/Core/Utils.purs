@@ -2,7 +2,7 @@ module PrestoDOM.Core.Utils where
 
 import Prelude
 
-import Data.Array (catMaybes, snoc, zipWith)
+import Data.Array (catMaybes, snoc, zipWith,elem)
 import Data.Either (hush, Either(..))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Foldable (foldl)
@@ -42,6 +42,9 @@ foreign import replayListFragmentCallbacks' :: forall a. String -> String -> (a 
 
 -- hack, should be effect, but behaviour is same, even if gets cached
 foreign import setDebounceToCallback :: String -> String
+
+isListContainer :: String -> Boolean
+isListContainer viewType = elem viewType ["listView","recyclerView"]
 
 callMicroAppList :: forall a. String -> a -> (Foreign -> Effect Unit) -> Effect (Effect Unit)
 callMicroAppList = callMicroAppListItem
@@ -270,17 +273,19 @@ verifyImage mId name (Just a) =
           else Nothing
 
 forkoutListState :: String -> String -> String -> Object Foreign -> Aff (Fiber (Maybe (Array (Object Foreign))))
-forkoutListState namespace screenName "listView" props = do
-  let keys = do
-        id <- lookup "id" props
-        listData <- extractAndDecode "listData" props
-        pure {id, listData}
-  let payloads = extractJsonAndDecode "payload" props
-  let mapp = fromMaybe (encode $ unit) $ lookup "onMicroappResponse" props
-  case keys, payloads of
-    Just {id, listData}, Just justPayloads -> forkAff $ Just <$> callMicroAppsForListState id namespace screenName listData justPayloads mapp
-    Just {id, listData}, _ -> forkAff $ pure $ Just listData
-    Nothing, _ -> forkAff $ pure Nothing
+forkoutListState namespace screenName viewType props = do
+  if isListContainer viewType then do
+    let keys = do
+          id <- lookup "id" props
+          listData <- extractAndDecode "listData" props
+          pure {id, listData}
+    let payloads = extractJsonAndDecode "payload" props
+    let mapp = fromMaybe (encode $ unit) $ lookup "onMicroappResponse" props
+    case keys, payloads of
+      Just {id, listData}, Just justPayloads -> forkAff $ Just <$> callMicroAppsForListState id namespace screenName listData justPayloads mapp
+      Just {id, listData}, _ -> forkAff $ pure $ Just listData
+      Nothing, _ -> forkAff $ pure Nothing
+  else forkAff $ pure Nothing
 forkoutListState _ _ _ _ = forkAff $ pure Nothing
 
 

@@ -330,7 +330,23 @@ function domAllImpl(elem, screenName, VALIDATE_ID, namespace) {
 
 exports.parseProps = parsePropsImpl;
 
+function isRecyclerViewSupported(){
+  var isSupported = false;
+  if(window.__OS == "ANDROID"){
+    try{
+      const prestoListVersion = JBridge.getResourceByName("presto_list_version");
+      isSupported = true;
+    } catch(e) {
+      
+    }
+  }
+  return isSupported;
+}
+
 function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
+  if(elem.type == "listView" && isRecyclerViewSupported()){ 
+    elem.type = "recyclerView";
+  }
   if (elem.props.hasOwnProperty('id') && elem.props.id != '' && (elem.props.id).toString().trim() != '') {
     var id = (elem.props.id).toString().trim();
     elem.__ref = {__id: id };
