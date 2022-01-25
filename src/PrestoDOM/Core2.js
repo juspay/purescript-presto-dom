@@ -383,7 +383,8 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
     , callback : props.onMicroappResponse
     }
     if (getScopedState(namespace) && getScopedState(namespace).mappQueue) {
-      getScopedState(namespace).mappQueue.push(mappBootData);
+      getScopedState(namespace).mappQueue[screenName] = getScopedState(namespace).mappQueue[screenName] || []
+      getScopedState(namespace).mappQueue[screenName].push(mappBootData);
     }
     else {
       console.warn("Namespace", namespace);
@@ -674,14 +675,22 @@ function callAnimation_ (namespace, screenArray, resetAnimation, screenName) {
 
 function processMapps(namespace, nam, timeout) {
   setTimeout(function () {
-    if (!getScopedState(namespace).mappQueue)
+    if (!getScopedState(namespace).mappQueue || !(getScopedState(namespace).mappQueue && getScopedState(namespace).mappQueue[nam]))
       return;
-    var cachedObject = getScopedState(namespace).mappQueue.shift();
+    var cachedObject = getScopedState(namespace).mappQueue[nam][0];
     while (cachedObject) {
       var fragId = AndroidWrapper.addToContainerList(parseInt(cachedObject.elemId), getIdFromNamespace(namespace));
       if (fragId == "__failed") {
-        setTimeout( processMapps(namespace, nam, (timeout|| 75)*2), (timeout|| 75))
+        if(timeout > 3000){
+          getScopedState(namespace).mappQueue[nam].shift();
+          processMapps(namespace, nam, 75)
+        }else{
+          setTimeout( processMapps(namespace, nam, (timeout|| 75)*2), (timeout|| 75))
+        }
         return;
+      }else{
+        getScopedState(namespace).mappQueue[nam].shift();
+
       }
       cachedObject.fragId = fragId;
       var cb = function (code) {
@@ -742,7 +751,7 @@ function processMapps(namespace, nam, timeout) {
       } else {
         cb(0)("error")()
       }
-      cachedObject = getScopedState(namespace).mappQueue.shift();
+      cachedObject = getScopedState(namespace).mappQueue[nam].shift();
     }
   }, 32);
 }
@@ -903,7 +912,7 @@ exports.setUpBaseState = function (namespace) {
       getScopedState(namespace).actualLayouts = []
 
       // rethink Logic
-      getScopedState(namespace).mappQueue = []
+      getScopedState(namespace).mappQueue = {}
       getScopedState(namespace).fragmentCallbacks = {}
       getScopedState(namespace).shouldReplayCallbacks = {}
     }
