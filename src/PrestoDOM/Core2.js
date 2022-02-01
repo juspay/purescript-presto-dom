@@ -365,14 +365,16 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
     }
     type = mappBootData.useLinearLayout ? "linearLayout" : "relativeLayout"
   }
-  if(props.hasOwnProperty("afterRender")) {
-    if (getConstState(namespace).prerenderScreens.indexOf(screenName) != -1) {
-      getConstState(namespace).afterRenderFunctions[screenName] = getConstState(namespace).afterRenderFunctions[screenName] || []
-      getConstState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
+  if(window.__OS !== "WEB"){
+    if(props.hasOwnProperty("afterRender")) {
+      if (getConstState(namespace).prerenderScreens.indexOf(screenName) != -1) {
+        getConstState(namespace).afterRenderFunctions[screenName] = getConstState(namespace).afterRenderFunctions[screenName] || []
+        getConstState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
+      }
+      getScopedState(namespace).afterRenderFunctions[screenName] = getScopedState(namespace).afterRenderFunctions[screenName] || []
+      getScopedState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
+      delete props.afterRender
     }
-    getScopedState(namespace).afterRenderFunctions[screenName] = getScopedState(namespace).afterRenderFunctions[screenName] || []
-    getScopedState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
-    delete props.afterRender
   }
   if (elem.hasOwnProperty("chunkedLayout") && elem.chunkedLayout) {
     elem.children.forEach(function(e, i) {
