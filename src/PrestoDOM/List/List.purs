@@ -14,6 +14,7 @@ module PrestoDOM.List
   , textHolder
   , colorHolder
   , imageUrlHolder
+  , primaryKeyHolder
   , packageIconHolder
   , textSizeHolder
   , textSizeSpHolder
@@ -94,7 +95,7 @@ preComputeListItemWithFragment parentType dom = do
 -- test samples can be expand or textFromHtml
 
 allowedHolderProps :: Array String
-allowedHolderProps = ["background", "text", "color", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "onClick"]
+allowedHolderProps = ["background", "text", "color", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "onClick", "primaryKey"]
 
 mkListItem :: ListItemType -> ListItem
 mkListItem = unsafeCoerce
@@ -247,6 +248,9 @@ createOnclick = setDebounceToCallback <<< callbackMapper <<< EFn.mkEffectFn1
 -- | Following properties create a property holder value which is referenced from item data
 textHolder :: forall i. String -> P.Prop i
 textHolder = prop (PropName "holder_text")
+
+primaryKeyHolder :: forall i. String -> P.Prop i
+primaryKeyHolder = prop (PropName "holder_primaryKey")
 
 imageUrlHolder :: forall i. String -> P.Prop i
 imageUrlHolder = prop (PropName "holder_imageUrl")
