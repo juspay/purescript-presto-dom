@@ -16,6 +16,7 @@ module PrestoDOM.List
   , imageUrlHolder
   , packageIconHolder
   , textSizeHolder
+  , textSizeSpHolder
   , fontStyleHolder
   , backgroundHolder
   , visibilityHolder
@@ -30,7 +31,6 @@ module PrestoDOM.List
 
 import Prelude
 
-import Debug.Trace(spy)
 import Control.Monad.Except (runExcept)
 import Data.Array (catMaybes, cons)
 import Data.Either (Either(..), hush)
@@ -47,7 +47,7 @@ import Effect.Ref (Ref, new, read, modify) as Ref
 import Effect.Uncurried as EFn
 import Foreign (Foreign, unsafeToForeign)
 import Foreign.Class (encode, decode)
-import Foreign.Object (Object, empty, insert, singleton, update, fromHomogeneous, alter, union,lookup)
+import Foreign.Object (Object, alter, empty, fromHomogeneous, insert, singleton, union, update)
 import Halogen.VDom.DOM.Prop (Prop(..), PropValue) as P
 import Halogen.VDom.Types (VDom(..), ElemName(..))
 import Presto.Core.Flow (Flow, doAff)
@@ -265,6 +265,9 @@ visibilityHolder = prop (PropName "holder_visibility")
 
 textSizeHolder :: forall i. String -> P.Prop i
 textSizeHolder = prop (PropName "holder_textSize")
+
+textSizeSpHolder :: forall i. String -> P.Prop i
+textSizeSpHolder = prop (PropName "holder_textSizeSp")
 
 fontStyleHolder :: forall i. String -> P.Prop i
 fontStyleHolder = prop (PropName "holder_fontStyle")

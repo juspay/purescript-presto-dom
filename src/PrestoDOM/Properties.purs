@@ -142,6 +142,7 @@ module PrestoDOM.Properties
     , textFromHtml
     , textIsSelectable
     , textSize
+    , textSizeSp
     , translationX
     , translationY
     , translationZ
@@ -696,6 +697,9 @@ textIsSelectable = prop (PropName "textIsSelectable")
 
 textSize :: forall i. Int -> Prop i
 textSize = prop (PropName "textSize")
+
+textSizeSp :: forall i. Int -> Prop i
+textSizeSp = prop (PropName "textSizeSp")
 
 -- | Number
 translationX :: forall i. Number -> Prop i
