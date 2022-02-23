@@ -11,6 +11,16 @@ if (window.__OS === "WEB") {
   parseParams = prestoUI.helpers.android.parseParams;
 }
 
+function makeImageName(imageName){
+  let jpImage = "jp_"+imageName;
+  if(window.juspayAssetConfig
+     && window.juspayAssetConfig.images 
+     && window.juspayAssetConfig.images[jpImage])
+      return jpImage;
+  return imageName;
+
+}
+
 function createAndroidWrapper () {
   if(window.__OS == "ANDROID" && window.Android && typeof window.Android.addToContainerList != "function") {
     var android = {}
@@ -1712,7 +1722,17 @@ exports.getListDataCommands = function (listData, element) {
           try {
             new URL(listData[j][prop])
             listData[j][prop] = "url->" + listData[j][prop] + ","
-          } catch (e) { /** Ignored */ }
+          } catch (e) {
+            var images = listData[j][prop].split(",");
+            var imageUrl = "";
+            if(images.length>1){
+              imageUrl = images[0] +",";
+              imageUrl = imageUrl + makeImageName(images[1]);
+            }else{
+              imageUrl = makeImageName(images[0]);
+            }
+            listData[j][prop] = imageUrl;
+          }
         }
         item[prop] = listData[j][prop];
         continue

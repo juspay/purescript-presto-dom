@@ -208,6 +208,13 @@ exports.checkFontisPresent = function (fontName) {
               callback(true)();
               return;
           }
+          if(window.juspayAssetConfig && window.juspayAssetConfig.fonts){
+            if(window.juspayAssetConfig.fonts[fontName] || window.juspayAssetConfig.fonts['jp_'+fontName])
+                callback(true)();
+            else
+                callback(false)();
+            return;
+          }
           state.fonts = state.fonts || {};
           state.fonts[fontName] = state.fonts[fontName] || {
               started : true
@@ -234,6 +241,13 @@ exports.checkImageisPresent = function (imageName, name, prp, callback) {
             }
               callback(true)();
               return;
+          }
+          if(window.juspayAssetConfig && window.juspayAssetConfig.images){
+            if(window.juspayAssetConfig.images[imageName] || window.juspayAssetConfig.images['jp_'+imageName])
+                callback(true)();
+            else
+                callback(false)();
+            return;
           }
           state.images = state.images || {};
           state.images[imageName] = state.images[imageName] || {
