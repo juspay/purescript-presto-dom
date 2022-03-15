@@ -12,7 +12,7 @@ if (window.__OS === "WEB") {
 }
 
 function makeImageName(imageName){
-  let jpImage = "jp_"+imageName;
+  var jpImage = "jp_"+imageName;
   if(window.juspayAssetConfig
      && window.juspayAssetConfig.images 
      && window.juspayAssetConfig.images[jpImage])
