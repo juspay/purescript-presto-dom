@@ -168,23 +168,24 @@ getListDataFromMapps namespace screenName elem props = do
   let (vdomTree :: Maybe VdomTree) = hush $ runExcept $ decode $ unsafeToForeign elem
   case vdomTree of
     Just tree@{"type" : viewType, __ref : (Just {__id : id})} -> do
-      if isListContainer viewType then do
-        let (payloads :: Maybe (Object Foreign)) = extractJsonAndDecode "payload" props
-        let newListData = extractAndDecode "listData" props
-        let mapp = fromMaybe (encode $ unit) $ lookup "onMicroappResponse" props
-        let (listData :: Maybe (Array (Object Foreign))) = newListData <|> (extractAndDecode "listData" tree.props)
-        updatedListData <-
-          case payloads, listData, newListData of
-            Just p, Just ld, _ -> callMicroAppsForListState id namespace screenName ld p mapp <#> Just
-            Nothing, _, Just ld -> liftEffect $ getListData id ld <#> Just
-            _, _, _ -> pure newListData
-        case updatedListData of
-          Just uld -> do
-              EFn.runEffectFn2 getListDataCommands uld (encode tree)
-                # liftEffect
-                <#> flip (insert "listData") props
-          _ -> pure props
-      else pure props
+      if isListContainer viewType
+        then do
+          let (payloads :: Maybe (Object Foreign)) = extractJsonAndDecode "payload" props
+          let newListData = extractAndDecode "listData" props
+          let mapp = fromMaybe (encode $ unit) $ lookup "onMicroappResponse" props
+          let (listData :: Maybe (Array (Object Foreign))) = newListData <|> (extractAndDecode "listData" tree.props)
+          updatedListData <-
+            case payloads, listData, newListData of
+              Just p, Just ld, _ -> callMicroAppsForListState id namespace screenName ld p mapp <#> Just
+              Nothing, _, Just ld -> liftEffect $ getListData id ld <#> Just
+              _, _, _ -> pure newListData
+          case updatedListData of
+            Just uld -> do
+                EFn.runEffectFn2 getListDataCommands uld (encode tree)
+                  # liftEffect
+                  <#> flip (insert "listData") props
+            _ -> pure props
+        else pure props
     _ -> pure props
 
 -- Function aimed at merging mapp responses and m-app listdata

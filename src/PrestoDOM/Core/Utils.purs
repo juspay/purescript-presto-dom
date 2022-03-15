@@ -274,18 +274,19 @@ verifyImage mId name (Just a) =
 
 forkoutListState :: String -> String -> String -> Object Foreign -> Aff (Fiber (Maybe (Array (Object Foreign))))
 forkoutListState namespace screenName viewType props = do
-  if isListContainer viewType then do
-    let keys = do
-          id <- lookup "id" props
-          listData <- extractAndDecode "listData" props
-          pure {id, listData}
-    let payloads = extractJsonAndDecode "payload" props
-    let mapp = fromMaybe (encode $ unit) $ lookup "onMicroappResponse" props
-    case keys, payloads of
-      Just {id, listData}, Just justPayloads -> forkAff $ Just <$> callMicroAppsForListState id namespace screenName listData justPayloads mapp
-      Just {id, listData}, _ -> forkAff $ pure $ Just listData
-      Nothing, _ -> forkAff $ pure Nothing
-  else forkAff $ pure Nothing
+  if isListContainer viewType
+    then do
+      let keys = do
+            id <- lookup "id" props
+            listData <- extractAndDecode "listData" props
+            pure {id, listData}
+      let payloads = extractJsonAndDecode "payload" props
+      let mapp = fromMaybe (encode $ unit) $ lookup "onMicroappResponse" props
+      case keys, payloads of
+        Just {id, listData}, Just justPayloads -> forkAff $ Just <$> callMicroAppsForListState id namespace screenName listData justPayloads mapp
+        Just {id, listData}, _ -> forkAff $ pure $ Just listData
+        Nothing, _ -> forkAff $ pure Nothing
+    else forkAff $ pure Nothing
 forkoutListState _ _ _ _ = forkAff $ pure Nothing
 
 
