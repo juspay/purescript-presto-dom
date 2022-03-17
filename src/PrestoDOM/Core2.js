@@ -1107,6 +1107,7 @@ exports.isCached = function (name, namespace) {
 
 exports.cancelExistingActions = function (name, namespace) {
   // Added || false to return false when value is undefined
+  delete getScopedState(namespace).pushActive[name]
   try{
     if(getScopedState(namespace) && getScopedState(namespace).cancelers && typeof getScopedState(namespace).cancelers[name] == "function") {
       getScopedState(namespace).cancelers[name]();
