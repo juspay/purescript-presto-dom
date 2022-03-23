@@ -11,6 +11,8 @@ module PrestoDOM.Utils
   , getFromWindow
   , debounce
   , logAction
+  , addTime2
+  , performanceMeasure
   )where
 
 import Prelude
@@ -26,6 +28,10 @@ import Effect.Ref as Ref
 import Effect.Timer as Timer
 import Foreign(Foreign)
 import Foreign.Object as Object
+
+foreign import addTime2 :: String -> Effect Unit
+
+foreign import performanceMeasure :: String -> String -> String -> Effect Unit
 
 continue
   :: forall state action returnType

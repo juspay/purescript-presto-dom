@@ -68,6 +68,25 @@ exports.debounce = function (logger){
   }
 }
 
+exports.addTime2 = function(key){
+  return function(){
+    var x = Date.now();
+    window.timeCheck = window.timeCheck || {}
+    window.timeCheck[key] = x;
+    performance.mark(key);
+  }
+}
+
+exports.performanceMeasure = function(key){
+  return function(start){
+    return function(end){
+      return function(){
+        performance.measure(key, start, end);
+      }
+    }
+  }
+}
+
 function loggerFunction(logger, key, value, json){
   logger(key)(value)(json)();
   window.loggerTimeout =  null;

@@ -29,7 +29,7 @@ import Halogen.VDom.Thunk (Thunk, buildThunk)
 import Halogen.VDom.Types (FnObject)
 import PrestoDOM.Events (manualEventsName)
 import PrestoDOM.Types.Core (class Loggable, PrestoWidget(..), Prop, ScopedScreen, Controller, ScreenBase)
-import PrestoDOM.Utils (continue, logAction)
+import PrestoDOM.Utils (continue, logAction, addTime2, performanceMeasure)
 import Tracker (trackScreen, trackLifeCycle)
 import Tracker.Labels as L
 import Tracker.Types (Level(..), Screen(..), Lifecycle(..)) as T
@@ -300,8 +300,15 @@ renderOrPatch {event, push} st@{ initialState, view, eval, name , globalEvents, 
       -- DO NOT CHANGE THIS TO ENCODE,
       -- THE JSON IN THIS BLOCK IS MODIFIED IN JS
       -- AND CAN IMPACT ALL ENCODE USAGES
+      _ <- liftEffect $ addTime2 "Render_domAll_Start"
       domAllOut <- domAll st (unsafeToForeign {}) insertState.dom
+      _ <- liftEffect $ addTime2 "Render_domAll_End"
+      _ <- liftEffect $ performanceMeasure "Render_domAll" "Render_domAll_Start" "Render_domAll_End"
+      _ <- liftEffect $ addTime2 "Render_addViewToParent_Start"
       liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
+      _ <- liftEffect $ addTime2 "Render_addViewToParent_End"
+      _ <- liftEffect $ performanceMeasure "Render_addViewToParent" "Render_addViewToParent_Start" "Render_addViewToParent_End"
+      _ <- liftEffect $ addTime2 "AfterRender_Start"
       liftEffect $ EFn.runEffectFn3 storeMachine machine name ns
 renderOrPatch {event, push} { initialState, view, eval, name , globalEvents, parent }false isCache = liftEffect do
   patchAndRun name parent (view push) initialState
@@ -418,7 +425,12 @@ runScreen st@{ name, parent, view} json = do
   _ <- liftEffect $ trackScreen T.Screen T.Info L.UPCOMING_SCREEN "screen" name json
   liftEffect $ Efn.runEffectFn1 hideCacheRootOnAnimationEnd ns
   liftEffect $ EFn.runEffectFn2 setToTopOfStack ns name
+  _ <- liftEffect $ addTime2 "Render_renderOrPatch_Start"
   renderOrPatch eventIO st check false
+  _ <- liftEffect $ addTime2 "Render_renderOrPatch_End"
+  _ <- liftEffect $ performanceMeasure "Render_renderOrPatch" "Render_renderOrPatch_Start" "Render_renderOrPatch_End"
+  _ <- liftEffect $ addTime2 "Render_runScreen_End"
+  _ <- liftEffect $ performanceMeasure "Render_runScreen" "Render_runScreen_Start" "Render_runScreen_End"
   makeAff $ controllerActions eventIO st json (patchAndRun name parent (view eventIO.push))
 
 createPushQueue :: forall action. String -> String -> (action -> Effect Unit) -> String -> action -> Effect Unit

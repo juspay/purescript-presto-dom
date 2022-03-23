@@ -10,6 +10,7 @@ import Presto.Core.Types.Language.Flow(getLogFields)
 import Effect(Effect)
 import PrestoDOM.Core2 as PrestoDOM2
 import PrestoDOM.Types.Core (class Loggable, ScopedScreen, Controller, Screen)
+import PrestoDOM.Utils (addTime2)
 
 initUI :: forall a. Flow a Unit
 initUI  = do
@@ -29,6 +30,8 @@ initUIWithScreen screen =
 
 runScreen :: forall action state retType a. Show action => Loggable action => Screen action state retType -> Flow a retType
 runScreen screen = do
+  _ <- doAff $ liftEffect $ addTime2 "Process_Eval_End"
+  _ <- doAff $ liftEffect $ addTime2 "Render_runScreen_Start"
   json <- getLogFields
   doAff $ PrestoDOM2.runScreen (mapToScopedScreen screen) json
 
