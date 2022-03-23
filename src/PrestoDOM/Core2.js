@@ -335,9 +335,9 @@ function isRecyclerViewSupported(){
   if(window.__OS == "ANDROID"){
     try{
       const prestoListVersion = JBridge.getResourceByName("presto_list_version");
-      isSupported = true;
+      isSupported = prestoListVersion >= 1.0;
     } catch(e) {
-      
+      trackExceptionWrapper("recycler_view_support", "error in getting presto list version for recycler view", e);
     }
   }
   return isSupported;
@@ -1805,7 +1805,7 @@ exports.updateActivity = function (activityId) {
       if (typeof getScopedState(a) != "undefined") {
         return;
       }
-      if(!state.isPreRenderEnabled) deleteScopedState(a, oldActivity);
+      deleteScopedState(a, oldActivity);
       exports.setUpBaseState(a)()();
       exports.render(a);
     });
