@@ -105,6 +105,10 @@ foreign import addScreenWithAnim :: EFn.EffectFn3 Foreign String String Unit
 foreign import getTimeInMillis :: Effect Number
 foreign import setPreRender :: String -> String -> Effect Unit
 
+foreign import setScreenActive :: String -> String -> Effect Unit
+foreign import setScreenInActive :: String -> String -> Effect Unit
+foreign import isScreenActive :: String -> String -> Effect Boolean
+
 updateChildren :: forall a. String -> String -> EFn.EffectFn1 a Unit
 updateChildren namespace screenName = do
   Efn.mkEffectFn1
@@ -368,7 +372,9 @@ controllerActions {event, push} {initialState, eval, name, globalEvents, parent}
         _ <- for_ cmds (\effAction -> effAction >>= push)
         logAction timerRef previousAction currentAction false json -- debounce
       onExit previousAction currentAction timerRef (Tuple st ret) = do
-        EFn.runEffectFn2 cancelExistingActions name =<< sanitiseNamespace parent
+        ns <- sanitiseNamespace parent
+        setScreenInActive ns name
+        EFn.runEffectFn2 cancelExistingActions name ns
         result <- fromMaybe (pure unit) $ st <#> emitter
         cb $ Right ret
         logAction timerRef previousAction currentAction true json-- logNow
@@ -417,6 +423,7 @@ runScreen :: forall action state returnType
   -> Aff returnType
 runScreen st@{ name, parent, view} json = do
   ns <- liftEffect $ sanitiseNamespace parent
+  liftEffect $ setScreenActive ns name
   makeAff (\cb -> Efn.runEffectFn3 awaitPrerenderFinished ns name (cb $ Right unit) $> nonCanceler )
   liftEffect $ EFn.runEffectFn2 checkAndDeleteFromHideAndRemoveStacks ns name
   check <- liftEffect $  EFn.runEffectFn2 isInStack name ns <#> not
@@ -438,7 +445,11 @@ createPushQueue namespace screenName push activityId action = do
   isScreenPushActive namespace screenName activityId >>=
     if _
       then push action
-      else cachePushEvents namespace screenName (push action) activityId
+      else 
+        isScreenActive namespace screenName >>=
+          if _
+            then cachePushEvents namespace screenName (push action) activityId
+            else pure unit
 
 getPushFn :: forall a. Maybe String -> String -> Effect (a -> Effect Unit)
 getPushFn parent name = getEventIO name parent <#> \{push} -> push

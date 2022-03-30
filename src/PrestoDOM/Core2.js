@@ -884,6 +884,7 @@ exports.setUpBaseState = function (namespace) {
       getScopedState(namespace).pushActive = {}
       getScopedState(namespace).rootVisible = false;
       getScopedState(namespace).patchState = {}
+      getScopedState(namespace).screenActive = {}
 
       if (!state.constState.hasOwnProperty( namespace )){
         state.constState[namespace] = {}
@@ -2049,4 +2050,27 @@ exports.setPreRender = function (screenName) {
 
 exports.getTimeInMillis = function(){
     return Date.now();
+}
+
+exports.setScreenInActive = function (ns) {
+  return function (screen) {
+    return function () {
+      getScopedState(ns).screenActive[screen] = false
+    }
+  }
+}
+exports.setScreenActive = function (ns) {
+  return function (screen) {
+    return function () {
+      getScopedState(ns).screenActive[screen] = true
+    }
+  }
+}
+
+exports.isScreenActive = function (ns) {
+  return function (screen) {
+    return function () {
+      return getScopedState(ns).screenActive[screen]
+    }
+  }
 }
