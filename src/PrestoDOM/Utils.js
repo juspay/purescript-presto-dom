@@ -81,7 +81,11 @@ exports.performanceMeasure = function(key){
   return function(start){
     return function(end){
       return function(){
-        performance.measure(key, start, end);
+        try {
+          performance.measure(key, start, end);
+        } catch(e) {
+          
+        }
       }
     }
   }

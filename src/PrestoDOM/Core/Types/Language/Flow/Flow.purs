@@ -37,6 +37,8 @@ runScreen screen = do
 
 runScreenWithNameSpace :: forall action state retType a. Show action => Loggable action => ScopedScreen action state retType -> Flow a retType
 runScreenWithNameSpace screen = do
+  _ <- doAff $ liftEffect $ addTime2 "Process_Eval_End"
+  _ <- doAff $ liftEffect $ addTime2 "Render_runScreen_Start"
   json <- getLogFields
   doAff $ PrestoDOM2.runScreen screen json
 
