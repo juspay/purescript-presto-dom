@@ -751,7 +751,7 @@ function processMapps(namespace, nam, timeout) {
       } else {
         cb(0)("error")()
       }
-      cachedObject = getScopedState(namespace).mappQueue[nam].shift();
+      cachedObject = getScopedState(namespace).mappQueue[nam][0];
     }
   }, 32);
 }
