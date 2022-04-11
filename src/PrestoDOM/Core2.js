@@ -335,7 +335,8 @@ function isRecyclerViewSupported(){
   if(window.__OS == "ANDROID"){
     try{
       const prestoListVersion = JBridge.getResourceByName("presto_list_version");
-      isSupported = prestoListVersion >= 1.0;
+      const prestoUIVersion = window.presto_ui_version;
+      isSupported = prestoListVersion >= 1.0 && prestoUIVersion >= 1.0;
     } catch(e) {
       trackExceptionWrapper("recycler_view_support", "error in getting presto list version for recycler view", e);
     }
