@@ -1476,20 +1476,28 @@ function fireManualEvent (namespace, nam) {
   return function (eventName) {
     return function (payload) {
       return function() {
-        var screenName = (getConstState(namespace) || {}).activeScreen
+        var screenName = (getScopedState(namespace) || {}).activeScreen
         if(namespace && (nam == screenName || !nam)) {
-          if(getConstState(namespace) && getConstState(namespace).registeredEvents && getConstState(namespace).registeredEvents.hasOwnProperty(eventName)) {
-            if(screenName && typeof getConstState(namespace).registeredEvents[eventName][screenName] == "function")
-              getConstState(namespace).registeredEvents[eventName][screenName](payload);
+          try {
+            if(getConstState(namespace) && getConstState(namespace).registeredEvents && getConstState(namespace).registeredEvents.hasOwnProperty(eventName)) {
+              if(screenName && typeof getConstState(namespace).registeredEvents[eventName][screenName] == "function")
+                getConstState(namespace).registeredEvents[eventName][screenName](payload);
+            }
+          }catch(e){
+            console.warn("Failed at fireManualEvent", e);
           }
           return;
         }
         for (var key in state.scopedState) {
-          if(getConstState(key) && getConstState(key).registeredEvents && getConstState(key).registeredEvents.hasOwnProperty(eventName)) {
-            var screenName = getScopedState(key).activeScreen
-            var isNotAnimating = getScopedState(key).activateScreen
-            if(isNotAnimating && screenName && typeof getConstState(key).registeredEvents[eventName][screenName] == "function")
-              getConstState(key).registeredEvents[eventName][screenName](payload);
+          try {
+            if(getConstState(key) && getConstState(key).registeredEvents && getConstState(key).registeredEvents.hasOwnProperty(eventName)) {
+              var screenName = getScopedState(key).activeScreen
+              var isNotAnimating = getScopedState(key).activateScreen
+              if(isNotAnimating && screenName && typeof getConstState(key).registeredEvents[eventName][screenName] == "function")
+                getConstState(key).registeredEvents[eventName][screenName](payload);
+            }
+          }catch(e){
+            console.warn("Failed at fireManualEvent", e);
           }
         }
       }
