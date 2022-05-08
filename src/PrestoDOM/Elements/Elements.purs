@@ -33,7 +33,7 @@ module PrestoDOM.Elements.Elements
     , switch
     , viewWidget
     , webView
-    , videoView
+    , textureView
     ) where
 
 
@@ -41,7 +41,7 @@ module PrestoDOM.Elements.Elements
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
 import Halogen.VDom.DOM.Prop (Prop)
-import Halogen.VDom.Types (ShimmerHolder, VDom(..))
+import Halogen.VDom.Types (ShimmerHolder)
 import PrestoDOM.Types.Core (ElemName(..), VDom(..), Namespace)
 
 type Node i p
@@ -164,5 +164,6 @@ mapp service a = Microapp service a Nothing
 mappWithLoader :: forall i p. String -> Array (Prop i) -> Array (VDom (Array (Prop i)) p) -> VDom (Array (Prop i)) p
 mappWithLoader service a ch = Microapp service a (Just ch)
 
-videoView :: forall i p. Leaf (Prop i) p
-videoView = leaf "videoView"
+-- can be used for displaying video
+textureView :: forall i p. Leaf (Prop i) p
+textureView = leaf "textureView"
