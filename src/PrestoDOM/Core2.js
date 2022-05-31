@@ -1263,6 +1263,7 @@ exports.addChildImpl = function (namespace) {
               setTimeout(function(){ processMapps(namespace, screenName, 75)},500)
             } else {
               processMapps(namespace, screenName, 75)
+              triggerAfterRender(namespace, screenName)
             }
           }
          )
