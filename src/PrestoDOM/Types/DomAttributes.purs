@@ -498,7 +498,7 @@ type GradientType = { type :: Maybe String, angle :: Foreign, values :: Array St
 derive instance genericGradient:: Generic Gradient _
 instance showGradient:: Show Gradient where show = genericShow
 instance decodeGradient :: Decode Gradient where decode = decodeGradientUtil
-instance encodeGradient :: Encode Gradient where encode = encodeGradientUtil >>> unsafeToForeign
+instance encodeGradient :: Encode Gradient where encode = encodeGradientUtil >>> encode
 
 decodeGradientUtil :: forall a. Applicative a => Foreign -> ExceptT (NonEmptyList ForeignError) a Gradient
 decodeGradientUtil json = let
