@@ -3,6 +3,7 @@ module PrestoDOM.Utils
   , exit
   , updateAndExit
   , continueWithCmd
+  , updateWithCmdAndExit
   , concatPropsArrayRight
   , concatPropsArrayLeft
   , (<>>)
@@ -50,14 +51,22 @@ updateAndExit
    . state
   -> returnType
   -> Eval action returnType state
-updateAndExit state = Left <<< Tuple (Just state)
+updateAndExit state = Left <<< Tuple (Just $ Tuple state [])
+
+updateWithCmdAndExit
+  :: forall state action returnType
+   . state
+  -> Cmd action
+  -> returnType
+  -> Eval action returnType state
+updateWithCmdAndExit state cmds = Left <<< Tuple (Just $ Tuple state cmds)
 
 continueWithCmd
   :: forall state action returnType
    . state
   -> Cmd action
   -> Eval action returnType state
-continueWithCmd state cmds = Right (Tuple state  cmds)
+continueWithCmd state cmds = Right (Tuple state cmds)
 
 
 foreign import concatPropsArrayImpl :: forall a. Array a -> Array a -> Array a

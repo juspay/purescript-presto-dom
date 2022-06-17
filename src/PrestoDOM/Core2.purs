@@ -2,8 +2,8 @@ module PrestoDOM.Core2 where
 
 import Prelude
 
-import Control.Monad.Except(runExcept)
 import Control.Alt ((<|>))
+import Control.Monad.Except (runExcept)
 import Data.Either (Either(..), either, hush)
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -374,11 +374,16 @@ controllerActions {event, push} {initialState, eval, name, globalEvents, parent}
         result <- emitter state
         _ <- for_ cmds (\effAction -> effAction >>= push)
         logAction timerRef previousAction currentAction false json -- debounce
-      onExit previousAction currentAction timerRef (Tuple st ret) = do
+      onExit previousAction currentAction timerRef (Tuple sc ret) = do
         ns <- sanitiseNamespace parent
         setScreenInActive ns name
         EFn.runEffectFn2 cancelExistingActions name ns
-        result <- fromMaybe (pure unit) $ st <#> emitter
+        result <-
+          case sc of
+            Just (Tuple st cmds) ->
+              for_ cmds (\effAction -> effAction >>= push)
+                *> emitter st
+            Nothing -> pure unit
         _ <- addTime3 (name <> "_Exited")
         cb $ Right ret
         logAction timerRef previousAction currentAction true json-- logNow

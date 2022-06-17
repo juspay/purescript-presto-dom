@@ -265,10 +265,14 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb json = 
                 *> for_ cmds (\effAction -> effAction >>= push)
               _ <- logAction timerRef previousAction currentAction false json -- debounce
               pure result
-          onExit scn push previousAction currentAction timerRef (Tuple st ret) = do
-              result <- case st of
-                   Just s -> patchAndRun screenName (view push s) *> (exitUI scn >>= \_ -> cb $ Right ret)
-                   Nothing -> exitUI scn >>= \_ -> cb $ Right ret
+          onExit scn push previousAction currentAction timerRef (Tuple sc ret) = do
+              result <-
+                case sc of
+                  Just (Tuple s cmds) ->
+                    patchAndRun screenName (view push s)
+                      *> for_ cmds (\effAction -> effAction >>= push)
+                      *> (exitUI scn >>= \_ -> cb $ Right ret)
+                  Nothing -> exitUI scn >>= \_ -> cb $ Right ret
               _ <- logAction timerRef previousAction currentAction true json -- logNow
               pure result
           registerEvents push =

@@ -287,7 +287,6 @@ forkoutListState namespace screenName viewType props = do
         Just {id, listData}, _ -> forkAff $ pure $ Just listData
         Nothing, _ -> forkAff $ pure Nothing
     else forkAff $ pure Nothing
-forkoutListState _ _ _ _ = forkAff $ pure Nothing
 
 
 callMicroAppsForListState :: Foreign -> String -> String -> (Array (Object Foreign)) -> Object Foreign -> Foreign -> Aff (Array (Object Foreign))
