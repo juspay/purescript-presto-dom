@@ -1,4 +1,4 @@
-const prestoUI = require("presto-ui")
+const prestoUI = require("presto-ui");
 const prestoDayum = prestoUI.doms;
 const callbackMapper = prestoUI.callbackMapper;
 var webParseParams, iOSParseParams, parseParams;
@@ -1493,6 +1493,13 @@ exports.setControllerStates = function(namespace) {
   }
 }
 
+exports["setUseHintColor"] = function (useHintColor) {
+  return function(){
+    if(window.__OS == "WEB" && typeof Android.setUseHintColor == "function") {
+      Android.setUseHintColor(useHintColor);
+    }
+  }
+}
 exports["replayFragmentCallbacks'"] = function (namespace) {
   return function (nam) {
     return function (push) {

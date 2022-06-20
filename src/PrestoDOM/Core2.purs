@@ -109,6 +109,8 @@ foreign import setScreenActive :: String -> String -> Effect Unit
 foreign import setScreenInActive :: String -> String -> Effect Unit
 foreign import isScreenActive :: String -> String -> Effect Boolean
 
+foreign import setUseHintColor :: Boolean -> Effect Unit 
+
 updateChildren :: forall a. String -> String -> EFn.EffectFn1 a Unit
 updateChildren namespace screenName = do
   Efn.mkEffectFn1
