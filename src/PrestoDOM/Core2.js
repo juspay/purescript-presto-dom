@@ -1743,6 +1743,9 @@ function createAnimationObject(animation) {
 
 exports.getListDataCommands = function (listData, element) {
   var x = ["background", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "text", "color", "onClick"]
+  if(window.__OS == "IOS" ){
+    x.push("testID");
+  }
   var y = [];
   var keyPropMap = state.listViewKeys[element.__ref.__id]
   var animPropMap = state.listViewAnimationKeys[element.__ref.__id]

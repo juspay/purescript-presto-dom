@@ -28,6 +28,7 @@ module PrestoDOM.List
   , renderImageSource
   , preComputeListItemWithFragment
   , animationSetHolder
+  , testIdHolder
   ) where
 
 import Prelude
@@ -246,6 +247,9 @@ createOnclick :: (Int -> Effect Unit) -> String
 createOnclick = setDebounceToCallback <<< callbackMapper <<< EFn.mkEffectFn1
 
 -- | Following properties create a property holder value which is referenced from item data
+testIdHolder :: forall i. String -> P.Prop i
+testIdHolder = prop (PropName "holder_testID")
+
 textHolder :: forall i. String -> P.Prop i
 textHolder = prop (PropName "holder_text")
 
