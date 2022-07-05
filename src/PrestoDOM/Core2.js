@@ -1,7 +1,7 @@
 const prestoUI = require("presto-ui");
 const prestoDayum = prestoUI.doms;
 const callbackMapper = prestoUI.callbackMapper;
-var webParseParams, iOSParseParams, parseParams;
+var webParseParams, iOSParseParams, parseParams, lastScreen = [], screenTransition = {};
 
 if (window.__OS === "WEB") {
   webParseParams = prestoUI.helpers.web.parseParams;
@@ -9,6 +9,34 @@ if (window.__OS === "WEB") {
   iOSParseParams = prestoUI.helpers.ios.parseParams;
 } else {
   parseParams = prestoUI.helpers.android.parseParams;
+}
+
+exports.addTime3 = addTime
+
+function addTime(screen){
+  return function(){
+    try{
+      var lastIndex = screen.lastIndexOf("_")
+      var x = [screen.slice(0,lastIndex), screen.slice(lastIndex + 1)]
+      screenTransition = screenTransition || {}
+      screenTransition[screen] = Date.now()
+      if(lastScreen.length > 0){
+        if(x[x.length-1].toLowerCase() === "rendered"){
+          var last = lastScreen[lastScreen.length - 1]
+          window.latency = window.latency || {}
+          window.latency[x[0]] = screenTransition[screen] - screenTransition[last + "_Exited"]
+          tracker._trackAction("system")("info")("screenLatency")({"currentScreen" : x[0], "lastScreen" : last, "latency" : window.latency[x[0]]})()
+          lastScreen.push(x[0])
+        }else if(x[x.length-1].toLowerCase() === "exited" && lastScreen.length > 1){
+          lastScreen.pop()
+        }
+      }else{
+        lastScreen.push(x[0])
+      }
+    }catch(e){
+      tracker._trackAction("system")("info")("screenLatency")({"exception" : e})()
+    }
+  }
 }
 
 function makeImageName(imageName){
@@ -774,6 +802,7 @@ function executePostProcess(nam, namespace, cache) {
       processMapps(namespace, nam, 75);
       triggerAfterRender(namespace, nam);
       triggerChunkCascade(namespace, nam);
+      addTime(nam + "_Rendered")()
     };
 }
 
@@ -1148,6 +1177,7 @@ exports.terminateUIImpl = terminateUIImpl();
 exports.terminateUIImplWithCallback = terminateUIImpl;
 function terminateUIImpl(callback) {
   return function(namespace) {
+    lastScreen = []
     if(callback) {
       callback(-1)(JSON.stringify({
           stopAtDom : true,

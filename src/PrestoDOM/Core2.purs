@@ -40,6 +40,7 @@ import PrestoDOM.Core.Utils (callMicroAppsForListState, extractAndDecode, extrac
 
 foreign import setUpBaseState :: String -> Foreign -> Effect Unit
 foreign import insertDom :: forall a. EFn.EffectFn4 String String a Boolean InsertState
+foreign import addTime3 :: String -> Effect Unit
 foreign import addViewToParent :: EFn.EffectFn1 InsertState Unit
 foreign import parseProps :: EFn.EffectFn4 Foreign String Foreign String {ids :: Foreign, dom :: Foreign}
 foreign import storeMachine :: forall a b . EFn.EffectFn3 (Step a b) String String Unit
@@ -378,6 +379,7 @@ controllerActions {event, push} {initialState, eval, name, globalEvents, parent}
         setScreenInActive ns name
         EFn.runEffectFn2 cancelExistingActions name ns
         result <- fromMaybe (pure unit) $ st <#> emitter
+        _ <- addTime3 (name <> "_Exited")
         cb $ Right ret
         logAction timerRef previousAction currentAction true json-- logNow
       registerEvents =
