@@ -23,6 +23,8 @@ module PrestoDOM.Events
     , update
     , registerEvent
     , globalOnScroll
+    , onSlide
+    , onStateChanged
     ) where
 
 import Prelude
@@ -185,6 +187,11 @@ scrollStateUpdate gID newScroll st= do
 onScrollStateChange :: forall a. (a -> Effect Unit ) -> (ScrollState -> a) -> Prop (Effect Unit)
 onScrollStateChange push f = event (DOM.EventType "onScrollStateChange") (Just <<< (makeEvent (push <<< f <<< mapScrollState)))
 
+onSlide :: forall a. (a -> Effect Unit ) -> (Number -> a) -> Prop (Effect Unit)
+onSlide push f = event (DOM.EventType "onSlide") (Just <<< (makeEvent (push <<< f)))
+
+onStateChanged :: forall a. (a -> Effect Unit ) -> (Number -> a) -> Prop (Effect Unit)
+onStateChanged push f = event (DOM.EventType "onStateChanged") (Just <<< (makeEvent (push <<< f)))
 
 
 onAnimationEnd :: forall a. (a ->  Effect Unit) -> (String -> a) -> Prop (Effect Unit)
