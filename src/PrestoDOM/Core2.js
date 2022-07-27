@@ -420,6 +420,18 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
       console.warn("state", state);
     }
     type = mappBootData.useLinearLayout ? "linearLayout" : "relativeLayout"
+  } else if (type ==  "fragmentContainerView") {
+    type = props.useLinearLayout ? "linearLayout" : "relativeLayout"
+    if(props.namespace) {
+      // InitUI
+      exports.setUpBaseState(props.namespace)(null)();
+      // Mark that this is not pre-render
+      getConstState(props.namespace).hasRender = true
+      var newElem = getScopedState(props.namespace).root
+      newElem.props = props;
+      newElem.props.afterRender = markRootReady(props.namespace);
+      return parsePropsImpl(newElem, screenName, VALIDATE_ID, namespace)
+    }
   }
   if(props.hasOwnProperty("afterRender")) {
     if (getConstState(namespace).prerenderScreens.indexOf(screenName) != -1) {
@@ -913,6 +925,8 @@ exports.setUpBaseState = function (namespace) {
       getScopedState(namespace).queuedEvents = {}
       getScopedState(namespace).pushActive = {}
       getScopedState(namespace).rootVisible = false;
+      getScopedState(namespace).rootReady = false;
+      getScopedState(namespace).awaitRootReady = [];
       getScopedState(namespace).patchState = {}
       getScopedState(namespace).screenActive = {}
 
@@ -950,21 +964,55 @@ exports.setUpBaseState = function (namespace) {
   }
 }
 
+const markRootReady = function(namespace) {
+  return function () {
+    var state = getScopedState(namespace)
+    if(state) {
+      state.rootReady = true
+      while(state.awaitRootReady.length > 0) {
+        var cb = state.awaitRootReady.pop()
+        if(typeof cb == "function") {
+          cb();
+        }
+      }
+    }
+  }
+}
+
+exports.awaitRootReady = function(namespace) {
+  return function (cb) {
+    return function() {
+      var state = getScopedState(namespace)
+      if(state && state.rootReady) {
+        cb()();
+      } else if (state) {
+        state.awaitRootReady.push(cb());
+      } else {
+        console.error("Call initUI for Namespace :: ", namespace)
+      }
+    }
+  }
+}
+
 exports.render = function (namespace) {
   getConstState(namespace).hasRender = true
   var id = getIdFromNamespace(namespace);
+  var cb = callbackMapper.map(markRootReady(namespace));
+  if(__OS == "ANDROID") {
+    cb = JSON.stringify(cb); 
+  }
   if (window.__OS == "ANDROID") {
     if (typeof AndroidWrapper.getNewID == "function") {
       // TODO change this to mystique version check.
       // TODO add mystique reject / alternate handling, when required version is not present
-      AndroidWrapper.render(JSON.stringify(domAll(getScopedState(namespace).root, "base", namespace)),null,"false", (id ? id : null));
+      AndroidWrapper.render(JSON.stringify(domAll(getScopedState(namespace).root, "base", namespace)), cb, "false", (id ? id : null));
     } else {
-      AndroidWrapper.render(JSON.stringify(domAll(getScopedState(namespace).root), "base", namespace), null);
+      AndroidWrapper.render(JSON.stringify(domAll(getScopedState(namespace).root), "base", namespace), cb);
     }
   } else if (window.__OS == "WEB") {
-    AndroidWrapper.Render(domAll(getScopedState(namespace).root, "base", namespace), null, id); // Add support for Web
+    AndroidWrapper.Render(domAll(getScopedState(namespace).root, "base", namespace), cb, getIdFromNamespace(namespace)); // Add support for Web
   } else {
-    AndroidWrapper.render(domAll(getScopedState(namespace).root, "base", namespace), null, (id ? id : undefined)); // Add support for iOS
+    AndroidWrapper.render(domAll(getScopedState(namespace).root, "base", namespace), cb, (id ? id : undefined)); // Add support for iOS
   }
 
   try {
@@ -1471,6 +1519,12 @@ function setManualEvents (namespace) {
 }
 
 exports.fireManualEvent = fireManualEvent()
+
+exports.fireEventToScreen = function (namespace) {
+  return function (screenName) {
+    return fireManualEvent(namespace, screenName)
+  }
+}
 
 function fireManualEvent (namespace, nam) {
   return function (eventName) {

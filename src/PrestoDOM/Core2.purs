@@ -36,7 +36,7 @@ import Tracker.Types (Level(..), Screen(..), Lifecycle(..)) as T
 import Unsafe.Coerce (unsafeCoerce)
 
 import PrestoDOM.Core.Types (InsertState, UpdateActions, VdomTree)
-import PrestoDOM.Core.Utils (callMicroAppsForListState, extractAndDecode, extractJsonAndDecode, forkoutListState, generateCommands, getListData, replayListFragmentCallbacks', verifyFont, verifyImage, attachUrlImages,isListContainer)
+import PrestoDOM.Core.Utils (callMicroAppsForListState, extractAndDecode, extractJsonAndDecode, forkoutListState, generateCommands, getListData, replayListFragmentCallbacks', verifyFont, verifyImage, attachUrlImages, isListContainer)
 
 foreign import setUpBaseState :: String -> Foreign -> Effect Unit
 foreign import insertDom :: forall a. EFn.EffectFn4 String String a Boolean InsertState
@@ -73,6 +73,7 @@ foreign import getCurrentActivity :: Effect String
 
 foreign import setManualEvents :: forall a b. String -> String -> a -> b -> Effect Unit
 foreign import fireManualEvent :: forall a. String -> a -> Effect Unit
+foreign import fireEventToScreen :: forall a. String -> String -> String -> a -> Effect Unit
 foreign import replayFragmentCallbacks' :: forall a. String -> String -> (a -> Effect Unit) -> Effect (Effect Unit)
 
 foreign import getAndSetEventFromState :: forall a. EFn.EffectFn3 String String (Effect (EventIO a)) (EventIO a)
@@ -102,6 +103,7 @@ foreign import startedToPrepare :: EFn.EffectFn2 String String Unit
 foreign import awaitPrerenderFinished :: EFn.EffectFn3 String String (Effect Unit) Unit
 
 foreign import addScreenWithAnim :: EFn.EffectFn3 Foreign String String Unit
+foreign import awaitRootReady :: String -> (Unit -> Effect Unit) -> Effect Unit
 
 foreign import getTimeInMillis :: Effect Number
 foreign import setPreRender :: String -> String -> Effect Unit
@@ -312,6 +314,7 @@ renderOrPatch {event, push} st@{ initialState, view, eval, name , globalEvents, 
       _ <- liftEffect $ addTime2 "Render_domAll_End"
       _ <- liftEffect $ performanceMeasure "Render_domAll" "Render_domAll_Start" "Render_domAll_End"
       _ <- liftEffect $ addTime2 "Render_addViewToParent_Start"
+      makeAff \cb -> awaitRootReady ns (cb <<< Right) $> nonCanceler
       liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
       _ <- liftEffect $ addTime2 "Render_addViewToParent_End"
       _ <- liftEffect $ performanceMeasure "Render_addViewToParent" "Render_addViewToParent_Start" "Render_addViewToParent_End"

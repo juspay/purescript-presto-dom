@@ -10,6 +10,7 @@ module PrestoDOM.Elements.Elements
 
     , bottomSheetLayout
     , coordinatorLayout
+    , container
     , swipeRefreshLayout
     , linearLayout
     , mapp
@@ -36,13 +37,15 @@ module PrestoDOM.Elements.Elements
     , textureView
     ) where
 
+import Prelude
 
-
+import Data.Array((:))
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
 import Halogen.VDom.DOM.Prop (Prop)
 import Halogen.VDom.Types (ShimmerHolder)
-import PrestoDOM.Types.Core (ElemName(..), VDom(..), Namespace)
+import PrestoDOM.Types.Core (ElemName(..), VDom(..), Namespace, PropName(..))
+import PrestoDOM.Properties (prop)
 
 type Node i p
    = Array i
@@ -107,6 +110,9 @@ horizontalScrollView = node "horizontalScrollView"
 
 listView :: forall i p. Node (Prop i) p
 listView = node "listView"
+
+container :: forall i p. String -> Leaf (Prop i) p
+container namespace props = leaf "fragmentContainerView" $  (prop (PropName "namespace") namespace) : props 
 
 scrollView :: forall i p. Node (Prop i) p
 scrollView = node "scrollView"
