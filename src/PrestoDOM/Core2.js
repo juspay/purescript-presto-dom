@@ -1300,6 +1300,12 @@ exports.setToTopOfStack = function (namespace, screenName) {
       var index = getScopedState(namespace).screenStack.indexOf(screenName)
       var removedScreens = getScopedState(namespace).screenStack.splice(index + 1)
       getScopedState(namespace).removeList = getScopedState(namespace).removeList.concat(removedScreens)
+      for (var i = 0; i < removedScreens.length; ++i) {
+        var removedScreen = removedScreens[i];
+        if(getScopedState(namespace) && getScopedState(namespace).fragmentCallbacks[removedScreen] ){
+           delete getScopedState(namespace).fragmentCallbacks[removedScreen];
+        }
+      }
     } else {
       getScopedState(namespace).screenStack.push(screenName)
     }
