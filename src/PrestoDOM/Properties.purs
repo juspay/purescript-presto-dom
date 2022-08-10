@@ -173,6 +173,7 @@ module PrestoDOM.Properties
     , disableClickFeedback
     , rippleColor
     , enableRoundedRipple
+    , autoCorrectionType
     ) where
 
 import Prelude
@@ -833,3 +834,6 @@ rippleColor = prop (PropName "rippleColor")
 
 enableRoundedRipple :: forall i. Boolean -> Prop i
 enableRoundedRipple = prop (PropName "enableRoundedRipple")
+
+autoCorrectionType :: forall i. Int -> Prop i
+autoCorrectionType = prop (PropName "autoCorrectionType")
