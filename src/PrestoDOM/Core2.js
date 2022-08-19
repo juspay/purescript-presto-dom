@@ -372,8 +372,8 @@ function isRecyclerViewSupported(){
   return isSupported;
 }
 
-function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
-  if(elem.type == "listView" && isRecyclerViewSupported()){ 
+function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType) {
+  if(elem.type == "listView" && isRecyclerViewSupported()){
     elem.type = "recyclerView";
   }
   if (elem.props.hasOwnProperty('id') && elem.props.id != '' && (elem.props.id).toString().trim() != '') {
@@ -539,7 +539,7 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace) {
     window.__resizeEvent = props.onResize;
   }
   props.id = elem.__ref.__id;
-  return {dom : { type : type, props:props, children:elem.children, parentType : elem.parentType, __ref : elem.__ref}, ids : VALIDATE_ID}
+  return {dom : { type : type, props:props, children:elem.children, parentType : elem.parentType || parentType, __ref : elem.__ref}, ids : VALIDATE_ID}
 }
 
 function hideOldScreenNow(namespace, screenName) {
@@ -1352,20 +1352,7 @@ exports.addChildImpl = function (namespace) {
           }
          )
       // console.log("Add child :", child.__ref.__id, child.type);
-      var viewGroups = [
-        "linearLayout",
-        "relativeLayout",
-        "scrollView",
-        "frameLayout",
-        "horizontalScrollView"
-      ];
-      if (window.__OS == "ANDROID") {
-        if (viewGroups.indexOf(child.type) != -1) {
-          child.props.root = true;
-        } else {
-          child.parentType = parent.type;
-        }
-      }
+      child.parentType = parent.type;
       if(child.props && (!child.props.id) && child.__ref) {
         child.props.id = child.__ref.__id
       }

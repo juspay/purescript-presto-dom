@@ -22,6 +22,7 @@ import FRP.Event (EventIO, subscribe)
 import FRP.Event as E
 import Foreign (Foreign, unsafeToForeign)
 import Foreign.Generic (encode, decode, class Decode)
+import Foreign.NullOrUndefined (undefined)
 import Foreign.Object (Object, update, insert, delete, isEmpty, lookup)
 import Halogen.VDom (Step, VDom, VDomSpec(..), buildVDom, extract, step)
 import Halogen.VDom.DOM.Prop (buildProp)
@@ -42,7 +43,7 @@ foreign import setUpBaseState :: String -> Foreign -> Effect Unit
 foreign import insertDom :: forall a. EFn.EffectFn4 String String a Boolean InsertState
 foreign import addTime3 :: String -> Effect Unit
 foreign import addViewToParent :: EFn.EffectFn1 InsertState Unit
-foreign import parseProps :: EFn.EffectFn4 Foreign String Foreign String {ids :: Foreign, dom :: Foreign}
+foreign import parseProps :: EFn.EffectFn5 Foreign String Foreign String Foreign {ids :: Foreign, dom :: Foreign}
 foreign import storeMachine :: forall a b . EFn.EffectFn3 (Step a b) String String Unit
 foreign import getLatestMachine :: forall a b . EFn.EffectFn2 String String (Step a b)
 foreign import isInStack :: EFn.EffectFn2 String String Boolean
@@ -137,7 +138,7 @@ updateChildrenImpl namespace screenName = do
         case action of
           "add" -> do
               insertState <- liftEffect $ Efn.runEffectFn3 (addChildImpl namespace screenName) (encode elem) (encode parent) index
-              domAllOut <- domAll {name : screenName, parent : Just namespace} (unsafeToForeign {}) insertState.dom
+              domAllOut <- domAll {name : screenName, parent : Just namespace} (unsafeToForeign {}) undefined insertState.dom
               liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
           "move" -> liftEffect $ EFn.runEffectFn3 (moveChild namespace) elem parent index
           _ -> pure unit -- Should never reach here
@@ -310,7 +311,7 @@ renderOrPatch {event, push} st@{ initialState, view, eval, name , globalEvents, 
       -- THE JSON IN THIS BLOCK IS MODIFIED IN JS
       -- AND CAN IMPACT ALL ENCODE USAGES
       _ <- liftEffect $ addTime2 "Render_domAll_Start"
-      domAllOut <- domAll st (unsafeToForeign {}) insertState.dom
+      domAllOut <- domAll st (unsafeToForeign {}) undefined insertState.dom
       _ <- liftEffect $ addTime2 "Render_domAll_End"
       _ <- liftEffect $ performanceMeasure "Render_domAll" "Render_domAll_Start" "Render_domAll_End"
       _ <- liftEffect $ addTime2 "Render_addViewToParent_Start"
@@ -326,17 +327,17 @@ renderOrPatch {event, push} { initialState, view, eval, name , globalEvents, par
   EFn.runEffectFn2 makeScreenVisible ns name
   EFn.runEffectFn3 callAnimation name ns isCache
 
-domAll :: forall a. {name :: String, parent :: Maybe String | a} -> Foreign -> Foreign -> Aff Foreign
-domAll {name, parent} ids dom = {--dom--} do
+domAll :: forall a. {name :: String, parent :: Maybe String | a} -> Foreign -> Foreign -> Foreign -> Aff Foreign
+domAll {name, parent} ids parentType dom = {--dom--} do
   ns <- liftEffect $ sanitiseNamespace parent
-  {ids: i, dom:d} <- liftEffect $ EFn.runEffectFn4 parseProps dom name ids ns
+  {ids: i, dom:d} <- liftEffect $ EFn.runEffectFn5 parseProps dom name ids ns parentType
   case hush $ runExcept $ decode d of
     Just (vdomTree :: VdomTree) -> do
       fontFiber <- forkAff $ verifyFont $ extractAndDecode "fontStyle" vdomTree.props
       imageFiber <- forkAff $ verifyImage vdomTree.__ref (ns <> name) $ extractAndDecode "imageUrl" vdomTree.props
       placeFiber <- forkAff $ verifyImage Nothing "" $ extractAndDecode "placeHolder" vdomTree.props
       listFiber <- forkoutListState ns name vdomTree."type" vdomTree.props
-      children <- domAll {name, parent} i `traverse` vdomTree.children
+      children <- domAll {name, parent} i (encode vdomTree.type) `traverse` vdomTree.children
       font <- joinFiber fontFiber
       image <- joinFiber imageFiber
       placeHolder <- joinFiber placeFiber
@@ -416,7 +417,7 @@ initUIWithScreen namespace id screen = do
   ns <- liftEffect $ sanitiseNamespace screen.parent
   machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns screen.name)) myDom
   insertState <- liftEffect $ EFn.runEffectFn4 insertDom ns screen.name (extract machine) false
-  domAllOut <- domAll screen (unsafeToForeign {}) insertState.dom
+  domAllOut <- domAll screen (unsafeToForeign {}) undefined insertState.dom
   liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
 
 -- runScreen
@@ -536,7 +537,7 @@ prepareScreen screen@{name, parent, view} json = do
       -- DO NOT CHANGE THIS TO ENCODE,
       -- THE JSON IN THIS BLOCK IS MODIFIED IN JS
       -- AND CAN IMPACT ALL ENCODE USAGES
-      domAllOut <- domAll screen (unsafeToForeign {}) dom
+      domAllOut <- domAll screen (unsafeToForeign {}) undefined dom
       makeAff $ \cB -> do
          EFn.runEffectFn5 prepareAndStoreView (callBack cB pre_rendering_started) domAllOut (ns <> name) ns name
          pure nonCanceler
