@@ -1,7 +1,7 @@
 const prestoUI = require("presto-ui");
 const prestoDayum = prestoUI.doms;
 const callbackMapper = prestoUI.callbackMapper;
-var webParseParams, iOSParseParams, parseParams, lastScreen = [], screenTransition = {};
+var webParseParams, iOSParseParams, parseParams, lastScreen = [], screenTransition = {}, last = "";
 
 if (window.__OS === "WEB") {
   webParseParams = prestoUI.helpers.web.parseParams;
@@ -22,13 +22,12 @@ function addTime(screen){
       screenTransition[screen] = Date.now()
       if(lastScreen.length > 0){
         if(x[x.length-1].toLowerCase() === "rendered"){
-          var last = lastScreen[lastScreen.length - 1]
           window.latency = window.latency || {}
           window.latency[x[0]] = screenTransition[screen] - screenTransition[last + "_Exited"]
           tracker._trackAction("system")("info")("screenLatency")({"currentScreen" : x[0], "lastScreen" : last, "latency" : window.latency[x[0]]})()
           lastScreen.push(x[0])
-        }else if(x[x.length-1].toLowerCase() === "exited" && lastScreen.length > 1){
-          lastScreen.pop()
+        }else if(x[x.length-1].toLowerCase() === "exited"){
+          last = lastScreen.length > 1 ? lastScreen.pop() : lastScreen[lastScreen.length - 1]
         }
       }else{
         lastScreen.push(x[0])
