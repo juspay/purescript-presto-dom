@@ -1289,6 +1289,9 @@ function terminateUIImpl(callback) {
     deleteScopedState(namespace)
     if (window.__OS != "ANDROID") {
       deleteConstState(namespace)
+    } else if (getConstState(namespace) && getConstState(namespace).animations) {
+      getConstState(namespace).animations.animationStack = []
+      getConstState(namespace).animations.animationCache = []
     }
   }
 }
