@@ -12,6 +12,10 @@ exports.__IS_ANDROID = function () {
   return window.__OS == "ANDROID";
 };
 
+exports.__IS_WEB = function () {
+  return window.__OS == "WEB";
+};
+
 exports["toSafeInt"] = function (constructor) {
   return function (json) {
     return function (left) {
@@ -19,6 +23,18 @@ exports["toSafeInt"] = function (constructor) {
         if (json != undefined && !isNaN(parseInt(json))) {
           return right(constructor(parseInt(json)));
         } else return left("unable to parse into integer type");
+      };
+    };
+  };
+};
+
+exports["toSafeNumber"] = function (constructor) {
+  return function (json) {
+    return function (left) {
+      return function (right) {
+        if (json != undefined && !isNaN(parseFloat(json))) {
+          return right(constructor(parseFloat(json)));
+        } else return left("unable to parse into number type");
       };
     };
   };

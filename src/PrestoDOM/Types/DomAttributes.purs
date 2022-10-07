@@ -1,59 +1,62 @@
 module PrestoDOM.Types.DomAttributes
-    ( Gravity(..)
-    , Gradient(..)
-    , InputType(..)
-    , Length(..)
-    , Position(..)
-    , Orientation(..)
-    , Typeface(..)
-    , Visibility(..)
-    , Padding(..)
-    , Margin(..)
-    , Shadow(..)
-    , Corners(..)
-    , BottomSheetState(..)
-    , Shimmer
-    , renderShimmer
-    , Font(..)
-    , LineSpacing(..)
-    , isUndefined
-    , renderFont
-    , renderMargin
-    , renderPadding
-    , renderGravity
-    , renderGradient
-    , renderInputType
-    , renderLength
-    , renderPosition
-    , renderOrientation
-    , renderTypeface
-    , renderVisibility
-    , renderShadow
-    , renderCorners
-    , renderLineSpacing
-    , toSafeString
-    , toSafeArray
-    , toSafeObject
-    , toSafeInt
-    , __IS_ANDROID
-    , alphaBuilder
-    , colorBuilder
-    , tilt
-    , intensity
-    , direction
-    , duration
-    , repeatCount
-    , repeatDelay
-    , clipToChildren
-    , baseColor
-    , baseAlpha
-    , highlightColor
-    , highlightAlpha
-    , shape
-    , dropOff
-    , active
-    , renderBottomSheetState
-    ) where
+  ( BottomSheetState(..)
+  , Corners(..)
+  , Font(..)
+  , Gradient(..)
+  , Gravity(..)
+  , InputType(..)
+  , Length(..)
+  , LineSpacing(..)
+  , LetterSpacing(..)
+  , Margin(..)
+  , Orientation(..)
+  , Padding(..)
+  , Position(..)
+  , Shadow(..)
+  , Shimmer
+  , Typeface(..)
+  , Visibility(..)
+  , __IS_ANDROID
+  , active
+  , alphaBuilder
+  , baseAlpha
+  , baseColor
+  , clipToChildren
+  , colorBuilder
+  , direction
+  , dropOff
+  , duration
+  , highlightAlpha
+  , highlightColor
+  , intensity
+  , isUndefined
+  , renderBottomSheetState
+  , renderCorners
+  , renderFont
+  , renderGradient
+  , renderGravity
+  , renderInputType
+  , renderLength
+  , renderLetterSpacing
+  , renderLineSpacing
+  , renderMargin
+  , renderOrientation
+  , renderPadding
+  , renderPosition
+  , renderShadow
+  , renderShimmer
+  , renderTypeface
+  , renderVisibility
+  , repeatCount
+  , repeatDelay
+  , shape
+  , tilt
+  , toSafeArray
+  , toSafeInt
+  , toSafeObject
+  , toSafeString
+  )
+  where
 
 import Prelude
 import Control.Monad.Except(runExcept)
@@ -75,11 +78,19 @@ import Control.Alt ((<|>))
 
 foreign import stringifyGradient :: Fn3 String Number (Array String) String
 foreign import __IS_ANDROID :: Boolean
+foreign import __IS_WEB :: Unit -> Boolean
 
 foreign import isUndefined :: forall a. a -> Boolean
 foreign import toSafeString :: forall a. a -> String
 
 foreign import toSafeInt
+  :: forall a dataConstructor. dataConstructor
+  -> String -- foreign string
+  -> (String -> Either (NonEmptyList ForeignError) a) -- error constructor
+  -> (a -> Either (NonEmptyList ForeignError) a) -- data constructor
+  -> Either (NonEmptyList ForeignError) a
+
+foreign import toSafeNumber
   :: forall a dataConstructor. dataConstructor
   -> String -- foreign string
   -> (String -> Either (NonEmptyList ForeignError) a) -- error constructor
@@ -773,3 +784,31 @@ colorBuilder = ColorBuilder {
     , active : true
     , shimmerType : "color"
     }
+
+data LetterSpacing
+  = PX Number
+  | EM Number
+  | REM Number
+
+derive instance genericLetterSpacing:: Generic LetterSpacing _
+instance decodeLetterSpacing :: Decode LetterSpacing where decode = decodeLetterSpacingUtil <<< toSafeString <<< unsafeFromForeign
+instance showLetterSpacing :: Show LetterSpacing where show = genericShow
+instance encodeLetterSpacing :: Encode LetterSpacing where encode = renderLetterSpacing >>> unsafeToForeign
+
+decodeLetterSpacingUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a LetterSpacing
+decodeLetterSpacingUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "LetterSpacing is undefined"
+  else
+    except $ toSafeNumber PX json (Left <<< singleton <<< ForeignError) Right
+
+renderLetterSpacing :: LetterSpacing -> String
+renderLetterSpacing =
+  case _ of
+    PX a    -> func (show a) "px"
+    EM b    -> func (show b) "em"
+    REM c   -> func (show c) "rem"
+  where
+    func pre suff = case __IS_WEB unit of
+      true  -> pre <> suff
+      false -> pre
