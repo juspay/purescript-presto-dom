@@ -31,6 +31,7 @@ import Foreign(Foreign)
 import Foreign.Object as Object
 
 foreign import addTime2 :: String -> Effect Unit
+foreign import getTime :: Effect Int
 
 foreign import performanceMeasure :: String -> String -> String -> Effect Unit
 
@@ -102,34 +103,18 @@ clearTimeout timerRef = do
     Just t -> Timer.clearTimeout t
     Nothing -> pure unit
 
-logAction :: forall a. Loggable a => Show a => Ref.Ref (Maybe Timer.TimeoutId) -> (Maybe a) -> (Maybe a) -> Boolean -> (Object.Object Foreign)-> Effect Unit
-logAction timerRef (Just prevAct) (Just currAct) true json = do -- logNow without waiting
-  clearTimeout timerRef
-  loggerFunction timerRef prevAct json
-  loggerFunction timerRef currAct json
-logAction timerRef (Just prevAct) (Just currAct) logNow json = do
-  let previousAction = show prevAct
-      currentAction = show currAct
-  timer <- Ref.read timerRef
-  if(previousAction == currentAction) then do -- current == previous, if previous log isn't already logged cancell it and setTimeout for current one.
-      clearTimeout timerRef
-      tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct json
-      Ref.write (Just tid) timerRef
-    else
-      case timer of
-        Just t -> do -- current != previous, timer running, log current and last log
-          Timer.clearTimeout t
-          loggerFunction timerRef prevAct json
-          loggerFunction timerRef currAct json
-        Nothing -> do -- current != previous, timer NOT running, set timeout for current log
-          tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct json
-          Ref.write (Just tid) timerRef
-logAction timerRef Nothing (Just currAct) logNow json = do
-  tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct json
-  Ref.write (Just tid) timerRef
-logAction _ _ _ _ _= pure unit
+logAction :: forall a. Loggable a => Show a => Ref.Ref Int -> (Maybe a) -> (Maybe a) -> Boolean -> (Object.Object Foreign)-> Effect Unit
+logAction timerRef (Just prevAct) (Just currAct) false json = do
+  currTime <- getTime
+  prevTime <- Ref.read timerRef
+  _ <- Ref.write currTime timerRef
+  if show prevAct == show currAct && (currTime - prevTime < 300)
+    then pure unit
+    else loggerFunction currAct json 
+logAction timerRef Nothing (Just currAct) false json = loggerFunction currAct json 
+logAction timerRef _ (Just currAct) true json = loggerFunction currAct json 
+logAction timerRef _ _ _ _ = pure unit
 
-loggerFunction :: forall a. Loggable a => Show a => Ref.Ref (Maybe Timer.TimeoutId) -> a -> (Object.Object Foreign) -> Effect Unit
-loggerFunction ref action json = do
+loggerFunction :: forall a. Loggable a => Show a => a -> (Object.Object Foreign) -> Effect Unit
+loggerFunction action json = do
   performLog action json
-  Ref.write Nothing ref-- set ref to nothing after done.

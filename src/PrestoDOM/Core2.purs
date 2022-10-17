@@ -365,7 +365,7 @@ controllerActions :: forall action state returnType a
 controllerActions {event, push} {initialState, eval, name, globalEvents, parent} json emitter cb = do
   ns <- sanitiseNamespace parent
   _ <- EFn.runEffectFn2 cancelExistingActions name ns
-  timerRef <- Ref.new Nothing
+  timerRef <- Ref.new 0
   let stateBeh = unfold execEval event { previousAction : Nothing, currentAction : Nothing, eitherState : (continue initialState)}
   canceller <- sample_ stateBeh event `subscribe` (\a -> either (onExit a.previousAction a.currentAction timerRef) (onStateChange a.previousAction a.currentAction timerRef) a.eitherState)
   activityId <- getCurrentActivity

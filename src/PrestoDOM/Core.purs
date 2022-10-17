@@ -252,7 +252,7 @@ runScreenImpl cache { initialState, view, eval, name , globalEvents } cb json = 
     true -> do
       callAnimation_ name cache
       patchAndRun screenName myDom
-  timerRef <- Ref.new Nothing
+  timerRef <- Ref.new 0
   let stateBeh = unfold execEval event { previousAction : Nothing, currentAction : Nothing, eitherState : (continue initialState)}
   canceller <- sample_ stateBeh event `subscribe` (\a -> either (onExit screenNumber push a.previousAction a.currentAction timerRef) (onStateChange push a.previousAction a.currentAction timerRef) a.eitherState)
   cancellers <- traverse (registerEvents push)  globalEvents

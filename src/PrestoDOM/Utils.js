@@ -95,3 +95,5 @@ function loggerFunction(logger, key, value, json){
   logger(key)(value)(json)();
   window.loggerTimeout =  null;
 }
+
+exports.getTime = Date.now
