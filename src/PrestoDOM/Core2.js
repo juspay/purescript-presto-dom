@@ -128,6 +128,7 @@ const state = {
 , activityNamespaces: {}
 , currentActivity: "activity"
 , constState : {}
+, pixels : JBridge.getPixels()
 }
 
 const loopedFunction = function(){
@@ -487,6 +488,24 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType) {
         onAnimationEnd: props.onAnimationEnd,
         type: type
       };
+    if (window.__OS == "ANDROID") {
+      // Incase of pre-render we need to get default values for entry animation, so that we can reset the same
+      var x = JSON.parse(props.entryAnimationF)
+      var y = {id : elem.__ref.__id}
+      for (var i = 0; i < x.length; ++i) {
+        // for pre-render cases
+        y.alpha = y.alpha  || x[i].fromAlpha
+        y.translationX = y.translationX  || x[i].fromX && (x[i].fromX * state.pixels)
+        y.translationY = y.translationY  || x[i].fromY && (x[i].fromY * state.pixels)
+        y.scaleX = y.scaleX  || x[i].fromScaleX
+        y.scaleY = y.scaleY  || x[i].fromScaleY
+        y.rotation = y.rotation  || x[i].fromRotation
+        y.rotationX = y.rotationX  || x[i].fromRotationX
+        y.rotationY = y.rotationY  || x[i].fromRotationY
+      }
+      getConstState(namespace).animations.entryF[screenName].command = getConstState(namespace).animations.entryF[screenName].command || "";
+      getConstState(namespace).animations.entryF[screenName].command += cmdForAndroid(y, true, type).runInUI
+    }
     props.inlineAnimation = props.entryAnimationF;
   }
 
@@ -630,20 +649,6 @@ function callAnimation__ (screenName, namespace, cache) {
       if(topOfStack != screenName) {
         animationArray.push({ screenName : screenName, tag : "entryB"})
         animationArray.push({ screenName : topOfStack, tag : "exitB"})
-        while (getConstState(namespace).animations.animationStack[getConstState(namespace).animations.animationStack.length - 1] != screenName) {
-          var page = getConstState(namespace).animations.animationStack.pop();
-          if(state.isPreRenderEnabled) {
-            if (getConstState(namespace).cachedMachine && getConstState(namespace).cachedMachine.hasOwnProperty(page)){
-              getConstState(namespace).animations.prerendered.push(page)
-            }
-          }
-          else {
-            var namespace_ = getNamespace(namespace);
-            if (state.cachedMachine.hasOwnProperty(namespace_) && state.cachedMachine[namespace_].hasOwnProperty(page)){
-              getConstState(namespace).animations.prerendered.push(page)
-            }
-          }
-        }
       }
     } else {
       animationArray.push({ screenName : screenName, tag : "entry"})
@@ -654,26 +659,36 @@ function callAnimation__ (screenName, namespace, cache) {
       getConstState(namespace).animations.animationCache.push(screenName); // TODO :: Use different data structure. Array does not realy fit the bill.
     } else {
       // new runscreen case call forward exit animation of previous runscreen
+      if(state.isPreRenderEnabled) {
+        if (getConstState(namespace).cachedMachine && getConstState(namespace).cachedMachine.hasOwnProperty(screenName)){
+          getConstState(namespace).animations.prerendered.push(screenName)
+        }
+      } else {
+        var namespace_ = getNamespace(namespace);
+        if (state.cachedMachine.hasOwnProperty(namespace_) && state.cachedMachine[namespace_].hasOwnProperty(screenName)){
+          getConstState(namespace).animations.prerendered.push(screenName)
+        }
+      }
       var previousScreen = getConstState(namespace).animations.animationStack[getConstState(namespace).animations.animationStack.length - 1]
       animationArray.push({ screenName : previousScreen, tag : "exitF"})
       if (getConstState(namespace).animations.prerendered.indexOf(screenName) != -1){
-        animationArray.push({ screenName : screenName, tag : "entryF"})
+        animationArray.push({ screenName : screenName, tag : "entryF", resetAnimation : true})
       }
       getScopedState(namespace).hideList.push(previousScreen);
       getConstState(namespace).animations.animationStack.push(screenName);
     }
   }
-  callAnimation_(namespace, animationArray, false, screenName)
+  callAnimation_(namespace, animationArray, screenName)
   getConstState(namespace).animations.lastAnimatedScreen = screenName;
 }
 
-function callAnimation_ (namespace, screenArray, resetAnimation, screenName) {
+function callAnimation_ (namespace, screenArray, screenName) {
   window.enableBackpress = false;
   var hasAnimation = false;
   screenArray.forEach(
-    function (animationJson) {
-      if (getConstState(namespace).animations[animationJson.tag] && getConstState(namespace).animations[animationJson.tag][animationJson.screenName]) {
-        var animationJson = getConstState(namespace).animations[animationJson.tag][animationJson.screenName]
+    function (animationJsonTemp) {
+      if (getConstState(namespace).animations[animationJsonTemp.tag] && getConstState(namespace).animations[animationJsonTemp.tag][animationJsonTemp.screenName]) {
+        var animationJson = getConstState(namespace).animations[animationJsonTemp.tag][animationJsonTemp.screenName]
         for (var key in animationJson) {
           if (key == "hasAnimation")
             continue;
@@ -684,7 +699,9 @@ function callAnimation_ (namespace, screenArray, resetAnimation, screenName) {
             onAnimationEnd: animationJson[key].onAnimationEnd,
             visibility: animationJson[key].visibility
           };
-          if (resetAnimation){
+          // Reset animation is passed so that native code treats this as a new animation every time.
+          // Animations are skipped if there are no changes from the last run animation
+          if (animationJsonTemp.resetAnimation) {
             config["resetAnimation"] = true;
           }
           if (window.__OS == "ANDROID") {
@@ -1121,6 +1138,8 @@ exports.attachScreen = function(namespace, name, dom){
     var screenName = namespace + name
 
     var cmds = getScrollViewResetCmds(dom);
+    // Add commands which set default value for screen position
+    cmds += getConstState(namespace).animations.entryF[name].command
     Android.addStoredViewToParent(
       rootId + "",
       screenName,
