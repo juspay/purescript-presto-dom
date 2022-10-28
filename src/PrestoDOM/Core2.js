@@ -649,6 +649,8 @@ function callAnimation__ (screenName, namespace, cache) {
       if(topOfStack != screenName) {
         animationArray.push({ screenName : screenName, tag : "entryB"})
         animationArray.push({ screenName : topOfStack, tag : "exitB"})
+        // Pop the stack to the current screen
+        getConstState(namespace).animations.animationStack = getConstState(namespace).animations.animationStack.slice(0, getConstState(namespace).animations.animationStack.indexOf(screenName) + 1);
       }
     } else {
       animationArray.push({ screenName : screenName, tag : "entry"})
@@ -1311,6 +1313,7 @@ function terminateUIImpl(callback) {
     } else if (getConstState(namespace) && getConstState(namespace).animations) {
       getConstState(namespace).animations.animationStack = []
       getConstState(namespace).animations.animationCache = []
+      getConstState(namespace).animations.lastAnimatedScreen = ""
     }
   }
 }
