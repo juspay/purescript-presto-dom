@@ -128,7 +128,7 @@ const state = {
 , activityNamespaces: {}
 , currentActivity: "activity"
 , constState : {}
-, pixels : JBridge.getPixels()
+, pixels : window.__OS == "ANDROID" ? JBridge.getPixels() : 1.0
 }
 
 const loopedFunction = function(){
