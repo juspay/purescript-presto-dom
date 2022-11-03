@@ -6,7 +6,7 @@ import Control.Alt ((<|>))
 import Control.Monad.Except (runExcept)
 import Data.Either (Either(..), either, hush)
 import Data.Foldable (for_)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, fromMaybe', isJust)
 import Data.Newtype (un)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst)
@@ -29,8 +29,9 @@ import Halogen.VDom.DOM.Prop (buildProp)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
 import Halogen.VDom.Types (FnObject)
 import PrestoDOM.Events (manualEventsName)
-import PrestoDOM.Types.Core (class Loggable, PrestoWidget(..), Prop, ScopedScreen, Controller, ScreenBase)
-import PrestoDOM.Utils (continue, logAction, addTime2, performanceMeasure)
+import PrestoDOM.Types.Core (class Loggable, PrestoWidget(..), Prop, ScopedScreen, Controller, ScreenBase, PrestoDOM)
+import PrestoDOM.Utils (continue, logAction, addTime2, performanceMeasure, isGenerateVdom)
+import PrestoDOM.Generate (generateMyDom)
 import Tracker (trackScreen, trackLifeCycle)
 import Tracker.Labels as L
 import Tracker.Types (Level(..), Screen(..), Lifecycle(..)) as T
@@ -43,6 +44,8 @@ foreign import setUpBaseState :: String -> Foreign -> Effect Unit
 foreign import insertDom :: forall a. EFn.EffectFn4 String String a Boolean InsertState
 foreign import addTime3 :: String -> Effect Unit
 foreign import addViewToParent :: EFn.EffectFn1 InsertState Unit
+foreign import postAccess :: Efn.EffectFn3 String String Boolean Unit
+foreign import isVdomPresent :: String -> Effect Boolean
 foreign import parseProps :: EFn.EffectFn5 Foreign String Foreign String Foreign {ids :: Foreign, dom :: Foreign}
 foreign import storeMachine :: forall a b . EFn.EffectFn3 (Step a b) String String Unit
 foreign import getLatestMachine :: forall a b . EFn.EffectFn2 String String (Step a b)
@@ -66,8 +69,8 @@ foreign import cancelBehavior :: EFn.EffectFn1 String Unit
 foreign import createPrestoElement :: forall a. Effect a
 foreign import moveChild :: forall a b. String -> EFn.EffectFn3 a b Int Unit
 foreign import removeChild :: forall a b. String -> EFn.EffectFn3 a b Int Unit
-foreign import replaceView :: forall a. String -> EFn.EffectFn2 a (Array String) Unit
-foreign import updatePropertiesImpl :: forall a b. String -> EFn.EffectFn2 a b Unit
+foreign import replaceView :: forall a. String -> String -> EFn.EffectFn3 a String (Array String) Unit
+foreign import updatePropertiesImpl :: forall a b. String -> String ->  EFn.EffectFn2 a b Unit
 foreign import updateMicroAppPayloadImpl ∷ forall b. EFn.EffectFn3 String b Boolean Unit
 foreign import updateActivity :: String -> Effect Unit
 foreign import getCurrentActivity :: Effect String
@@ -108,6 +111,7 @@ foreign import awaitRootReady :: String -> (Unit -> Effect Unit) -> Effect Unit
 
 foreign import getTimeInMillis :: Effect Number
 foreign import setPreRender :: String -> String -> Effect Unit
+foreign import setVdomCache :: String -> String -> Effect Unit
 
 foreign import setScreenActive :: String -> String -> Effect Unit
 foreign import setScreenInActive :: String -> String -> Effect Unit
@@ -134,19 +138,22 @@ launchAffWithCounter namespace screenName aff = do
 updateChildrenImpl :: String -> String -> Array UpdateActions -> Aff (Array Unit)
 updateChildrenImpl namespace screenName = do
   traverse
-    \{action, parent, elem, index} ->
-        case action of
-          "add" -> do
-              insertState <- liftEffect $ Efn.runEffectFn3 (addChildImpl namespace screenName) (encode elem) (encode parent) index
-              domAllOut <- domAll {name : screenName, parent : Just namespace} (unsafeToForeign {}) undefined insertState.dom
-              liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
-          "move" -> liftEffect $ EFn.runEffectFn3 (moveChild namespace) elem parent index
-          _ -> pure unit -- Should never reach here
+    \{action, parent, elem, index} -> do
+        isGenerateVdom' <- liftEffect $ isGenerateVdom
+        if isGenerateVdom' then pure unit -- Not allowing patching when generateVdom is true
+        else
+          case action of
+            "add" -> do
+                insertState <- liftEffect $ Efn.runEffectFn3 (addChildImpl namespace screenName) (encode elem) (encode parent) index
+                domAllOut <- domAll {name : screenName, parent : Just namespace} (unsafeToForeign {}) undefined insertState.dom
+                liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
+            "move" -> liftEffect $ EFn.runEffectFn3 (moveChild namespace) elem parent index
+            _ -> pure unit -- Should never reach here
 
 updateProperties :: forall a b. String -> String -> EFn.EffectFn2 a b Unit
 updateProperties namespace screenName = do
   let
-    function = updatePropertiesImpl namespace
+    function = updatePropertiesImpl namespace screenName
   Efn.mkEffectFn2
     $ \elem rawProps -> do
         let
@@ -259,7 +266,7 @@ spec namespace screen =
     }
   where
   fun :: FnObject
-  fun = { replaceView : replaceView namespace
+  fun = { replaceView : replaceView namespace screen
         , setManualEvents : setManualEvents namespace screen
         , updateChildren : updateChildren namespace screen
         {--
@@ -291,9 +298,11 @@ renderOrPatch :: forall action state returnType
   . Show action => Loggable action
   => EventIO action
   -> ScopedScreen action state returnType
-  -> Boolean -> Boolean -> Aff Unit
-renderOrPatch {event, push} st@{ initialState, view, eval, name , globalEvents, parent } true isCache = do
-  let myDom = view push initialState
+  -> Boolean -> Boolean
+  -> Maybe (PrestoDOM (Effect Unit) (Thunk PrestoWidget (Effect Unit))) -> Aff Unit
+renderOrPatch {event, push} st@{ initialState, view, eval, name , globalEvents, parent } true isCache maybeMyDom = do
+  let myDom = fromMaybe' (\_ -> (view push initialState)) maybeMyDom
+  let vdomMode = isJust maybeMyDom
   ns <- liftEffect $ sanitiseNamespace parent
   prMachine <- if isCache then pure Nothing else getCachedMachine ns name
   case prMachine of
@@ -306,26 +315,32 @@ renderOrPatch {event, push} st@{ initialState, view, eval, name , globalEvents, 
       EFn.runEffectFn1 attachUrlImages (ns <> name)
     Nothing -> do
       machine <- liftEffect $ EFn.runEffectFn1 (buildVDom (spec ns name)) myDom
-      insertState <- liftEffect $ EFn.runEffectFn4 insertDom ns name (extract machine) isCache
-      -- DO NOT CHANGE THIS TO ENCODE,
-      -- THE JSON IN THIS BLOCK IS MODIFIED IN JS
-      -- AND CAN IMPACT ALL ENCODE USAGES
-      _ <- liftEffect $ addTime2 "Render_domAll_Start"
-      domAllOut <- domAll st (unsafeToForeign {}) undefined insertState.dom
-      _ <- liftEffect $ addTime2 "Render_domAll_End"
-      _ <- liftEffect $ performanceMeasure "Render_domAll" "Render_domAll_Start" "Render_domAll_End"
-      _ <- liftEffect $ addTime2 "Render_addViewToParent_Start"
-      makeAff \cb -> awaitRootReady ns (cb <<< Right) $> nonCanceler
-      liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
-      _ <- liftEffect $ addTime2 "Render_addViewToParent_End"
-      _ <- liftEffect $ performanceMeasure "Render_addViewToParent" "Render_addViewToParent_Start" "Render_addViewToParent_End"
-      _ <- liftEffect $ addTime2 "AfterRender_Start"
       liftEffect $ EFn.runEffectFn3 storeMachine machine name ns
-renderOrPatch {event, push} { initialState, view, eval, name , globalEvents, parent }false isCache = liftEffect do
+      insertState <- liftEffect $ EFn.runEffectFn4 insertDom ns name (extract machine) isCache
+      if(vdomMode)
+        then renderOrPatch {event, push} st false isCache maybeMyDom
+        else do
+          -- DO NOT CHANGE THIS TO ENCODE,
+          -- THE JSON IN THIS BLOCK IS MODIFIED IN JS
+          -- AND CAN IMPACT ALL ENCODE USAGES
+          _ <- liftEffect $ addTime2 "Render_domAll_Start"
+          domAllOut <- domAll st (unsafeToForeign {}) undefined insertState.dom
+          _ <- liftEffect $ addTime2 "Render_domAll_End"
+          _ <- liftEffect $ performanceMeasure "Render_domAll" "Render_domAll_Start" "Render_domAll_End"
+          _ <- liftEffect $ addTime2 "Render_addViewToParent_Start"
+          makeAff \cb -> awaitRootReady ns (cb <<< Right) $> nonCanceler
+          liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
+          _ <- liftEffect $ addTime2 "Render_addViewToParent_End"
+          _ <- liftEffect $ performanceMeasure "Render_addViewToParent" "Render_addViewToParent_Start" "Render_addViewToParent_End"
+          liftEffect $ addTime2 "AfterRender_Start"
+renderOrPatch {event, push} { initialState, view, eval, name , globalEvents, parent } false isCache maybeMyDom = liftEffect do
+  let vdomMode = isJust maybeMyDom
   patchAndRun name parent (view push) initialState
   ns <- sanitiseNamespace parent
   EFn.runEffectFn2 makeScreenVisible ns name
   EFn.runEffectFn3 callAnimation name ns isCache
+  -- Calling postAccess function to execute the exceutePostProcess and also add all onClickListeners
+  when vdomMode $ liftEffect $ Efn.runEffectFn3 postAccess name ns true
 
 domAll :: forall a. {name :: String, parent :: Maybe String | a} -> Foreign -> Foreign -> Foreign -> Aff Foreign
 domAll {name, parent} ids parentType dom = {--dom--} do
@@ -351,7 +366,7 @@ domAll {name, parent} ids parentType dom = {--dom--} do
             # update (const image) "imageUrl"
             # update (const placeHolder) "placeHolder"
             # update (const listData) "listData"
-      pure $ generateCommands $ vdomTree {children = children, props = props}
+      pure $ generateCommands $ encode $ vdomTree {children = children, props = props}
     a -> pure $ encode a
     
 controllerActions :: forall action state returnType a
@@ -446,7 +461,14 @@ runScreen st@{ name, parent, view} json = do
   liftEffect $ Efn.runEffectFn1 hideCacheRootOnAnimationEnd ns
   liftEffect $ EFn.runEffectFn2 setToTopOfStack ns name
   _ <- liftEffect $ addTime2 "Render_renderOrPatch_Start"
-  renderOrPatch eventIO st check false
+  (liftEffect $ isVdomPresent name) >>=
+    (if _
+      then do
+        _ <- liftEffect $ setVdomCache name ns
+        liftEffect generateMyDom <#> Just
+      else 
+        pure Nothing) >>=
+      renderOrPatch eventIO st check false
   _ <- liftEffect $ addTime2 "Render_renderOrPatch_End"
   _ <- liftEffect $ performanceMeasure "Render_renderOrPatch" "Render_renderOrPatch_Start" "Render_renderOrPatch_End"
   _ <- liftEffect $ addTime2 "Render_runScreen_End"
@@ -500,7 +522,7 @@ showScreen st@{name, parent, view} json = do
   _ <- liftEffect $ trackScreen T.Screen T.Info L.CURRENT_SCREEN "overlay" name json
   _ <- liftEffect $ trackScreen T.Screen T.Info L.UPCOMING_SCREEN "overlay" name json
   liftEffect $ EFn.runEffectFn2 addToCachedList ns name
-  renderOrPatch eventIO st check true
+  renderOrPatch eventIO st check true Nothing
   makeAff $ controllerActions eventIO st json (patchAndRun name parent (view eventIO.push))
 
 updateScreen :: forall action state returnType

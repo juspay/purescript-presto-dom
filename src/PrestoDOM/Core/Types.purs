@@ -8,10 +8,13 @@ import Effect (Effect)
 import Foreign (Foreign)
 import Foreign.Object (Object)
 import Halogen.VDom (Step)
-import Foreign.Class (class Decode, decode)
+import Foreign.Class (class Decode, class Encode, decode)
 import FRP.Event (EventIO)
 import Unsafe.Coerce (unsafeCoerce)
 import PrestoDOM.Types.Core (PrestoDOM)
+import Presto.Core.Utils.Encoding (defaultDecode, defaultEncode)
+import Data.Newtype (class Newtype)
+import Data.Generic.Rep (class Generic)
 
 -- Changing types to unify types for all screens
 foreign import data Machine :: Type
@@ -96,7 +99,21 @@ type VdomTree = {
     , __ref :: Maybe {__id :: Foreign}
     , service :: Maybe String
     , requestId :: Maybe String
+    , elemType :: Maybe String
+    , keyId :: Maybe String
     }
+newtype Child = Child 
+  { keyId :: Maybe String, 
+    type :: String, 
+    children :: Array (Foreign), 
+    props :: Foreign, 
+    elemType :: Maybe String
+  }
+
+derive instance genericChild :: Generic Child _
+derive instance newtypeChild :: Newtype Child _
+instance decodeChild :: Decode Child where decode = defaultDecode
+instance encodeChild :: Encode Child where encode = defaultEncode
 
 
 -- props Object Foreign

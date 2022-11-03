@@ -35,6 +35,8 @@ module PrestoDOM.Animation
   , exitAnimationSetBackward
   , hoverAnimationSet
   , _mergeAnimation
+  , decodeRepeatCountUtil
+  , decodeRepeatModeUtil
   ) where
 
 import Prelude

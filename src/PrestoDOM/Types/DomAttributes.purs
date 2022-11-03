@@ -55,6 +55,18 @@ module PrestoDOM.Types.DomAttributes
   , toSafeInt
   , toSafeObject
   , toSafeString
+  , decodeLengthUtil
+  , decodeInputTypeUtil
+  , decodeOrientationUtil
+  , decodeVisibilityUtil
+  , decodeGravityUtil
+  , decodeMarginUtil
+  , decodePaddingUtil
+  , decodeGradientUtil
+  , decodeShadowUtil
+  , decodeCornersUtil
+  , decodeFontUtil
+  , decodeLetterSpacingUtil
   )
   where
 

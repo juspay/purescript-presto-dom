@@ -97,3 +97,7 @@ function loggerFunction(logger, key, value, json){
 }
 
 exports.getTime = Date.now
+
+exports.isGenerateVdom = function(){
+  return window.parent.generateVdom
+}

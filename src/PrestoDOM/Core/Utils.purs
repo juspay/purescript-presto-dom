@@ -32,7 +32,7 @@ foreign import createPrestoElement :: Effect {__id :: Int}
 
 
 foreign import callbackMapper :: forall a. (EFn.EffectFn1 a Unit) -> String
-foreign import generateCommands :: VdomTree -> Foreign
+foreign import generateCommands :: Foreign -> Foreign
 foreign import generateAndCheckRequestId :: Foreign -> Object Foreign -> Effect Unit
 foreign import callMicroAppListItem :: forall a b. String -> a -> (b -> Effect Unit) -> Effect (Effect Unit)
 foreign import callMicroApp :: forall a. String -> Foreign -> a -> (Foreign -> Effect Unit) -> Foreign -> String -> String -> Effect (Effect Unit)
@@ -168,15 +168,17 @@ extractView ref parentType (NodeTree {props : p, children : c, "type" :t}) = do
   props <- p # checkAndAddRoot parentType
     # checkAndAddId
     <#> checkAndDeleteFocus
-  pure $ Just $ generateCommands
-    { "type" : t
+  pure $ Just $ generateCommands $ encode 
+    ({ "type" : t
     , props : p
     , children : children
     , parentType : encode parentType
     , __ref : Nothing
     , service : Nothing
     , requestId : Nothing
-    }
+    , elemType : Nothing
+    , keyId : Nothing
+    } :: VdomTree)
 extractView _ _ _ = pure Nothing
 
 --   = Attribute (Maybe Namespace) String String

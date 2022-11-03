@@ -62,18 +62,23 @@ const generateUUID = function() {
 exports.callbackMapper = prestoUI.callbackMapper.map;
 
 exports.generateCommands = function (elem) {
-  var type = elem.type;
-  var props = elem.props;
-  if (elem.parentType && window.__OS == "ANDROID") {
-    return prestoDayum({
-        elemType: type,
-        parentType: elem.parentType
-      },
-      props,
-      elem.children
-    );
-  }
-  return prestoDayum(type, props, elem.children);
+    var type = elem.type;
+    var props = elem.props;
+    var elemType = elem.elemType;
+    var keyId = elem.keyId;
+    if (elem.parentType && window.__OS == "ANDROID") {
+      return prestoDayum({
+          elemType: type,
+          parentType: elem.parentType
+        },
+        props,
+        elem.children
+      );
+    }
+    if(window.__OS == "WEB"){
+        return prestoDayum(type, props, elem.children, elemType, keyId);
+    }
+    return prestoDayum(type, props, elem.children);
 }
 
 exports.callMicroAppListItem = function (service) {
@@ -239,8 +244,8 @@ exports.checkImageisPresent = function (imageName, name, prp, callback) {
               state.cacheImage[name][imageName] = state.cacheImage[name][imageName] || [];
               state.cacheImage[name][imageName].push(prp.value0.__id)
             }
-              callback(true)();
-              return;
+            callback(true)();
+            return;
           }
           if(window.juspayAssetConfig && window.juspayAssetConfig.images){
             if(window.juspayAssetConfig.images[imageName] || window.juspayAssetConfig.images['jp_'+imageName])

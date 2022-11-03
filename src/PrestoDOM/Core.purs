@@ -127,7 +127,7 @@ foreign import exitUI :: Int -> Effect Unit
 foreign import getScreenNumber :: Effect Int
 foreign import cacheCanceller :: Int -> Effect Unit -> Effect Unit
 
-foreign import replaceView :: forall a. EFn.EffectFn2 a (Array String) Unit
+foreign import replaceView :: forall a. EFn.EffectFn3 a String (Array String) Unit
 foreign import addChild :: forall a b.  EFn.EffectFn3 a b Int Unit
 foreign import moveChild :: forall a b. EFn.EffectFn3 a b Int Unit
 foreign import removeChild :: forall a b. EFn.EffectFn3 a b Int Unit

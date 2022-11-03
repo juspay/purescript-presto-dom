@@ -56,7 +56,7 @@ import Presto.Core.Flow (Flow, doAff)
 import Presto.Core.Types.API (class StandardEncode, standardEncode)
 import PrestoDOM (PropName(..))
 import PrestoDOM.Animation (AnimProp)
-import PrestoDOM.Core.Types (ListItemType)
+import PrestoDOM.Core.Types (ListItemType, VdomTree)
 import PrestoDOM.Core.Utils (callbackMapper, setDebounceToCallback, callMicroAppList, generateCommands,extractAndDecode)
 import PrestoDOM.Core2 (createPrestoElement)
 import PrestoDOM.Elements.Elements (element)
@@ -108,27 +108,31 @@ extractView :: forall i p a. Ref.Ref (Array (Object Foreign)) -> Ref.Ref (Object
 extractView hv kpm klm aim parentType (Elem _ (ElemName name) p c) = do
   children <- catMaybes <$> (extractView hv kpm klm aim (encode $ (Nothing :: Maybe String)) `traverse` c)
   props <- addRunInUI hv =<< foldM (parseProps hv kpm klm aim) {id : Nothing , props : empty} p
-  pure $ Just $ generateCommands
-    { "type" : name
+  pure $ Just $ generateCommands $ encode
+    ({ "type" : name
     , props : props
     , children : children
     , parentType
     , __ref : Nothing
     , service : Nothing
     , requestId : Nothing
-    }
+    , elemType : Nothing
+    , keyId : Nothing
+    } :: VdomTree)
 extractView hv kpm klm aim parentType (Keyed _ (ElemName name) p c) = do
   children <- catMaybes <$> ((extractView hv kpm klm aim (encode $ (Nothing :: Maybe String)) <<< snd) `traverse` c)
   props <- addRunInUI hv =<< foldM (parseProps hv kpm klm aim) {id : Nothing , props : empty} p
-  pure $ Just $ generateCommands
-    { "type" : name
+  pure $ Just $ generateCommands $ encode
+    ({ "type" : name
     , props : props
     , children : children
     , parentType
     , __ref : Nothing
     , service : Nothing
     , requestId : Nothing
-    }
+    , elemType : Nothing
+    , keyId : Nothing
+    } :: VdomTree)
 extractView hv kpm klm aim parentType (Microapp s p ch) = do
   children' <- catMaybes <$> (extractView hv kpm klm aim (encode $ (Nothing :: Maybe String)) `traverse` (fromMaybe [] ch))
   props <- addRunInUI hv =<< foldM (parseProps hv kpm klm aim) {id : Nothing , props : empty} p
@@ -144,15 +148,17 @@ extractView hv kpm klm aim parentType (Microapp s p ch) = do
         _ <- doAff $ liftEffect $ Ref.modify (union animationIdMap ) aim
         pure $ children' <> [itemView]
     _ -> pure []
-  pure $ Just $ generateCommands
-    { "type" : if useLinearLayout then "linearLayout" else "relativeLayout"
+  pure $ Just $ generateCommands $ encode
+    ({ "type" : if useLinearLayout then "linearLayout" else "relativeLayout"
     , props : props
     , children : children
     , parentType
     , __ref : Nothing
     , service : Just s
     , requestId : Nothing
-    }
+    , elemType : Nothing
+    , keyId : Nothing
+    } :: VdomTree)
 extractView _ _ _ _ _ _ = pure Nothing
 
 getId :: Ref.Ref (Object (Object String)) -> Maybe Int -> Effect Int

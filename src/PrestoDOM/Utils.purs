@@ -14,6 +14,7 @@ module PrestoDOM.Utils
   , logAction
   , addTime2
   , performanceMeasure
+  , isGenerateVdom
   )where
 
 import Prelude
@@ -34,6 +35,7 @@ foreign import addTime2 :: String -> Effect Unit
 foreign import getTime :: Effect Int
 
 foreign import performanceMeasure :: String -> String -> String -> Effect Unit
+foreign import isGenerateVdom :: Effect Boolean
 
 continue
   :: forall state action returnType
