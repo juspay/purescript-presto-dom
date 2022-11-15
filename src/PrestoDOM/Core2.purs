@@ -461,7 +461,7 @@ runScreen st@{ name, parent, view} json = do
   liftEffect $ Efn.runEffectFn1 hideCacheRootOnAnimationEnd ns
   liftEffect $ EFn.runEffectFn2 setToTopOfStack ns name
   _ <- liftEffect $ addTime2 "Render_renderOrPatch_Start"
-  (liftEffect $ isVdomPresent name) >>=
+  (liftEffect $ isVdomPresent name) <#> (_ && check) >>=
     (if _
       then do
         _ <- liftEffect $ setVdomCache name ns
