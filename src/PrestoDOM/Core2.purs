@@ -140,9 +140,9 @@ updateChildrenImpl namespace screenName = do
   traverse
     \{action, parent, elem, index} -> do
         isGenerateVdom' <- liftEffect $ isGenerateVdom
-        if isGenerateVdom' then pure unit -- Not allowing patching when generateVdom is true
-        else
-          case action of
+        if isGenerateVdom'
+          then pure unit -- Not allowing patching when generateVdom is true
+          else case action of
             "add" -> do
                 insertState <- liftEffect $ Efn.runEffectFn3 (addChildImpl namespace screenName) (encode elem) (encode parent) index
                 domAllOut <- domAll {name : screenName, parent : Just namespace} (unsafeToForeign {}) undefined insertState.dom

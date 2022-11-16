@@ -262,7 +262,7 @@ function createPrestoElement() {
     };
   } else {
     // dividing id by 10 if ssr is generating the id’s, so that we don’t get duplicate id’s at client Side
-    let factor = 1000000;
+    var factor = 1000000;
     factor = window.parent.generateVdom ? factor/10 : factor;
     window.__ui_id_sequence =
       typeof Android.getNewID == "function"
@@ -936,7 +936,7 @@ exports.setUpBaseState = function (namespace) {
         // Server side rendering, to store ids in window variable for injecting into SSR generated html
         if(window.parent.generateVdom){
           window.parent.serverSideKeys.idCache = window.parent.serverSideKeys.idCache ? window.parent.serverSideKeys.idCache : {};
-          window.parent.serverSideKeys.idCache[JOS.self] = { elemRef, stackRef, cacheRef };
+          window.parent.serverSideKeys.idCache[JOS.self] = { elemRef : elemRef, stackRef : stackRef, cacheRef : cacheRef };
         }
       }
 
