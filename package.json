@@ -54,11 +54,11 @@
     "branches": [
       "main",
       {
-        "name": "hotfix-[0-9]+",
+        "name": "hotfix-[0-9]+.[0-9]+.[0-9]+",
         "prerelease": true
       }
     ],
-    "repositoryUrl": "git@bitbucket.org:juspay/hyper-api.git",
+    "repositoryUrl": "git@bitbucket.org:juspay/purescript-presto-dom.git",
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
