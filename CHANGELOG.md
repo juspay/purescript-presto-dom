@@ -1,3 +1,10 @@
+## [1.39.1](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.39.0...v1.39.1) (2022-11-23)
+
+
+### Bug Fixes
+
+* PICAF-18053: compilation fix ([0c89b07](https://bitbucket.org/juspay/purescript-presto-dom/commits/0c89b071484d003d72c2bb909a37d657aa666d04))
+
 # Changelog
 All notable changes to this project will be documented in this file.
 
@@ -61,5 +68,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
       -> PrestoDOM
     mapDom view push state actionMap = view (push <<< actionMap) state
 ```
-
-
