@@ -1073,7 +1073,8 @@ exports.render = function (namespace) {
       AndroidWrapper.render(JSON.stringify(domAll(getScopedState(namespace).root), "base", namespace), cb);
     }
   } else if (window.__OS == "WEB") {
-      AndroidWrapper.Render(domAll(getScopedState(namespace).root, "base", namespace), cb, getIdFromNamespace(namespace)); // Add support for Web
+      var useStoredDiv = (window.parent.serverSideKeys && window.parent.serverSideKeys.vdom && window.parent.serverSideKeys.vdom['dom']) ? true : false; // Need to take Screen Name too, have to be fixed when ssr is moved to initiate
+      AndroidWrapper.Render(domAll(getScopedState(namespace).root, "base", namespace), cb, getIdFromNamespace(namespace), useStoredDiv); // Add support for Web
   } else {
     AndroidWrapper.render(domAll(getScopedState(namespace).root, "base", namespace), cb, (id ? id : undefined)); // Add support for iOS
   }
