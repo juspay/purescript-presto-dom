@@ -1,3 +1,10 @@
+## [1.39.2](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.39.1...v1.39.2) (2022-11-30)
+
+
+### Bug Fixes
+
+* PICAF-10982: setting use stored div as true for second process ([5f1d171](https://bitbucket.org/juspay/purescript-presto-dom/commits/5f1d171b29f7c86dedd4370d94ab04049d036d8b))
+
 ## [1.39.1](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.39.0...v1.39.1) (2022-11-23)
 
 
