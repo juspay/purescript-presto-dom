@@ -1,3 +1,10 @@
+## [1.39.3](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.39.2...v1.39.3) (2022-12-02)
+
+
+### Bug Fixes
+
+* PICAF-10982: Added log line to check ssr support ([5e977f4](https://bitbucket.org/juspay/purescript-presto-dom/commits/5e977f43ec4b2c1089a5624bc101066b2088f4a5))
+
 ## [1.39.2](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.39.1...v1.39.2) (2022-11-30)
 
 
