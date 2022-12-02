@@ -45,7 +45,7 @@ foreign import insertDom :: forall a. EFn.EffectFn4 String String a Boolean Inse
 foreign import addTime3 :: String -> Effect Unit
 foreign import addViewToParent :: EFn.EffectFn1 InsertState Unit
 foreign import postAccess :: Efn.EffectFn3 String String Boolean Unit
-foreign import isVdomPresent :: String -> Effect Boolean
+foreign import isSSRVdomPresent :: String -> Boolean ->Effect Boolean
 foreign import parseProps :: EFn.EffectFn5 Foreign String Foreign String Foreign {ids :: Foreign, dom :: Foreign}
 foreign import storeMachine :: forall a b . EFn.EffectFn3 (Step a b) String String Unit
 foreign import getLatestMachine :: forall a b . EFn.EffectFn2 String String (Step a b)
@@ -461,7 +461,7 @@ runScreen st@{ name, parent, view} json = do
   liftEffect $ Efn.runEffectFn1 hideCacheRootOnAnimationEnd ns
   liftEffect $ EFn.runEffectFn2 setToTopOfStack ns name
   _ <- liftEffect $ addTime2 "Render_renderOrPatch_Start"
-  (liftEffect $ isVdomPresent name) <#> (_ && check) >>=
+  (liftEffect $ isSSRVdomPresent name check) >>=
     (if _
       then do
         _ <- liftEffect $ setVdomCache name ns

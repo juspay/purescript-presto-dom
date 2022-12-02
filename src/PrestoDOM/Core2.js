@@ -2249,20 +2249,23 @@ exports.setVdomCache = function (screenName) {
   }
 }
 
-exports.isVdomPresent = function(screenName){
-  return function(){
-    try{
-      if(window.ssrScreen !== screenName){
-        return false;
+exports.isSSRVdomPresent = function(screenName){
+  return function(notInStack){
+    return function(){
+      try{
+        if(notInStack && window.ssrScreen === screenName){
+          var insertObject = (window.parent.serverSideKeys || {}).vdom;
+          if(insertObject && insertObject["dom"] && (!window.parent.generateVdom)){
+            tracker._trackAction("system")("info")("server_side_rendering")({"isServerSideRenderingSupported":true})();
+            return true
+          }
+          tracker._trackAction("system")("info")("server_side_rendering")({"isServerSideRenderingSupported":false})();
+        }
+      } catch(e){
+        // Ignored
       }
-      var insertObject = (window.parent.serverSideKeys || {}).vdom;
-      if(insertObject["dom"] && (!window.parent.generateVdom)){
-        return true
-      }
-    } catch(e){
-      // Ignored
+      return false
     }
-    return false
   }
 }
 
