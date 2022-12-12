@@ -404,8 +404,8 @@ controllerActions {event, push} {initialState, eval, name, globalEvents, parent}
                 *> emitter st
             Nothing -> pure unit
         _ <- addTime3 (name <> "_Exited")
-        cb $ Right ret
         logAction timerRef previousAction currentAction true json-- logNow
+        cb $ Right ret
       registerEvents =
         (\f -> f push)
       execEval action st =
