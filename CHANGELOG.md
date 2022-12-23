@@ -1,3 +1,10 @@
+## [1.39.4](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.39.3...v1.39.4) (2022-12-23)
+
+
+### Bug Fixes
+
+* PICAF-18685: corrected the log sequence ([0d450e5](https://bitbucket.org/juspay/purescript-presto-dom/commits/0d450e569251a7ce42e7b2dfd34ac746e24e671e))
+
 ## [1.39.3](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.39.2...v1.39.3) (2022-12-02)
 
 
