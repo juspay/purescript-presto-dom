@@ -174,6 +174,9 @@ module PrestoDOM.Properties
     , rippleColor
     , enableRoundedRipple
     , autoCorrectionType
+    , numFrames
+    , gifUrl
+    , frameDelay
     ) where
 
 import Prelude
@@ -444,6 +447,15 @@ hoverPath = prop (PropName "hoverPath")
 -- | String
 imageUrl :: forall i. String -> Prop i
 imageUrl = prop (PropName "imageUrl")
+
+gifUrl :: forall i. String -> Prop i
+gifUrl = prop (PropName "gifUrl")
+
+numFrames :: forall i. Int -> Prop i
+numFrames = prop (PropName "numFrames")
+
+frameDelay :: forall i. Int -> Prop i
+frameDelay = prop (PropName "frameDelay")
 
 -- | InputType
 inputType :: forall i. InputType -> Prop i
