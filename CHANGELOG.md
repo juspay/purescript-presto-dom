@@ -1,3 +1,10 @@
+# [1.41.0](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.40.0...v1.41.0) (2022-12-29)
+
+
+### Features
+
+* PICAF-16521: added mouseEventOnClick ([471b0ad](https://bitbucket.org/juspay/purescript-presto-dom/commits/471b0ad80b47ea711b29a02519d63d7f7b023a76))
+
 # [1.40.0](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.39.3...v1.40.0) (2022-12-29)
 
 
