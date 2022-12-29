@@ -25,11 +25,15 @@ module PrestoDOM.Events
     , globalOnScroll
     , onSlide
     , onStateChanged
+    , MouseEventProperties
+    , mouseEventOnClick
     ) where
 
 import Prelude
 
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Either (hush)
+import Control.Monad.Except (runExcept)
 import Effect (Effect)
 import PrestoDOM.Utils (storeToWindow, getFromWindow, debounce)
 import Foreign.Class (encode)
@@ -40,7 +44,8 @@ import Tracker (trackAction)
 import Tracker.Types (Level(..), Action(..)) as T
 import Unsafe.Coerce as U
 import Web.Event.Event (EventType(..), Event) as DOM
-import Foreign(Foreign)
+import Foreign(Foreign, unsafeToForeign)
+import Foreign.Class (decode)
 import FRP.Event as E
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
@@ -88,6 +93,9 @@ backPressHandler = \ev -> do
 
 onClick :: forall a. (a ->  Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
 onClick push f = event (DOM.EventType "onClick") (Just <<< (makeEvent (push <<< f)))
+
+mouseEventOnClick :: (Maybe MouseEventProperties -> Effect Unit) -> Prop (Effect Unit)
+mouseEventOnClick effFn = event (DOM.EventType "onClick") (Just <<< \evnt -> effFn $ hush $ runExcept $ decode $ unsafeToForeign evnt)
 
 onClickWithLogger :: String -> String -> forall a. (a ->  Effect Unit) -> (Unit -> a) -> Object Foreign -> Prop (Effect Unit)
 onClickWithLogger label value push f json = event (DOM.EventType "onClick") (Just <<< (makeEvent (pushAndLog label value push json <<< f )))
@@ -162,6 +170,10 @@ type PushState =
   , isTimeOut :: Boolean
   }
 
+type MouseEventProperties = {
+    clientX :: Number,
+    clientY :: Number
+}
 
 scrollStateUpdate :: String -> PushState -> ScrollS -> ScrollS
 scrollStateUpdate gID newScroll st= do
