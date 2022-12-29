@@ -1,3 +1,15 @@
+# [1.40.0](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.39.3...v1.40.0) (2022-12-29)
+
+
+### Bug Fixes
+
+* PICAF-18685: corrected the log sequence ([0d450e5](https://bitbucket.org/juspay/purescript-presto-dom/commits/0d450e569251a7ce42e7b2dfd34ac746e24e671e))
+
+
+### Features
+
+* PICAF-16277: added a prop for framerate ([d4888f1](https://bitbucket.org/juspay/purescript-presto-dom/commits/d4888f1390927df2bd2292eb94c9982dc2684263))
+
 ## [1.39.4](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.39.3...v1.39.4) (2022-12-23)
 
 
