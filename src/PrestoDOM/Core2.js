@@ -41,7 +41,7 @@ function addTime(screen){
 function makeImageName(imageName){
   var jpImage = "jp_"+imageName;
   if(window.juspayAssetConfig
-     && window.juspayAssetConfig.images 
+     && window.juspayAssetConfig.images
      && window.juspayAssetConfig.images[jpImage])
     return jpImage;
   return imageName;
@@ -814,6 +814,19 @@ function processMapps(namespace, nam, timeout) {
         payload: p
       };
 
+      if(window.__payload && typeof window.__payload == "object" && typeof window.__payload.requestId == "string") {
+        var service = window.JOS && typeof window.JOS.self == "string" ? window.JOS.self : null;
+        x["lifeCycleId"] = typeof window.__payload.lifeCycleId == "string" ?
+          window.__payload.lifeCycleId :
+          (typeof JBridge.getSessionId == "function" ?
+            ("sdk:" + JBridge.getSessionId()) : "")
+        if(service) {
+          var splitedService = service.split(".");
+          service = splitedService[splitedService.length - 1];
+          x["lifeCycleId"] += "/" + service + ":" + window.__payload.requestId;
+        }
+      }
+
       if (cachedObject.useStartApp) {
         window.JOS.startApp(cachedObject.service)(x)(cb)()
       } else if(window.JOS && typeof window.JOS.isMAppPresent == "function" &&  typeof window.JOS.isMAppPresent(cachedObject.service) == "function" && window.JOS.isMAppPresent(cachedObject.service)()) {
@@ -1062,7 +1075,7 @@ exports.render = function (namespace) {
   var id = getIdFromNamespace(namespace);
   var cb = callbackMapper.map(markRootReady(namespace));
   if(__OS == "ANDROID") {
-    cb = JSON.stringify(cb); 
+    cb = JSON.stringify(cb);
   }
   if (window.__OS == "ANDROID") {
     if (typeof AndroidWrapper.getNewID == "function") {
