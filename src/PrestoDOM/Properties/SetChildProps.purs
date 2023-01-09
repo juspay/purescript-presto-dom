@@ -126,6 +126,7 @@ module PrestoDOM.Properties.SetChildProps
 
     , alignParentBottom_c
     , alignParentLeft_c
+    , nestedScrollView_c
     ) where
 
 
@@ -613,3 +614,6 @@ alignParentBottom_c = Tuple "alignParentBottom" <<< StringP
 -- | Unknown
 alignParentLeft_c :: String -> Tuple String GenProp
 alignParentLeft_c = Tuple "alignParentLeft" <<< StringP
+
+nestedScrollView_c :: Boolean -> Tuple String GenProp
+nestedScrollView_c = Tuple "nestedScrollView" <<< BooleanP

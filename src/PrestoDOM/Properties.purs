@@ -178,6 +178,7 @@ module PrestoDOM.Properties
     , numFrames
     , gifUrl
     , frameDelay
+    , nestedScrollView
     ) where
 
 import Prelude
@@ -853,3 +854,6 @@ enableRoundedRipple = prop (PropName "enableRoundedRipple")
 
 autoCorrectionType :: forall i. Int -> Prop i
 autoCorrectionType = prop (PropName "autoCorrectionType")
+
+nestedScrollView :: forall i. Boolean -> Prop i
+nestedScrollView = prop (PropName "nestedScrollView")

@@ -127,6 +127,7 @@ module PrestoDOM.Properties.GetChildProps
 
     , alignParentBottom_p
     , alignParentLeft_p
+    , nestedScrollView_p
     ) where
 
 import Prelude
@@ -642,3 +643,6 @@ alignParentBottom_p = fromGenProp "alignParentBottom"
 -- | Unknown
 alignParentLeft_p :: forall i. String -> Object GenProp -> Prop i
 alignParentLeft_p = fromGenProp "alignParentLeft"
+
+nestedScrollView_p :: forall i. Boolean -> Object GenProp -> Prop i
+nestedScrollView_p = fromGenProp "nestedScrollView"
