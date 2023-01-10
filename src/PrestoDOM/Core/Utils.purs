@@ -38,7 +38,7 @@ foreign import callMicroAppListItem :: forall a b. String -> a -> (b -> Effect U
 foreign import callMicroApp :: forall a. String -> Foreign -> a -> (Foreign -> Effect Unit) -> Foreign -> String -> String -> Effect (Effect Unit)
 foreign import getLatestListData :: Foreign -> Effect (Array (Array (Object Foreign)))
 foreign import os :: String
-foreign import replayListFragmentCallbacks' :: forall a. String -> String -> (a -> Effect Unit) -> Effect (Effect Unit)
+foreign import replayListFragmentCallbacksImpl :: forall a. String -> String -> (a -> Effect Unit) -> Effect (Effect Unit)
 
 -- hack, should be effect, but behaviour is same, even if gets cached
 foreign import setDebounceToCallback :: String -> String

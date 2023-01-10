@@ -31,7 +31,7 @@ exports.storeToWindow_ = function (key, value){
 exports.getFromWindow_ = function (key){
   return function (just){
     return function (nothing){
-       if (window.hasOwnProperty(key)){
+      if (window.hasOwnProperty(key)){
         return just(window[key]);
       } else {
         return nothing;
@@ -52,12 +52,12 @@ exports.debounce = function (logger){
             window.loggerTimeout = setTimeout(loggerFunction,2000,logger,key,value,json);
           } else {
             if(window.loggerTimeout){
-                // key != last, timer running, log current and last log 
+              // key != last, timer running, log current and last log 
               clearTimeout(window.loggerTimeout);
               loggerFunction(logger,key,value,json);
               loggerFunction(logger,last.key,last.value,json);
             }else{
-                // key != last, timer not running, log current log only 
+              // key != last, timer not running, log current log only 
               loggerFunction(logger,key,value,json);
             }
           }

@@ -19,8 +19,8 @@ var webParseParams, iOSParseParams, parseParams;
 
 const state = {
   animationStack : []
-, animationCache : []
-, lastAnimatedScreen : ""
+  , animationCache : []
+  , lastAnimatedScreen : ""
 }
 
 const callbackMapper = prestoUI.callbackMapper;
@@ -37,12 +37,12 @@ if (window.__OS === "WEB") {
 window.callbackMapper = callbackMapper.map;
 
 exports.terminateUI = function (){
-  if(window.__OS == "ANDROID" && Android.runInUI && window.__ROOTSCREEN && window.__ROOTSCREEN.idSet) {
-    Android.runInUI(";set_v=ctx->findViewById:i_" + window.__ROOTSCREEN.idSet.root + ";set_p=get_v->getParent;get_p->removeView:get_v;", null);
-  } else if(JOS && JOS.parent && JOS.parent != "java" && window.__ROOTSCREEN && window.__ROOTSCREEN.idSet) {
-    Android.removeView(window.__ROOTSCREEN.idSet.root, namespace);
+  if(window.__OS == "ANDROID" && window.Android.runInUI && window.__ROOTSCREEN && window.__ROOTSCREEN.idSet) {
+    window.Android.runInUI(";set_v=ctx->findViewById:i_" + window.__ROOTSCREEN.idSet.root + ";set_p=get_v->getParent;get_p->removeView:get_v;", null);
+  } else if(window.JOS && window.JOS.parent && window.JOS.parent != "java" && window.__ROOTSCREEN && window.__ROOTSCREEN.idSet) {
+    window.Android.removeView(window.__ROOTSCREEN.idSet.root, namespace);
   } else {
-    Android.runInUI(["removeAllUI"], null);
+    window.Android.runInUI(["removeAllUI"], null);
   }
   state.animationStack = []
   state.animationCache = []
@@ -194,8 +194,8 @@ function getPrestoID() {
 }
 
 window.__PRESTO_ID = window.__ui_id_sequence =
-  typeof Android.getNewID == "function"
-    ? (parseInt(Android.getNewID()) * 1000000) % 100000000
+  typeof window.Android.getNewID == "function"
+    ? (parseInt(window.Android.getNewID()) * 1000000) % 100000000
     : (getPrestoID() * 1000000 )% 100000000 ;
 
 function domAll(elem){
@@ -223,14 +223,14 @@ function domAllImpl(elem, screenName, VALIDATE_ID) {
   }
   */
 
-  if (elem.props.hasOwnProperty('id') && elem.props.id != '' && (elem.props.id).toString().trim() != '') {
+  if (elem.props.hasOwnProperty("id") && elem.props.id != "" && (elem.props.id).toString().trim() != "") {
     var id = (elem.props.id).toString().trim();
     elem.__ref = {__id: id };
     if (VALIDATE_ID.hasOwnProperty(id)){
       console.warn("Found duplicate ID! ID: "+ id +
         " maybe caused because of overiding `id` prop. This may produce unwanted behvior. Please fix..");
     }else{
-      VALIDATE_ID[id] = 'used';
+      VALIDATE_ID[id] = "used";
     }
   } else if(!elem.__ref) {
     elem.__ref = window.createPrestoElement()
@@ -301,14 +301,14 @@ function domAllImpl(elem, screenName, VALIDATE_ID) {
     }
 
     if (props.entryAnimationF) {
-        window.entryAnimationF[screenName]["hasAnimation"] = true
-        window.entryAnimationF[screenName][elem.__ref.__id] = {
-          visibility: props.visibility ? props.visibility : "visible",
-          inlineAnimation: props.entryAnimationF,
-          onAnimationEnd: props.onAnimationEnd,
-          type: type
-        };
-        props.inlineAnimation = props.entryAnimationF;
+      window.entryAnimationF[screenName]["hasAnimation"] = true
+      window.entryAnimationF[screenName][elem.__ref.__id] = {
+        visibility: props.visibility ? props.visibility : "visible",
+        inlineAnimation: props.entryAnimationF,
+        onAnimationEnd: props.onAnimationEnd,
+        type: type
+      };
+      props.inlineAnimation = props.entryAnimationF;
     }
 
     if (props.entryAnimationB) {
@@ -420,7 +420,7 @@ function hideOldScreenNow(tag) {
   var clearCache = window.cacheClearCache;
   window.cacheClearCache = undefined;
   holdArray.forEach(function(obj) {
-    Android.removeView(obj, namespace);
+    window.Android.removeView(obj, namespace);
   });
   if (clearCache) {
     clearCache();
@@ -475,15 +475,15 @@ function applyProp(element, attribute, set) {
 
   if (window.__OS == "ANDROID") {
     var cmd = cmdForAndroid(prop, set, element.type);
-    if (Android.updateProperties) {
-      Android.updateProperties(JSON.stringify(cmd));
+    if (window.Android.updateProperties) {
+      window.Android.updateProperties(JSON.stringify(cmd));
     } else {
-      Android.runInUI(cmd.runInUI, null);
+      window.Android.runInUI(cmd.runInUI, null);
     }
   } else if (window.__OS == "IOS") {
-    Android.runInUI(prop);
+    window.Android.runInUI(prop);
   } else {
-    Android.runInUI(webParseParams("linearLayout", prop, "set"), namespace);
+    window.Android.runInUI(webParseParams("linearLayout", prop, "set"), namespace);
   }
   // Android.runInUI(parseParams("linearLayout", prop, "set"));
 }
@@ -517,9 +517,9 @@ function replaceView(element, removedProps) {
     rep = prestoDayum(element.type, props, []);
   }
   if (window.__OS == "ANDROID") {
-    Android.replaceView(JSON.stringify(rep), element.__ref.__id);
+    window.Android.replaceView(JSON.stringify(rep), element.__ref.__id);
   } else {
-    Android.replaceView(rep, element.__ref.__id);
+    window.Android.replaceView(rep, element.__ref.__id);
   }
   if (removedProps != null && removedProps.length >0 && removedProps.indexOf("handler/afterRender") != -1){
     if (window["afterRender"] && window["afterRender"][window.__dui_screen]) {
@@ -540,8 +540,8 @@ function createPrestoElement() {
     };
   } else {
     window.__ui_id_sequence =
-      typeof Android.getNewID == "function"
-        ? (parseInt(Android.getNewID()) * 1000000) % 100000000
+      typeof window.Android.getNewID == "function"
+        ? (parseInt(window.Android.getNewID()) * 1000000) % 100000000
         : (window.__PRESTO_ID || getPrestoID() * 1000000) % 100000000;
     return {
       __id: ++window.__ui_id_sequence
@@ -562,19 +562,19 @@ exports.updateProperty = function (key, val, obj) {
   updateAttribute(obj, {value0: key, value1: val});
 };
 exports.cancelBehavior = function (ty) {
-    var canceler = window.__CANCELER[ty];
-    canceler();
+  var canceler = window.__CANCELER[ty];
+  canceler();
 }
 
 window.__screenSubs = {};
 
 function moveChild(child, parent, index) {
-  Android.moveView(child.__ref.__id, index);
+  window.Android.moveView(child.__ref.__id, index);
 }
 
 function removeChild(child, parent, index) {
   // console.log("Remove child :", child.type);
-  Android.removeView(child.__ref.__id);
+  window.Android.removeView(child.__ref.__id);
 }
 
 function addChild(child, parent, index) {
@@ -595,7 +595,7 @@ function addChild(child, parent, index) {
     } else {
       child.parentType = parent.type;
     }
-    Android.addViewToParent(
+    window.Android.addViewToParent(
       parent.__ref.__id + "",
       JSON.stringify(domAll(child)),
       index,
@@ -603,7 +603,7 @@ function addChild(child, parent, index) {
       null
     );
   } else
-    Android.addViewToParent(
+    window.Android.addViewToParent(
       parent.__ref.__id,
       domAll(child),
       index,
@@ -675,15 +675,15 @@ exports.setRootNode = function(nothing) {
     window.__CACHED_MACHINE = {}
   }
   if (window.__OS == "ANDROID") {
-    if (typeof Android.getNewID == "function") {
-      Android.render(JSON.stringify(domAll(root)), null, "false");
+    if (typeof window.Android.getNewID == "function") {
+      window.Android.render(JSON.stringify(domAll(root)), null, "false");
     } else {
-      Android.render(JSON.stringify(domAll(root)), null);
+      window.Android.render(JSON.stringify(domAll(root)), null);
     }
   } else if (window.__OS == "WEB") {
-    Android.Render(domAll(root), null);
+    window.Android.Render(domAll(root), null);
   } else {
-    Android.Render(domAll(root), null);
+    window.Android.Render(domAll(root), null);
   }
 
   return root;
@@ -699,7 +699,7 @@ function clearStash() {
 
   setTimeout(function() {
     for (var i = 0; i < len; i++) {
-      Android.removeView(screen[i]);
+      window.Android.removeView(screen[i]);
     }
   }, 1000);
   window.__stashScreen = [];
@@ -722,12 +722,12 @@ function makeVisible(cache, _id) {
   // console.log("SCREEN", " makeVisible", prop);
   if (window.__OS == "ANDROID") {
     var cmd = cmdForAndroid(prop, true, "linearLayout");
-    Android.runInUI(cmd.runInUI, null);
+    window.Android.runInUI(cmd.runInUI, null);
   } else if (window.__OS == "IOS") {
-    Android.runInUI(prop);
+    window.Android.runInUI(prop);
   } else {
     // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-    var ele = Android.getUIElement(prop.id);
+    var ele = window.Android.getUIElement(prop.id);
     if (ele) {
       ele.style.display = "flex";
     }
@@ -819,11 +819,11 @@ function screenIsCached(screen) {
         // console.log("SCREEN", " screenIsCached", screen, prop);
         if (window.__OS == "ANDROID") {
           var cmd = cmdForAndroid(prop, true, "relativeLayout");
-          Android.runInUI(cmd.runInUI, null);
+          window.Android.runInUI(cmd.runInUI, null);
         } else if (window.__OS == "IOS") {
-          Android.runInUI(prop);
+          window.Android.runInUI(prop);
         } else {
-          Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+          window.Android.runInUI(webParseParams("relativeLayout", prop, "set"));
         }
       }
 
@@ -896,11 +896,11 @@ function hideCachedScreen() {
     window.cacheClearCache = function() {
       if (window.__OS == "ANDROID") {
         var cmd = cmdForAndroid(prop, true, "relativeLayout");
-        Android.runInUI(cmd.runInUI, null);
+        window.Android.runInUI(cmd.runInUI, null);
       } else if (window.__OS == "IOS") {
-        Android.runInUI(prop);
+        window.Android.runInUI(prop);
       } else {
-        var ele = Android.getUIElement(prop.id);
+        var ele = window.Android.getUIElement(prop.id);
         if (ele) {
           ele.style.display = "none";
         }
@@ -929,7 +929,7 @@ function insertDom(root, dom) {
   root.children.push(dom);
   dom.parentNode = root;
   //dom.__ref = window.createPrestoElement();
-  if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()){
+  if(dom.props && dom.props.hasOwnProperty("id") && (dom.props.id).toString().trim()){
     dom.__ref = {__id: (dom.props.id).toString().trim()};
   }else{
     dom.__ref = window.createPrestoElement();
@@ -941,8 +941,8 @@ function insertDom(root, dom) {
 
   dom.props.root = true;
   if (window.__screenNothing) {
-        window.__stashScreen.push(dom.__ref.__id);
-        window.__screenNothing = false;
+    window.__stashScreen.push(dom.__ref.__id);
+    window.__screenNothing = false;
   }
   else {
 
@@ -969,12 +969,12 @@ function insertDom(root, dom) {
       window.hideold = function() {
         if (window.__OS == "ANDROID" && length > 1) {
           var cmd = cmdForAndroid(prop, true, "relativeLayout");
-          Android.runInUI(cmd.runInUI, null);
+          window.Android.runInUI(cmd.runInUI, null);
         } else if (window.__OS == "IOS" && length > 1) {
-          Android.runInUI(prop);
+          window.Android.runInUI(prop);
         } else if (length > 1) {
           // Android.runInUI(webParseParams("relativeLayout", prop, "set"));
-          var ele = Android.getUIElement(prop.id);
+          var ele = window.Android.getUIElement(prop.id);
           if (ele) {
             ele.style.display = "none";
           } else {
@@ -987,7 +987,7 @@ function insertDom(root, dom) {
 
   var callback = window.callbackMapper(executePostProcess(false));
   if (window.__OS == "ANDROID") {
-    Android.addViewToParent(
+    window.Android.addViewToParent(
       rootId + "",
       JSON.stringify(domAll(dom)),
       length - 1,
@@ -995,7 +995,7 @@ function insertDom(root, dom) {
       null
     );
   } else {
-    Android.addViewToParent(rootId, domAll(dom), length - 1, callback, null);
+    window.Android.addViewToParent(rootId, domAll(dom), length - 1, callback, null);
   }
 
   hideCachedScreen();
@@ -1006,7 +1006,7 @@ exports.updateDom = function(root, dom) {
   dom.parentNode = root;
   //dom.__ref = window.createPrestoElement();
   window.N = root;
-  if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()) {
+  if(dom.props && dom.props.hasOwnProperty("id") && (dom.props.id).toString().trim()) {
     dom.__ref = {__id: (dom.props.id).toString().trim()};
   }else{
     dom.__ref = window.createPrestoElement();
@@ -1032,11 +1032,11 @@ exports.updateDom = function(root, dom) {
       };
       if (window.__OS == "ANDROID") {
         var cmd = cmdForAndroid(prop, true, "relativeLayout");
-        Android.runInUI(cmd.runInUI, null);
+        window.Android.runInUI(cmd.runInUI, null);
       } else if (window.__OS == "IOS") {
-        Android.runInUI(prop);
+        window.Android.runInUI(prop);
       } else {
-        Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+        window.Android.runInUI(webParseParams("relativeLayout", prop, "set"));
       }
     }
     window.__lastCachedScreen.id = dom.__ref.__id;
@@ -1051,7 +1051,7 @@ exports.updateDom = function(root, dom) {
 
   if (window.__OS == "ANDROID") {
     var callback = window.callbackMapper(executePostProcess(true));
-    Android.addViewToParent(
+    window.Android.addViewToParent(
       rootId,
       JSON.stringify(domAll(dom)),
       length,
@@ -1059,7 +1059,7 @@ exports.updateDom = function(root, dom) {
       null
     );
   } else {
-    Android.addViewToParent(rootId, domAll(dom), length, null, null);
+    window.Android.addViewToParent(rootId, domAll(dom), length, null, null);
   }
 };
 
@@ -1096,15 +1096,15 @@ function callAnimation(tag) {
             true,
             window["entryAnimation" + tag][window.__dui_screen][key].type
           );
-          if (Android.updateProperties) {
-            Android.updateProperties(JSON.stringify(cmd));
+          if (window.Android.updateProperties) {
+            window.Android.updateProperties(JSON.stringify(cmd));
           } else {
-            Android.runInUI(cmd.runInUI, null);
+            window.Android.runInUI(cmd.runInUI, null);
           }
         } else if (window.__OS == "IOS") {
-          Android.runInUI(config);
+          window.Android.runInUI(config);
         } else {
-          Android.runInUI(webParseParams("linearLayout", config, "set"));
+          window.Android.runInUI(webParseParams("linearLayout", config, "set"));
         }
       }
     }
@@ -1129,15 +1129,15 @@ function callAnimation(tag) {
             true,
             window["exitAnimation" + tag][window.__dui_old_screen][key].type
           );
-          if (Android.updateProperties) {
-            Android.updateProperties(JSON.stringify(cmd2));
+          if (window.Android.updateProperties) {
+            window.Android.updateProperties(JSON.stringify(cmd2));
           } else {
-            Android.runInUI(cmd2.runInUI, null);
+            window.Android.runInUI(cmd2.runInUI, null);
           }
         } else if (window.__OS == "IOS") {
-          Android.runInUI(config2);
+          window.Android.runInUI(config2);
         } else {
-          Android.runInUI(webParseParams("linearLayout", config2, "set"));
+          window.Android.runInUI(webParseParams("linearLayout", config2, "set"));
         }
       }
     } else {
@@ -1168,9 +1168,9 @@ function executePostProcess(cache) {
       window.postRenderCallback(window.__dui_screen);
     }
 
-    if (JBridge && JBridge.setShadow) {
+    if (window.JBridge && window.JBridge.setShadow) {
       for (var tag in window.shadowObject) {
-        JBridge.setShadow(
+        window.JBridge.setShadow(
           window.shadowObject[tag]["level"],
           JSON.stringify(window.shadowObject[tag]["viewId"]),
           JSON.stringify(window.shadowObject[tag]["backgroundColor"]),
@@ -1277,15 +1277,15 @@ function callAnimation_ (screenArray, resetAnimation) {
               true,
               animationJson[key].type
             );
-            if (Android.updateProperties) {
-              Android.updateProperties(JSON.stringify(cmd));
+            if (window.Android.updateProperties) {
+              window.Android.updateProperties(JSON.stringify(cmd));
             } else {
-              Android.runInUI(cmd.runInUI, null);
+              window.Android.runInUI(cmd.runInUI, null);
             }
           } else if (window.__OS == "IOS") {
-            Android.runInUI(config);
+            window.Android.runInUI(config);
           } else {
-            Android.runInUI(webParseParams("linearLayout", config, "set"));
+            window.Android.runInUI(webParseParams("linearLayout", config, "set"));
           }
         }
       }
@@ -1312,7 +1312,7 @@ exports.callAnimation_ = callAnimation__;
 exports.prepareDom = prepareDom;
 function prepareDom (callback, screenName, dom){
   if (window.__OS == "ANDROID"){
-    if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()){
+    if(dom.props && dom.props.hasOwnProperty("id") && (dom.props.id).toString().trim()){
       dom.__ref = {__id: (dom.props.id).toString().trim()};
     }else{
       dom.__ref = window.createPrestoElement();
@@ -1324,7 +1324,7 @@ function prepareDom (callback, screenName, dom){
      * after native rendering is completed
      */
     var callB = window.callbackMapper(callback());
-    Android.prepareAndStoreView(
+    window.Android.prepareAndStoreView(
       screenName,
       JSON.stringify(domAllImpl(dom, screenName, {})),
       callB
@@ -1376,11 +1376,11 @@ function attachScreen(root,dom, screenName){
         window.hideold = function() {
           if (window.__OS == "ANDROID" && length > 1) {
             var cmd = cmdForAndroid(prop, true, "relativeLayout");
-            Android.runInUI(cmd.runInUI, null);
+            window.Android.runInUI(cmd.runInUI, null);
           } else if (window.__OS == "IOS" && length > 1) {
-            Android.runInUI(prop);
+            window.Android.runInUI(prop);
           } else if (length > 1) {
-            Android.runInUI(webParseParams("relativeLayout", prop, "set"));
+            window.Android.runInUI(webParseParams("relativeLayout", prop, "set"));
           }
         };
       }
@@ -1396,7 +1396,7 @@ function attachScreen(root,dom, screenName){
 
     var cmdScrollViewReset = getScrollViewResetCmds(dom);
     var cmds = cmdHideChild.runInUI+ ";" + cmdScrollViewReset;
-    Android.addStoredViewToParent(
+    window.Android.addStoredViewToParent(
       rootId + "",
       screenName,
       length - 1,
@@ -1456,7 +1456,7 @@ exports.addScreenWithAnim = function (dom,  screenName){
       id: dom.__ref.__id,
       visibility : "visible"
     }, true, "relativeLayout");
-    Android.runInUI(cmdMakeChildVisible.runInUI, null);
+    window.Android.runInUI(cmdMakeChildVisible.runInUI, null);
     executePostProcess(false)();
     callAnimation_([{ screenName : screenName, tag : "entryAnimationF"}], true);
     hideCachedScreen();
@@ -1471,8 +1471,8 @@ exports.addScreenWithAnim = function (dom,  screenName){
  */
 exports.canPreRender = function (){
   if (window.__OS == "ANDROID"){
-    if ( typeof Android.addStoredViewToParent == "function" &&
-      typeof Android.prepareAndStoreView == "function"
+    if ( typeof window.Android.addStoredViewToParent == "function" &&
+      typeof window.Android.prepareAndStoreView == "function"
     ) {
       return true;
     } else{

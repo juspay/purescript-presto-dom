@@ -38,7 +38,7 @@ import Tracker.Types (Level(..), Screen(..), Lifecycle(..)) as T
 import Unsafe.Coerce (unsafeCoerce)
 
 import PrestoDOM.Core.Types (InsertState, UpdateActions, VdomTree)
-import PrestoDOM.Core.Utils (callMicroAppsForListState, extractAndDecode, extractJsonAndDecode, forkoutListState, generateCommands, getListData, replayListFragmentCallbacks', verifyFont, verifyImage, attachUrlImages, isListContainer)
+import PrestoDOM.Core.Utils (callMicroAppsForListState, extractAndDecode, extractJsonAndDecode, forkoutListState, generateCommands, getListData, replayListFragmentCallbacksImpl, verifyFont, verifyImage, attachUrlImages, isListContainer)
 
 foreign import setUpBaseState :: String -> Foreign -> Effect Unit
 foreign import insertDom :: forall a. EFn.EffectFn4 String String a Boolean InsertState
@@ -599,4 +599,4 @@ replayListFragmentCallbacks :: forall a.
   ({code :: Int, message :: String} -> a) ->
   (a -> Effect Unit) ->
   Effect (Effect Unit)
-replayListFragmentCallbacks nampespace name action push = replayListFragmentCallbacks' nampespace name (push <<< action)
+replayListFragmentCallbacks nampespace name action push = replayListFragmentCallbacksImpl nampespace name (push <<< action)

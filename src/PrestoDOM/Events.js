@@ -14,19 +14,19 @@ exports.getScrollPush = function(identifier){
   return function(){
     scrollState.push = scrollState.push || {}
     return scrollState.push[identifier] || function () {return function() {return function() {}}}
-    }
   }
+}
 
-  exports.timeOutScroll = function(identifier){
-    return function(scrollPush){
-      return function (){
-        // console.log(scrollState)
-        scrollState.timeOut = scrollState.timeOut || {}
-        clearTimeout(scrollState.timeOut[identifier])
-        scrollState.timeOut[identifier] = setTimeout(scrollPush,200)
-      }
+exports.timeOutScroll = function(identifier){
+  return function(scrollPush){
+    return function (){
+      // console.log(scrollState)
+      scrollState.timeOut = scrollState.timeOut || {}
+      clearTimeout(scrollState.timeOut[identifier])
+      scrollState.timeOut[identifier] = setTimeout(scrollPush,200)
     }
   }
+}
 
 exports.getLastTimeStamp = function (identifier){
   return function(){
@@ -90,7 +90,7 @@ exports.setManualEvents = setManualEvents;
 exports.fireManualEvent = function (eventName) {
   return function (payload) {
     function isObject(v) {
-        return typeof object === "object";
+      return typeof object === "object";
     }
 
     if (window.__dui_screen && isObject(window[eventName]) && window[eventName][window.__dui_screen]) {
