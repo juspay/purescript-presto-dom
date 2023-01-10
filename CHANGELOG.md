@@ -1,3 +1,10 @@
+## [1.41.1](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.41.0...v1.41.1) (2023-01-10)
+
+
+### Bug Fixes
+
+* PICAF-16909: Exposing decodeInterpolatorUtil function ([29be380](https://bitbucket.org/juspay/purescript-presto-dom/commits/29be380919a521a5b26e5445b25fc5a962a90b7c))
+
 # [1.41.0](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.40.0...v1.41.0) (2022-12-29)
 
 
