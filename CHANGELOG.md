@@ -1,3 +1,10 @@
+## [1.41.2](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.41.1...v1.41.2) (2023-01-10)
+
+
+### Bug Fixes
+
+* PICAF-18952: refactoring JS changes to make PS15 PR easy to review ([f2f50af](https://bitbucket.org/juspay/purescript-presto-dom/commits/f2f50afcef222c923a92e0bb35a6a429cd70d83e))
+
 ## [1.41.1](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.41.0...v1.41.1) (2023-01-10)
 
 
