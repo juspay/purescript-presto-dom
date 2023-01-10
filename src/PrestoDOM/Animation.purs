@@ -37,6 +37,7 @@ module PrestoDOM.Animation
   , _mergeAnimation
   , decodeRepeatCountUtil
   , decodeRepeatModeUtil
+  , decodeInterpolatorUtil
   ) where
 
 import Prelude
@@ -118,7 +119,7 @@ type InterpolatorType = {type :: String, value :: Array Number}
 
 instance encodeInterpolator :: Encode Interpolator where encode = encodeInterpolatorUtil
 encodeInterpolatorUtil :: Interpolator -> Foreign
-encodeInterpolatorUtil = 
+encodeInterpolatorUtil =
   unsafeToForeign <<< case _ of
     EaseIn  -> "easein"
     EaseOut -> "easeout"
