@@ -8,6 +8,16 @@ module PrestoDOM.Animation
   , delay
   , repeatMode
   , repeatCount
+  , lottieUrl
+  , safeMode
+  , minFrame
+  , maxFrame
+  , minProgress
+  , maxProgress
+  , speed
+  , lottieAlpha
+  , startLottie
+  , strictMode
   , toX
   , fromX
   , toY
@@ -28,6 +38,7 @@ module PrestoDOM.Animation
   , tag
   , expandDirection
   , animationSet
+  , lottieAnimationSet
   , entryAnimationSet
   , entryAnimationSetForward
   , entryAnimationSetBackward
@@ -45,20 +56,19 @@ import Prelude
 
 import Control.Monad.Except.Trans (ExceptT, except)
 import Data.Array (length)
+import Data.Either (Either(..))
 import Data.Foldable (foldr)
 import Data.Generic.Rep (class Generic)
-import Data.Either (Either(..))
-import Data.String.Common (toLower)
-import Foreign.Class (class Decode, class Encode)
-import Foreign (Foreign, ForeignError(..), unsafeFromForeign, unsafeToForeign)
 import Data.List.NonEmpty (NonEmptyList, singleton)
+import Data.String.Common (toLower)
 import Effect (Effect)
-
-import PrestoDOM.Properties (prop)
-import PrestoDOM.Types.Core (PropName(PropName), VDom(Keyed, Elem), PrestoDOM)
-import PrestoDOM.Types.DomAttributes(isUndefined, toSafeString, toSafeArray, toSafeObject, toSafeInt)
+import Foreign (Foreign, ForeignError(..), unsafeFromForeign, unsafeToForeign)
+import Foreign.Class (class Decode, class Encode)
 import Halogen.VDom.DOM.Prop (Prop)
 import PrestoDOM.Core.Utils (os)
+import PrestoDOM.Properties (prop)
+import PrestoDOM.Types.Core (PropName(PropName), VDom(Keyed, Elem), PrestoDOM)
+import PrestoDOM.Types.DomAttributes (isUndefined, toSafeString, toSafeArray, toSafeObject, toSafeInt)
 
 foreign import _mergeAnimation :: forall a. a -> String
 foreign import mergeHoverProps :: forall a. a -> String
@@ -210,6 +220,36 @@ duration = animProp "duration"
 delay :: Int -> AnimProp
 delay = animProp "delay"
 
+lottieAlpha :: Int -> AnimProp
+lottieAlpha = animProp "lottieAlpha"
+
+speed :: Number -> AnimProp
+speed = animProp "speed"
+
+minFrame :: Int -> AnimProp
+minFrame = animProp "minFrame"
+
+maxFrame :: Int -> AnimProp
+maxFrame = animProp "maxFrame"
+
+minProgress :: Number -> AnimProp
+minProgress  = animProp "minProgress"
+
+maxProgress :: Number -> AnimProp
+maxProgress = animProp "maxProgress"
+
+safeMode :: Boolean -> AnimProp
+safeMode = animProp "safeMode"
+
+strictMode :: Boolean -> AnimProp
+strictMode = animProp "strictMode"
+
+lottieUrl :: String -> AnimProp
+lottieUrl = animProp "lottieUrl"
+
+startLottie :: Boolean -> AnimProp
+startLottie = animProp "startLottie"
+
 -- | Repeat mode of the animation
 -- | Either reverse or restart
 -- | Default: NoRepeat
@@ -351,6 +391,9 @@ exitAnimationSetBackward = animationSetImpl "exitAnimationB"
 
 animationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
 animationSet = animationSetImpl "inlineAnimation"
+
+lottieAnimationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+lottieAnimationSet = animationSetImpl "lottieAnimation"
 
 hoverAnimationSet :: forall w. Array (Prop (Effect Unit)) -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
 hoverAnimationSet hoverProps view = do

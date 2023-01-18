@@ -21,6 +21,7 @@ module PrestoDOM.Elements.Elements
     , frameLayout
     , shimmerFrameLayout
     , tabLayout
+    , lottieLayout
     , lottieAnimationView
     , imageView
     , editText
@@ -136,6 +137,9 @@ lottieAnimationView = leaf "lottieAnimationView"
 
 imageView :: forall i p. Leaf (Prop i) p
 imageView = leaf "imageView"
+
+lottieLayout :: forall i p. Leaf (Prop i) p
+lottieLayout = leaf "lottieLayout"
 
 editText :: forall i p. Leaf (Prop i) p
 editText = leaf "editText"
