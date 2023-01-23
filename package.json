@@ -8,7 +8,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "presto-ui": "git@bitbucket.org:juspay/presto-ui.git#v1.2.3",
+    "presto-ui": "git+ssh://git@ssh.bitbucket.juspay.net:picaf/presto-ui.git#v1.2.3",
     "purescript": "^0.12.5",
     "pulp": "^14"
   },
@@ -59,7 +59,7 @@
         "prerelease": true
       }
     ],
-    "repositoryUrl": "git@bitbucket.org:juspay/purescript-presto-dom.git",
+    "repositoryUrl": "git@ssh.bitbucket.juspay.net:picaf/purescript-presto-dom.git",
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
