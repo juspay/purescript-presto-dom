@@ -4,10 +4,12 @@ pipeline {
   }
   environment {
       NPM_REPO_NAME = "purescript-presto-dom"
-      GIT_AUTHOR_NAME = "Jenkins User"
-      GIT_AUTHOR_EMAIL = "bitbucket.jenkins.read@juspay.in"
-      GIT_COMMITTER_NAME = "Jenkins User"
-      GIT_COMMITTER_EMAIL = "bitbucket.jenkins.read@juspay.in"
+      GIT_AUTHOR_NAME = 'jenkins.user'
+      GIT_AUTHOR_EMAIL = 'jenkins.user@juspay.in'
+      GIT_COMMITTER_NAME = 'jenkins.user'
+      GIT_COMMITTER_EMAIL = 'jenkins.user@juspay.in'
+	GIT_USERNAME = 'jenkins.user'
+	GIT_EMAIL = 'jenkins.user@juspay.in'
 
   }
 
