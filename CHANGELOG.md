@@ -1,3 +1,10 @@
+## [1.41.3](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v1.41.2...v1.41.3) (2023-01-24)
+
+
+### Bug Fixes
+
+* PICAF-19321: life cycle id fix ([942a9f5](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/942a9f50b0cec4a14a5b448d73335f8915a40150))
+
 ## [1.41.2](https://bitbucket.org/juspay/purescript-presto-dom/compare/v1.41.1...v1.41.2) (2023-01-10)
 
 
