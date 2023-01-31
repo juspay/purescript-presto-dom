@@ -95,8 +95,8 @@ preComputeListItemWithFragment parentType dom = do
 -- replace value of the holder prop
 -- test samples can be expand or textFromHtml
 
-allowedHolderProps :: Array String
-allowedHolderProps = ["background", "text", "color", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "onClick", "primaryKey"]
+-- allowedHolderProps :: Array String
+-- allowedHolderProps = ["background", "text", "color", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "onClick", "primaryKey"]
 
 mkListItem :: ListItemType -> ListItem
 mkListItem = unsafeCoerce
@@ -162,7 +162,7 @@ extractView hv kpm klm aim parentType (Microapp s p ch) = do
 extractView _ _ _ _ _ _ = pure Nothing
 
 getId :: Ref.Ref (Object (Object String)) -> Maybe Int -> Effect Int
-getId kpm (Just i) = pure i
+getId _ (Just i) = pure i
 getId kpm Nothing = do
   i <- getBaseId
   _ <- Ref.modify (insert (show i) empty) kpm
@@ -191,18 +191,18 @@ parsePropsw hv kpm klm aim obj (P.Property a b)
       _ <- doAff do liftEffect $ Ref.modify (cons object) hv
       pure $ obj { props = insert "id" (unsafeToForeign i) obj.props, id = Just i}
   | otherwise = pure $ obj { props = insert a (unsafeToForeign b) obj.props}
-parsePropsw hv kpm klm aim obj (P.Payload a) =
+parsePropsw _ _ _ _ obj (P.Payload a) =
   pure $ obj { props = insert "payload" (unsafeToForeign a) obj.props}
 parsePropsw _ _ _ _ obj _ = pure $ obj
 
 addRunInUI :: forall a. Ref.Ref (Array (Object Foreign)) -> {id :: Maybe Int, props :: Object Foreign} -> Flow a (Object Foreign)
 addRunInUI hv {id:(Just i), props} = doAff $ liftEffect do
   -- TODO Add this only if props need runInUI
-  arr <- Ref.read hv
+  _ <- Ref.read hv
   let object = insert "runInUI" (encode $ "runInUI" <> (show i)) $ singleton "id" (encode i)
   _ <- Ref.modify (cons object) hv
   pure props
-addRunInUI hv {id, props} = pure props
+addRunInUI _ {props} = pure props
 
 -- | Stringified item view container
 foreign import data ListItem :: Type
@@ -233,8 +233,8 @@ onItemClick push f = P.Handler (DOM.EventType "onItemClick") (Just <<< (makeEven
 
 -- | Properties
 -- | List template data property
-listData :: forall i. ListData -> P.Prop i
-listData (ListData val) = prop (PropName "listData") val
+-- listData :: forall i. ListData -> P.Prop i
+-- listData (ListData val) = prop (PropName "listData") val
 
 -- | Properties
 -- | List template data property

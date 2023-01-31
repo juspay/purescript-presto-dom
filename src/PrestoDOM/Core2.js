@@ -1,29 +1,29 @@
-const prestoUI = require("presto-ui");
+import * as prestoUI from "presto-ui";
 const prestoDayum = prestoUI.doms;
 const callbackMapper = prestoUI.callbackMapper;
-var webParseParams, iOSParseParams, parseParams, lastScreen = [], screenTransition = {}, last = "";
+var webParseParams, iOSParseParams, androidParseParams, lastScreen = [], screenTransition = {}, last = "";
 
 if (window.__OS === "WEB") {
   webParseParams = prestoUI.helpers.web.parseParams;
 } else if (window.__OS == "IOS") {
   iOSParseParams = prestoUI.helpers.ios.parseParams;
 } else {
-  parseParams = prestoUI.helpers.android.parseParams;
+  androidParseParams = prestoUI.helpers.android.parseParams;
 }
 
-exports.addTime3 = addTime
+export const addTime3 = addTime
 
-function addTime(screen){
+function addTime(_screen){
   return function(){
     try{
-      var lastIndex = screen.lastIndexOf("_")
-      var x = [screen.slice(0,lastIndex), screen.slice(lastIndex + 1)]
+      var lastIndex = _screen.lastIndexOf("_")
+      var x = [_screen.slice(0,lastIndex), _screen.slice(lastIndex + 1)]
       screenTransition = screenTransition || {}
-      screenTransition[screen] = Date.now()
+      screenTransition[_screen] = Date.now()
       if(lastScreen.length > 0){
         if(x[x.length-1].toLowerCase() === "rendered"){
           window.latency = window.latency || {}
-          window.latency[x[0]] = screenTransition[screen] - screenTransition[last + "_Exited"]
+          window.latency[x[0]] = screenTransition[_screen] - screenTransition[last + "_Exited"]
           tracker._trackAction("system")("info")("screenLatency")({"currentScreen" : x[0], "lastScreen" : last, "latency" : window.latency[x[0]]})()
           lastScreen.push(x[0])
         }else if(x[x.length-1].toLowerCase() === "exited"){
@@ -77,10 +77,10 @@ function createAndroidWrapper () {
           return s4() + s4() + "-" + s4() + "-" + s4() + "-" +
                   s4() + "-" + s4() + s4() + s4();
         }
-        top.addToContainerList = function(id, namespace) {
+        top.addToContainerList = function(id_, namespace_) {
           // Namespace not needed, for cases where we do not have merchant fragment
           var uuid = generateUUID()
-          top.fragments[uuid] = id;
+          top.fragments[uuid] = id_;
           return uuid;
         }
       }
@@ -91,7 +91,7 @@ function createAndroidWrapper () {
       // if null call render
       // if not null find namespace and call AddViewToParent
       top.fragments = top.fragments || {}
-      if(nsps == null || nsps == undefined || typeof top.fragments[nsps] != "number") {
+      if(nsps === null || nsps == undefined || typeof top.fragments[nsps] != "number") {
         return window.Android.render(domString, snd, trd)
       }
       var rootId = top.fragments[nsps] + "";
@@ -186,7 +186,7 @@ if(!state.isPreRenderEnabled) {
 const getScopedState = function (namespace, activityID) {
   if(state.isPreRenderEnabled) {
     const activityIDToUse = activityID || state.currentActivity;
-    return state.scopedState.hasOwnProperty(namespace)
+    return Object.prototype.hasOwnProperty.call(state.scopedState,namespace)
       ? state.scopedState[namespace][activityIDToUse]
       : undefined;
   } else {
@@ -239,6 +239,7 @@ var getIdFromNamespace = function(namespace) {
 
 window.getIdFromNamespace = function(namespace) {
   return function() {
+    // eslint-disable-next-line no-undef
     return getIdFromNamespace(id)
   }
 };
@@ -252,10 +253,10 @@ function getPrestoID() {
 }
 
 
-function createPrestoElement() {
+export function createPrestoElement() {
   if (
     typeof window.__ui_id_sequence != "undefined" &&
-    window.__ui_id_sequence != null
+    window.__ui_id_sequence !== null
   ) {
     return {
       __id: ++window.__ui_id_sequence
@@ -272,7 +273,7 @@ function createPrestoElement() {
       __id: ++window.__ui_id_sequence
     };
   }
-};
+}
 
 window.createPrestoElement = createPrestoElement;
 
@@ -364,7 +365,7 @@ function domAllImpl(elem, screenName, VALIDATE_ID, namespace) {
   return prestoDayum(type, props, children);
 }
 
-exports.parseProps = parsePropsImpl;
+export const parseProps = parsePropsImpl;
 
 function isRecyclerViewSupported(){
   var isSupported = false;
@@ -384,10 +385,10 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType) {
   if(elem.type == "listView" && isRecyclerViewSupported()){
     elem.type = "recyclerView";
   }
-  if (elem.props.hasOwnProperty("id") && elem.props.id != "" && (elem.props.id).toString().trim() != "") {
+  if (Object.prototype.hasOwnProperty.call(elem.props,"id") && elem.props.id != "" && (elem.props.id).toString().trim() != "") {
     var id = (elem.props.id).toString().trim();
     elem.__ref = {__id: id };
-    if (VALIDATE_ID.hasOwnProperty(id)){
+    if (Object.prototype.hasOwnProperty.call(VALIDATE_ID,id)){
       console.warn("Found duplicate ID! ID: "+ id +
         " maybe caused because of overriding `id` prop. This may produce unwanted behavior. Please fix..");
     } else {
@@ -432,7 +433,7 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType) {
     type = props.useLinearLayout ? "linearLayout" : "relativeLayout"
     if(props.namespace) {
       // InitUI
-      exports.setUpBaseState(props.namespace)(null)();
+      setUpBaseState(props.namespace)(null)();
       // Mark that this is not pre-render
       getConstState(props.namespace).hasRender = true
       var newElem = getScopedState(props.namespace).root
@@ -441,7 +442,7 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType) {
       return parsePropsImpl(newElem, screenName, VALIDATE_ID, namespace)
     }
   }
-  if(props.hasOwnProperty("afterRender")) {
+  if(Object.prototype.hasOwnProperty.call(props,"afterRender")) {
     if (getConstState(namespace).prerenderScreens.indexOf(screenName) != -1) {
       getConstState(namespace).afterRenderFunctions[screenName] = getConstState(namespace).afterRenderFunctions[screenName] || []
       getConstState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
@@ -450,7 +451,7 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType) {
     getScopedState(namespace).afterRenderFunctions[screenName].push(props.afterRender)
     delete props.afterRender
   }
-  if (elem.hasOwnProperty("chunkedLayout") && elem.chunkedLayout) {
+  if (Object.prototype.hasOwnProperty.call(elem,"chunkedLayout") && elem.chunkedLayout) {
     elem.children.forEach(function(e, i) {
       getScopedState(namespace).actualLayouts.push({"layout": elem.layouts[i], "shimmerId": e.__ref.__id, "parent": elem, "index": i});
     });
@@ -462,10 +463,10 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType) {
   ) {
     if (props.onAnimationEnd) {
       var callbackFunction = props.onAnimationEnd;
-      var updatedCallback = function(event) {
+      var updatedCallback = function(_event) {
         getScopedState(namespace).activateScreen = true;
         hideOldScreenNow(namespace, screenName);
-        callbackFunction(event);
+        callbackFunction(_event);
       };
       props.onAnimationEnd = updatedCallback;
     } else {
@@ -561,7 +562,7 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType) {
   if (props.focus == false && window.__OS === "ANDROID") {
     delete props.focus;
   }
-  if (__OS == "WEB" && props.onResize) {
+  if (window.__OS == "WEB" && props.onResize) {
     window.__resizeEvent = props.onResize;
   }
   props.id = elem.__ref.__id;
@@ -574,15 +575,15 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType) {
 function hideOldScreenNow(namespace, screenName) {
   var sn = screenName;
   while(getScopedState(namespace).hideList.length > 0) {
-    var screenName = getScopedState(namespace).hideList.pop();
-    var cb = getConstState(namespace).screenHideCallbacks[screenName];
+    let screenName_ = getScopedState(namespace).hideList.pop();
+    let cb = getConstState(namespace).screenHideCallbacks[screenName_];
     if(typeof cb == "function") {
       cb();
     }
   }
   while(getScopedState(namespace).removeList.length > 0) {
-    var screenName = getScopedState(namespace).removeList.pop();
-    var cb = getConstState(namespace).screenRemoveCallbacks[screenName]
+    let screenName_ = getScopedState(namespace).removeList.pop();
+    let cb = getConstState(namespace).screenRemoveCallbacks[screenName_]
     if(typeof cb == "function") {
       cb();
     }
@@ -603,8 +604,8 @@ function hideOldScreenNow(namespace, screenName) {
 function cmdForAndroid(config, set, type) {
   if (set) {
     if (config.id) {
-      var obj = parseParams(type, config, "set");
-      var cmd = obj.runInUI
+      let obj = parseParams(type, config, "set");
+      let cmd = obj.runInUI
         .replace("this->setId", "set_view=ctx->findViewById")
         .replace(/this->/g, "get_view->");
       cmd = cmd.replace(/PARAM_CTR_HOLDER[^;]*/g, "get_view->getLayoutParams;");
@@ -619,16 +620,16 @@ function cmdForAndroid(config, set, type) {
   }
 
   var id = config.id;
-  var cmd = "set_view=ctx->findViewById:i_" + id + ";";
+  let cmd = "set_view=ctx->findViewById:i_" + id + ";";
   delete config.id;
   config.root = "true";
-  var obj = parseParams(type, config, "get");
+  let obj = parseParams(type, config, "get");
   obj.runInUI = cmd + obj.runInUI + ";";
   obj.id = id;
   return obj;
 }
 
-exports.callAnimation = callAnimation__
+export const callAnimation = callAnimation__
 
 /**
  * Implicit animation logic.
@@ -673,12 +674,12 @@ function callAnimation__ (screenName, namespace, cache) {
     } else {
       // new runscreen case call forward exit animation of previous runscreen
       if(state.isPreRenderEnabled) {
-        if (getConstState(namespace).cachedMachine && getConstState(namespace).cachedMachine.hasOwnProperty(screenName)){
+        if (getConstState(namespace).cachedMachine && Object.prototype.hasOwnProperty.call(getConstState(namespace).cachedMachine,screenName)){
           getConstState(namespace).animations.prerendered.push(screenName)
         }
       } else {
         var namespace_ = getNamespace(namespace);
-        if (state.cachedMachine.hasOwnProperty(namespace_) && state.cachedMachine[namespace_].hasOwnProperty(screenName)){
+        if (Object.prototype.hasOwnProperty.call(state.cachedMachine,namespace_) && Object.prototype.hasOwnProperty.call(state.cachedMachine[namespace_],screenName)){
           getConstState(namespace).animations.prerendered.push(screenName)
         }
       }
@@ -818,8 +819,8 @@ function processMapps(namespace, nam, timeout) {
         var service = window.JOS && typeof window.JOS.self == "string" ? window.JOS.self : null;
         x["lifeCycleId"] = typeof window.__payload.lifeCycleId == "string" ?
           window.__payload.lifeCycleId :
-          (typeof JBridge.getSessionId == "function" ?
-            ("sdk:" + JBridge.getSessionId()) : "")
+          (typeof window.JBridge.getSessionId == "function" ?
+            ("sdk:" + window.JBridge.getSessionId()) : "")
         if(service) {
           var splitedService = service.split(".");
           service = splitedService[splitedService.length - 1];
@@ -846,7 +847,7 @@ function triggerAfterRender(namespace, screenName) {
 }
 
 // This function is called just after patching is done, all addEventListeners stored are fired at once, and also vdomCached has an array of screen Names for which vdom is generated by server (currently only PP)
-exports.postAccess = function(nam, namespace, cache){
+export const postAccess = function(nam, namespace, cache){
   AndroidWrapper.addEventListeners(getConstState(namespace).addEventListeners[nam]);
   executePostProcess(nam, namespace, cache)()
   getConstState(namespace).addEventListeners[nam] = []
@@ -891,13 +892,13 @@ function triggerChunkCascade(namespace, screenName) {
   );
 }
 
-exports.checkAndDeleteFromHideAndRemoveStacks = function (namespace, screenName) {
+export const checkAndDeleteFromHideAndRemoveStacks = function (namespace, screenName) {
   try {
-    var index = getScopedState(namespace).hideList.indexOf(screenName)
+    let index = getScopedState(namespace).hideList.indexOf(screenName)
     if(index != -1) {
       delete getScopedState(namespace).hideList[index];
     }
-    var index = getScopedState(namespace).removeList.indexOf(screenName)
+    index = getScopedState(namespace).removeList.indexOf(screenName)
     if(index != -1) {
       delete getScopedState(namespace).removeList[index];
     }
@@ -906,12 +907,12 @@ exports.checkAndDeleteFromHideAndRemoveStacks = function (namespace, screenName)
   }
 }
 
-exports.setUpBaseState = function (namespace) {
+export function setUpBaseState (namespace) {
   return function (id) {
     return function () {
       window.parent.serverSideKeys = window.parent.serverSideKeys || {};
       tracker._trackAction("system")("info")("setup_base_state")({"namespace":namespace, "id":id, "isMultiActivityPreRenderSupported": state.isPreRenderEnabled})();
-      if(typeof getScopedState(namespace) != "undefined" && getScopedState(namespace).root && typeof getConstState(namespace) !== 'undefined' && getConstState(namespace).hasRender) {
+      if(typeof getScopedState(namespace) != "undefined" && getScopedState(namespace).root && typeof getConstState(namespace) !== "undefined" && getConstState(namespace).hasRender) {
         terminateUIImpl()(namespace);
       }else if(typeof getScopedState(namespace) != "undefined" && getScopedState(namespace).root){
         getScopedState(namespace).id = id
@@ -930,7 +931,7 @@ exports.setUpBaseState = function (namespace) {
 
       var elemRef, stackRef, cacheRef;
 
-      var idCache = window.parent.serverSideKeys.idCache && window.parent.serverSideKeys.idCache[JOS.self];
+      var idCache = window.parent.serverSideKeys.idCache && window.parent.serverSideKeys.idCache[window.JOS.self];
 
       // Using cached id’s at client Side when SSR has already generated them
       // Client side patching over server side rendered html
@@ -1004,7 +1005,7 @@ exports.setUpBaseState = function (namespace) {
       getScopedState(namespace).patchState = {}
       getScopedState(namespace).screenActive = {}
 
-      if (!state.constState.hasOwnProperty( namespace )){
+      if (!Object.prototype.hasOwnProperty.call(state.constState,namespace)){
         state.constState[namespace] = {}
         getConstState(namespace).animations = {}
         getConstState(namespace).animations.entry = {}
@@ -1042,11 +1043,11 @@ exports.setUpBaseState = function (namespace) {
 
 const markRootReady = function(namespace) {
   return function () {
-    var state = getScopedState(namespace)
-    if(state) {
-      state.rootReady = true
-      while(state.awaitRootReady.length > 0) {
-        var cb = state.awaitRootReady.pop()
+    let state_ = getScopedState(namespace)
+    if(state_) {
+      state_.rootReady = true
+      while(state_.awaitRootReady.length > 0) {
+        var cb = state_.awaitRootReady.pop()
         if(typeof cb == "function") {
           cb();
         }
@@ -1055,14 +1056,14 @@ const markRootReady = function(namespace) {
   }
 }
 
-exports.awaitRootReady = function(namespace) {
+export const awaitRootReady = function(namespace) {
   return function (cb) {
     return function() {
-      var state = getScopedState(namespace)
-      if(state && state.rootReady) {
+      let state_ = getScopedState(namespace)
+      if(state_ && state_.rootReady) {
         cb()();
-      } else if (state) {
-        state.awaitRootReady.push(cb());
+      } else if (state_) {
+        state_.awaitRootReady.push(cb());
       } else {
         console.error("Call initUI for Namespace :: ", namespace)
       }
@@ -1070,12 +1071,12 @@ exports.awaitRootReady = function(namespace) {
   }
 }
 
-exports.render = function (namespace) {
+export const render = function (namespace) {
   getConstState(namespace).hasRender = true
   var id = getIdFromNamespace(namespace);
   var cb = callbackMapper.map(markRootReady(namespace));
-  if(__OS == "ANDROID") {
-    cb = JSON.stringify(cb);
+  if(window.__OS == "ANDROID") {
+    cb = JSON.stringify(cb); 
   }
   if (window.__OS == "ANDROID") {
     if (typeof AndroidWrapper.getNewID == "function") {
@@ -1106,7 +1107,7 @@ exports.render = function (namespace) {
   }
 }
 
-exports.insertDom = function(namespace, name, dom, cache) {
+export const insertDom = function(namespace, _name, dom, cache) {
   if(!getScopedState(namespace)) {
     console.error("Call initUI for namespace :: " + namespace + "before triggering run/show screen")
     return;
@@ -1115,14 +1116,14 @@ exports.insertDom = function(namespace, name, dom, cache) {
     makeRootVisible(namespace);
   }
 
-  getConstState(namespace).animations.entry[name] = {}
-  getConstState(namespace).animations.exit[name] = {}
-  getConstState(namespace).animations.entryF[name] = {}
-  getConstState(namespace).animations.exitF[name] = {}
-  getConstState(namespace).animations.entryB[name] = {}
-  getConstState(namespace).animations.exitB[name] = {}
+  getConstState(namespace).animations.entry[_name] = {}
+  getConstState(namespace).animations.exit[_name] = {}
+  getConstState(namespace).animations.entryF[_name] = {}
+  getConstState(namespace).animations.exitF[_name] = {}
+  getConstState(namespace).animations.entryB[_name] = {}
+  getConstState(namespace).animations.exitB[_name] = {}
   getScopedState(namespace).root.children.push(dom);
-  if (dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()) {
+  if (dom.props && Object.prototype.hasOwnProperty.call(dom.props,"id") && (dom.props.id).toString().trim()) {
     dom.__ref = {__id: (dom.props.id).toString().trim()};
   } else {
     dom.__ref = createPrestoElement();
@@ -1131,23 +1132,23 @@ exports.insertDom = function(namespace, name, dom, cache) {
     dom.props.root = true
   }
   var rootId = cache ? getScopedState(namespace).cacheRoot : getScopedState(namespace).stackRoot
-  var length = cache ? getScopedState(namespace).screenCache.length : getScopedState(namespace).screenStack.length
+  var len = cache ? getScopedState(namespace).screenCache.length : getScopedState(namespace).screenStack.length
   // TODO implement cache limit later
-  getConstState(namespace).screenHideCallbacks[name] = hideViewInNameSpace(dom.__ref.__id, namespace)
-  getConstState(namespace).screenShowCallbacks[name] = showViewInNameSpace(dom.__ref.__id, namespace)
-  getConstState(namespace).screenRemoveCallbacks[name] = removeViewFromNameSpace(namespace, dom.__ref.__id)
-  var callback = callbackMapper.map(executePostProcess(name, namespace, cache))
+  getConstState(namespace).screenHideCallbacks[_name] = hideViewInNameSpace(dom.__ref.__id, namespace)
+  getConstState(namespace).screenShowCallbacks[_name] = showViewInNameSpace(dom.__ref.__id, namespace)
+  getConstState(namespace).screenRemoveCallbacks[_name] = removeViewFromNameSpace(namespace, dom.__ref.__id)
+  var callback = callbackMapper.map(executePostProcess(_name, namespace, cache))
   return {
     rootId : window.__OS == "ANDROID" ? rootId + "" : rootId
     , dom : dom
     //, name, namespace
-    , length : length -1
+    , length : len -1
     , callback : callback
     , id : getIdFromNamespace(namespace)
   }
 }
 
-exports.addViewToParent = function (insertObject) {
+export const addViewToParent = function (insertObject) {
   var dom = insertObject.dom
   // Storing the vdom, inside window.parent.serverSideKeys.vdom
   if (window.parent.generateVdom) {
@@ -1164,7 +1165,7 @@ exports.addViewToParent = function (insertObject) {
   );
 }
 
-exports.prepareAndStoreView = function (callback, dom, key, namespace, screenName){
+export const prepareAndStoreView = function (callback, dom, key, namespace, screenName){
   /*
    * Adding callback to make sure that prepareScreen returns controll only
    * after native rendering is completed
@@ -1193,23 +1194,23 @@ exports.prepareAndStoreView = function (callback, dom, key, namespace, screenNam
   );
 }
 
-exports.attachScreen = function(namespace, name, dom){
+export const attachScreen = function(namespace, _name, dom){
   if(!namespace) {
     console.error("Call initUI for namespace :: " + namespace + "before triggering run/show screen")
     return;
   }
   if (window.__OS == "ANDROID") {
     var rootId = getScopedState(namespace).stackRoot;
-    var length = getScopedState(namespace).screenStack.length;
-    var screenName = namespace + name
+    var len = getScopedState(namespace).screenStack.length;
+    var screenName = namespace + _name
 
     var cmds = getScrollViewResetCmds(dom);
     // Add commands which set default value for screen position
-    cmds += getConstState(namespace).animations.entryF[name].command
+    cmds += getConstState(namespace).animations.entryF[_name].command
     window.Android.addStoredViewToParent(
       rootId + "",
       screenName,
-      length - 1,
+      len - 1,
       null,
       null,
       cmds
@@ -1219,29 +1220,29 @@ exports.attachScreen = function(namespace, name, dom){
   }
 }
 
-exports.storeMachine = function (dom, name, namespace) {
+export const storeMachine = function (dom, _name, namespace) {
   if(state.isPreRenderEnabled) {
-    getScopedState(namespace).MACHINE_MAP[name] = dom;
+    getScopedState(namespace).MACHINE_MAP[_name] = dom;
     if (getConstState(namespace).cachedMachine &&
-        getConstState(namespace).cachedMachine.hasOwnProperty(name)){
-      getConstState(namespace).cachedMachine[name] = dom;
+        Object.prototype.hasOwnProperty.call(getConstState(namespace).cachedMachine,_name)){
+      getConstState(namespace).cachedMachine[_name] = dom;
     }
   } else {
-    var namespace = getNamespace(namespace);
-    state.scopedState[namespace].MACHINE_MAP[name] = dom;
-    if (state.cachedMachine.hasOwnProperty(namespace) &&
-         state.cachedMachine[namespace].hasOwnProperty(name)){
-      state.cachedMachine[namespace][name] = dom;
+    let namespace_ = getNamespace(namespace);
+    state.scopedState[namespace_].MACHINE_MAP[_name] = dom;
+    if (Object.prototype.hasOwnProperty.call(state.cachedMachine,namespace_) &&
+         Object.prototype.hasOwnProperty.call(state.cachedMachine[namespace_],_name)){
+      state.cachedMachine[namespace_][_name] = dom;
     }
   }
 
 }
 
-exports.getLatestMachine = function (name, namespace) {
-  return getScopedState(namespace).MACHINE_MAP[name];
+export const getLatestMachine = function (_name, namespace) {
+  return getScopedState(namespace).MACHINE_MAP[_name];
 }
 
-exports.cacheMachine = function(machine, screenName, namespace) {
+export const cacheMachine = function(machine, screenName, namespace) {
   if(state.isPreRenderEnabled) {
     if (!getConstState(namespace).cachedMachine){
       getConstState(namespace).cachedMachine = {}
@@ -1250,46 +1251,46 @@ exports.cacheMachine = function(machine, screenName, namespace) {
   }
   else {
     var curNamespace = getNamespace(namespace);
-    if (!state.cachedMachine.hasOwnProperty(curNamespace)){
+    if (!Object.prototype.hasOwnProperty.call(state.cachedMachine,curNamespace)){
       state.cachedMachine[curNamespace] = {}
     }
     state.cachedMachine[curNamespace][screenName] = machine;
   }
 };
 
-exports.isInStack = function (name, namespace) {
+export const isInStack = function (_name, namespace) {
   // Added || false to return false when value is undefined
   try {
-    return getScopedState(namespace).screenStack.indexOf(name) != -1
+    return getScopedState(namespace).screenStack.indexOf(_name) != -1
   } catch (e) {
     console.error( "Call initUI with for namespace :: " + namespace , e );
   }
   return false
 }
 
-exports.isCached = function (name, namespace) {
+export const isCached = function (_name, namespace) {
   // Added || false to return false when value is undefined
   try {
-    return getScopedState(namespace).screenCache.indexOf(name) != -1
+    return getScopedState(namespace).screenCache.indexOf(_name) != -1
   } catch (e) {
     console.error( "Call initUI with for namespace :: " + namespace , e );
   }
   return false
 }
 
-exports.cancelExistingActions = function (name, namespace) {
+export const cancelExistingActions = function (_name, namespace) {
   // Added || false to return false when value is undefined
-  delete getScopedState(namespace).pushActive[name]
+  delete getScopedState(namespace).pushActive[_name]
   try{
-    if(getScopedState(namespace) && getScopedState(namespace).cancelers && typeof getScopedState(namespace).cancelers[name] == "function") {
-      getScopedState(namespace).cancelers[name]();
+    if(getScopedState(namespace) && getScopedState(namespace).cancelers && typeof getScopedState(namespace).cancelers[_name] == "function") {
+      getScopedState(namespace).cancelers[_name]();
     }
   }catch(e){
     console.error("cancelExistingActions:",e);
   }
 }
 
-exports.saveCanceller = function (name, namespace, canceller) {
+export const saveCanceller = function (_name, namespace, canceller) {
   // Added || false to return false when value is undefined
   if(!state.isPreRenderEnabled) {
     namespace = namespace + state.currentActivity;
@@ -1301,12 +1302,13 @@ exports.saveCanceller = function (name, namespace, canceller) {
   }
   getScopedState(namespace).cancelers = getScopedState(namespace).cancelers || {}
   if(getScopedState(namespace) && getScopedState(namespace).cancelers) {
-    getScopedState(namespace).cancelers[name] = canceller;
+    getScopedState(namespace).cancelers[_name] = canceller;
   }
   return namespace
 }
-exports.terminateUIImpl = terminateUIImpl();
-exports.terminateUIImplWithCallback = terminateUIImpl;
+
+export const terminateUIImplWithOutCallback = terminateUIImpl() 
+export const terminateUIImplWithCallback = terminateUIImpl;
 function terminateUIImpl(callback) {
   return function(namespace) {
     lastScreen = []
@@ -1366,7 +1368,7 @@ function terminateUIImpl(callback) {
           }
         }
         // Adding var x so that openning paranthesis is not treated as argument
-        var x = (top.removeRootScreen.bind(this))(window.JOS.self + "::" + namespace);
+        var x = (top.removeRootScreen.bind(window))(window.JOS.self + "::" + namespace);
       }
     } catch (e) {
       // incase of exception from using top
@@ -1382,7 +1384,7 @@ function terminateUIImpl(callback) {
   }
 }
 
-exports.setToTopOfStack = function (namespace, screenName) {
+export const setToTopOfStack = function (namespace, screenName) {
   try {
     if(getScopedState(namespace).screenStack.indexOf(screenName) != -1) {
       var index = getScopedState(namespace).screenStack.indexOf(screenName)
@@ -1403,18 +1405,18 @@ exports.setToTopOfStack = function (namespace, screenName) {
   }
 }
 
-exports.makeScreenVisible = function (namespace, name) {
+export const makeScreenVisible = function (namespace, _name) {
   try {
-    var cb = getConstState(namespace).screenShowCallbacks[name];
+    var cb = getConstState(namespace).screenShowCallbacks[_name];
     if(typeof cb == "function") {
       cb()
     }
   } catch(e) {
-    trackExceptionWrapper("make_screen_visible", {"namespace":namespace, "name":name, "description": "Call InitUI first for the namespace"}, e);
+    trackExceptionWrapper("make_screen_visible", {"namespace":namespace, "name":_name, "description": "Call InitUI first for the namespace"}, e);
   }
 }
 
-exports.addToCachedList = function (namespace, screenName) {
+export const addToCachedList = function (namespace, screenName) {
   try {
     if(!(getScopedState(namespace).screenCache.indexOf(screenName)!= -1)) {
       getScopedState(namespace).screenCache.push(screenName);
@@ -1424,10 +1426,10 @@ exports.addToCachedList = function (namespace, screenName) {
   }
 }
 
-exports.addChildImpl = function (namespace) {
+export const addChildImpl = function (namespace) {
   return function(screenName) {
-    return function (child, parent, index) {
-      if (child.type == null) {
+    return function (child, _parent, index) {
+      if (child.type === null) {
         console.warn("child null");
       }
       var cb = callbackMapper.map(function(){
@@ -1440,11 +1442,11 @@ exports.addChildImpl = function (namespace) {
       }
       )
       // console.log("Add child :", child.__ref.__id, child.type);
-      child.parentType = parent.type;
+      child.parentType = _parent.type;
       if(child.props && (!child.props.id) && child.__ref) {
         child.props.id = child.__ref.__id
       }
-      return { rootId : window.__OS == "ANDROID" ? parent.__ref.__id + "" : parent.__ref.__id
+      return { rootId : window.__OS == "ANDROID" ? _parent.__ref.__id + "" : _parent.__ref.__id
         , dom : child
         , length : index
         , callback : cb
@@ -1454,7 +1456,7 @@ exports.addChildImpl = function (namespace) {
   }
 }
 
-exports.addProperty = function (namespace) {
+export const addProperty = function (namespace) {
   return function (key, val, obj) {
     addAttribute(obj, {value0: key, value1: val}, namespace)
   }
@@ -1475,7 +1477,7 @@ function applyProp(element, attribute, set, namespace) {
 function applyProps(element, prop, set, namespace) {
   prop.id =element.__ref.__id
   if (
-    prop.hasOwnProperty("focus") &&
+    Object.prototype.hasOwnProperty.call(prop,"focus") &&
     prop.focus === false &&
     window.__OS == "ANDROID"
   ) {
@@ -1497,9 +1499,9 @@ function applyProps(element, prop, set, namespace) {
   // Android.runInUI(parseParams("linearLayout", prop, "set"));
 }
 
-exports.replaceView = function (namespace) {
+export const replaceView = function (namespace) {
   return function(screenName){
-    return function (element, event, removedProps) {
+    return function (element, _event, removedProps) {
       // console.log("REPLACE VIEW", element.__ref.__id, element.props);
       if(window.parent.generateVdom){
         return
@@ -1537,16 +1539,16 @@ exports.replaceView = function (namespace) {
           , element.__ref.__id
           , getIdFromNamespace(namespace)
         );
-      } else if(getConstState(namespace).vdomCached.indexOf(screenName) != -1 && event != ""){
+      } else if(getConstState(namespace).vdomCached.indexOf(screenName) != -1 && _event != ""){
         // When vdomCached, all addEventListeners are stored in the array and fired together
         parsePropsImpl(element, screenName, {}, namespace)
-        var el = {view : rep, id : element.__ref.__id, event : event}
+        var el = {view : rep, id : element.__ref.__id, event : _event}
         getConstState(namespace).addEventListeners[screenName] = getConstState(namespace).addEventListeners[screenName] || []
         getConstState(namespace).addEventListeners[screenName].push(el)
       } else{
         AndroidWrapper.replaceView(rep, element.__ref.__id, getIdFromNamespace(namespace));
       }
-      if (removedProps != null && removedProps.length >0 && removedProps.indexOf("handler/afterRender") != -1){
+      if (removedProps !== null && removedProps.length >0 && removedProps.indexOf("handler/afterRender") != -1){
         if (window["afterRender"] && window["afterRender"][window.__dui_screen]) {
           delete window["afterRender"][window.__dui_screen][element.__ref.__id];
         }
@@ -1555,25 +1557,24 @@ exports.replaceView = function (namespace) {
   }
 }
 
-exports.cancelBehavior = function (ty) {
+export const cancelBehavior = function (ty) {
   var canceler = window.__CANCELER[ty];
   canceler();
 }
 
-exports.createPrestoElement = createPrestoElement;
 
-exports.moveChild = function(namespace) {
-  return function (child, parent, index) {
+export const moveChild = function(namespace) {
+  return function (child, _parent, index) {
     AndroidWrapper.moveView(child.__ref.__id, index, getIdFromNamespace(namespace));
   }
 }
 
-exports.removeChild = function(namespace) {
-  return function removeChild(child, parent, index) {
+export const removeChild = function(namespace) {
+  return function(child, _parent, index) {
     AndroidWrapper.removeView(child.__ref.__id,  getIdFromNamespace(namespace));
   }
 }
-exports.updatePropertiesImpl = function (namespace) {
+export const updatePropertiesImpl = function (namespace) {
   return function(screenName){
     return function (props, el) {
       if(window.parent.generateVdom){
@@ -1592,14 +1593,13 @@ exports.updatePropertiesImpl = function (namespace) {
   }
 }
 
-exports.setManualEvents = setManualEvents;
 
-function setManualEvents (namespace) {
-  return function(screen) {
+export function setManualEvents (namespace) {
+  return function(_screen) {
     return function(eventName) {
       return function(callbackFunction) {
         return function() {
-          var screenName = screen;
+          var screenName = _screen;
           // function was getting cleared when placed outside
           var isDefined = function(val){
             return (typeof val !== "undefined");
@@ -1620,9 +1620,9 @@ function setManualEvents (namespace) {
   }
 }
 
-exports.fireManualEvent = fireManualEvent()
+export const fireManualEventWithOutNameSpace = fireManualEvent()
 
-exports.fireEventToScreen = function (namespace) {
+export const fireEventToScreen = function (namespace) {
   return function (screenName) {
     return fireManualEvent(namespace, screenName)
   }
@@ -1632,10 +1632,10 @@ function fireManualEvent (namespace, nam) {
   return function (eventName) {
     return function (payload) {
       return function() {
-        var screenName = (getScopedState(namespace) || {}).activeScreen
+        let screenName = (getScopedState(namespace) || {}).activeScreen
         if(namespace && (nam == screenName || !nam)) {
           try {
-            if(getConstState(namespace) && getConstState(namespace).registeredEvents && getConstState(namespace).registeredEvents.hasOwnProperty(eventName)) {
+            if(getConstState(namespace) && getConstState(namespace).registeredEvents && Object.prototype.hasOwnProperty.call(getConstState(namespace).registeredEvents,eventName)) {
               if(screenName && typeof getConstState(namespace).registeredEvents[eventName][screenName] == "function")
                 getConstState(namespace).registeredEvents[eventName][screenName](payload);
             }
@@ -1646,11 +1646,11 @@ function fireManualEvent (namespace, nam) {
         }
         for (var key in state.scopedState) {
           try {
-            if(getConstState(key) && getConstState(key).registeredEvents && getConstState(key).registeredEvents.hasOwnProperty(eventName)) {
-              var screenName = getScopedState(key).activeScreen
+            if(getConstState(key) && getConstState(key).registeredEvents && Object.prototype.hasOwnProperty.call(getConstState(key).registeredEvents,eventName)) {
+              let screenName_ = getScopedState(key).activeScreen
               var isNotAnimating = getScopedState(key).activateScreen
-              if(isNotAnimating && screenName && typeof getConstState(key).registeredEvents[eventName][screenName] == "function")
-                getConstState(key).registeredEvents[eventName][screenName](payload);
+              if(isNotAnimating && screenName_ && typeof getConstState(key).registeredEvents[eventName][screenName_] == "function")
+                getConstState(key).registeredEvents[eventName][screenName_](payload);
             }
           }catch(e){
             console.warn("Failed at fireManualEvent", e);
@@ -1661,7 +1661,7 @@ function fireManualEvent (namespace, nam) {
   };
 }
 
-exports.makeCacheRootVisible = function(namespace) {
+export const makeCacheRootVisible = function(namespace) {
   getScopedState(namespace).shouldHideCacheRoot = false;
   showViewInNameSpace(getScopedState(namespace).cacheRoot, namespace)();
 }
@@ -1671,15 +1671,15 @@ const makeRootVisible = function(namespace) {
   showViewInNameSpace(getScopedState(namespace).rootId, namespace)();
 }
 
-exports.hideCacheRootOnAnimationEnd = function(namespace) {
+export const hideCacheRootOnAnimationEnd = function(namespace) {
   getScopedState(namespace).shouldHideCacheRoot = true;
 }
 
-exports.setControllerStates = function(namespace) {
+export const setControllerStates = function(namespace) {
   return function (screenName) {
     return function () {
       if(!getScopedState(namespace) || !getScopedState(namespace).root) {
-        exports.setUpBaseState(namespace)()();
+        setUpBaseState(namespace)()();
       }
       getScopedState(namespace).activeScreen = screenName;
       getScopedState(namespace).activateScreen = true;
@@ -1687,14 +1687,14 @@ exports.setControllerStates = function(namespace) {
   }
 }
 
-exports["setUseHintColor"] = function (useHintColor) {
+export const setUseHintColor = function (useHintColor) {
   return function(){
     if(window.__OS == "WEB" && typeof window.Android.setUseHintColor == "function") {
       window.Android.setUseHintColor(useHintColor);
     }
   }
 }
-exports["replayFragmentCallbacks'"] = function (namespace) {
+export const replayFragmentCallbacksImpl = function (namespace) {
   return function (nam) {
     return function (push) {
       return function() {
@@ -1722,7 +1722,7 @@ exports["replayFragmentCallbacks'"] = function (namespace) {
     }
   }
 }
-exports.getAndSetEventFromState = function(namespace, screenName, def) {
+export const getAndSetEventFromState = function(namespace, screenName, def) {
   if(state.isPreRenderEnabled) {
     // Todo :: Fix setting up of scopedState
     state.scopedState[namespace][state.currentActivity] = getScopedState(namespace) || {}
@@ -1739,7 +1739,7 @@ exports.getAndSetEventFromState = function(namespace, screenName, def) {
   return getScopedState(namespace).eventIOs[screenName];
 }
 
-exports.processEventWithId = function (fragmentId) {
+export const processEventWithId = function (fragmentId) {
   var ns = state.fragments[fragmentId];
   if(ns)
     return fireManualEvent(ns)("update");
@@ -1747,16 +1747,16 @@ exports.processEventWithId = function (fragmentId) {
     return function() { return function() {}}
 }
 
-exports.updateMicroAppPayloadImpl = function (payload, element, isPatch) {
-  element.props.payload = payload
+export const updateMicroAppPayloadImpl = function (payload, element, isPatch) {
+  element.props.payload = payload;
   if(isPatch) {
-    var payload = JSON.parse( payload || {})
-    payload.fragmentViewGroups = {}
-    payload.fragmentViewGroups[element.props.viewGroupTag || "main"] = state.fragmentIdMap[element.requestId]
-    var x = element.props.unNestPayload ? payload : {
+    let parsedPayload = JSON.parse( payload || {})
+    parsedPayload.fragmentViewGroups = {}
+    parsedPayload.fragmentViewGroups[element.props.viewGroupTag || "main"] = state.fragmentIdMap[element.requestId]
+    var x = element.props.unNestPayload ? parsedPayload : {
       service : element.service
       , requestId : element.requestId
-      , payload : payload
+      , payload : parsedPayload
     }
     var cb = function(code){return function(message){ return function(){
       if (typeof element.props.onMicroappResponse == "function"){
@@ -1776,7 +1776,7 @@ exports.updateMicroAppPayloadImpl = function (payload, element, isPatch) {
   }
 }
 
-exports.incrementPatchCounter = function(namespace) {
+export const incrementPatchCounter = function(namespace) {
   return function(screenName) {
     return function() {
       if(state.isPreRenderEnabled) {
@@ -1794,7 +1794,7 @@ exports.incrementPatchCounter = function(namespace) {
   }
 }
 
-exports.decrementPatchCounter = function(namespace) {
+export const decrementPatchCounter = function(namespace) {
   return function(screenName) {
     return function () {
       if(state.isPreRenderEnabled) {
@@ -1825,7 +1825,7 @@ exports.decrementPatchCounter = function(namespace) {
 function triggerPatchQueue(namespace, screenName) {
   if(state.isPreRenderEnabled) {
     getScopedState(namespace).patchState[screenName].active = false;
-    var nextPatch = (getScopedState(namespace).patchState[screenName].queue || []).shift();
+    let nextPatch = (getScopedState(namespace).patchState[screenName].queue || []).shift();
     if(typeof nextPatch == "function") {
       nextPatch();
     } else {
@@ -1842,7 +1842,7 @@ function triggerPatchQueue(namespace, screenName) {
   }
 }
 
-exports.addToPatchQueue = function(namespace) {
+export const addToPatchQueue = function(namespace) {
   return function(screenName) {
     return function(patchFn) {
       return function () {
@@ -1871,7 +1871,7 @@ exports.addToPatchQueue = function(namespace) {
   }
 }
 
-exports.setPatchToActive = function(namespace) {
+export const setPatchToActive = function(namespace) {
   return function(screenName) {
     return function () {
       if(state.isPreRenderEnabled) {
@@ -1896,14 +1896,14 @@ exports.setPatchToActive = function(namespace) {
   }
 }
 
-exports.parseParams = function (a,b, c) {
+export const parseParams = function (a,b, c) {
   // ADD OS CHECK
   if (window.__OS === "WEB") {
     return webParseParams(a,b,c);
   } else if (window.__OS == "IOS") {
     return iOSParseParams(a,b,c);
   } else {
-    return parseParams(a,b,c);
+    return androidParseParams(a,b,c);
   }
 }
 
@@ -1935,7 +1935,7 @@ function createAnimationObject(animation) {
   return animObj;
 }
 
-exports.getListDataCommands = function (listData, element) {
+export const getListDataCommands = function (listData, element) {
   var x = ["background", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "text", "color", "onClick"]
   if(window.__OS == "IOS" ){
     x.push("testID");
@@ -1945,14 +1945,15 @@ exports.getListDataCommands = function (listData, element) {
   var animPropMap = state.listViewAnimationKeys[element.__ref.__id]
   var final = [];
   for(var j = 0; j < listData.length; ++j) {
-    var item = {};
-    for(var id in keyPropMap) {
+    let item = {};
+    for(let id in keyPropMap) {
       var ps = {}
       var backMap = {runInUI : "runInUI" + id}
-      for(var prop in keyPropMap[id]) {
+      for(let prop in keyPropMap[id]) {
         if(x.indexOf(keyPropMap[id][prop]) != -1 || window.__OS == "WEB") {
           if(keyPropMap[id][prop] == "imageUrl" && window.__OS != "WEB") {
             try {
+              // eslint-disable-next-line no-new
               new URL(listData[j][prop])
               listData[j][prop] = "url->" + listData[j][prop] + ","
             } catch (e) {
@@ -1973,9 +1974,9 @@ exports.getListDataCommands = function (listData, element) {
         ps[keyPropMap[id][prop]] = listData[j][prop];
         backMap[keyPropMap[id][prop]] = prop;
       }
-      if(animPropMap.hasOwnProperty(id)) {
-        var animations = []
-        for(var anim in animPropMap[id]) {
+      if(Object.prototype.hasOwnProperty.call(animPropMap,id)) {
+        let animations = []
+        for(let anim in animPropMap[id]) {
           if(listData[j][anim]) {
             animations = animations.concat(animPropMap[id][anim])
           }
@@ -1986,7 +1987,7 @@ exports.getListDataCommands = function (listData, element) {
       }
       if(window.__OS == "ANDROID" || window.__OS == "IOS" ) {
         // TODO add cross platform support
-        ps = exports.parseParams("linearLayout", ps, "get")
+        ps = parseParams("linearLayout", ps, "get")
       }
       ps.runInUI = (ps.runInUI || "")
       if(ps.runInUI == "")
@@ -2011,7 +2012,7 @@ exports.getListDataCommands = function (listData, element) {
   return JSON.stringify(final)
 }
 
-exports.updateActivity = function (activityId) {
+export const updateActivity = function (activityId) {
   return function () {
     var oldActivity = state.currentActivity;
     state.currentActivity = activityId;
@@ -2022,17 +2023,17 @@ exports.updateActivity = function (activityId) {
         return;
       }
       deleteScopedState(a, oldActivity);
-      exports.setUpBaseState(a)()();
-      exports.render(a);
+      setUpBaseState(a)()();
+      render(a);
     });
   }
 }
 
-exports.getCurrentActivity = function () {
+export const getCurrentActivity = function () {
   return state.currentActivity;
 }
 
-exports.cachePushEvents = function(namespace) {
+export const cachePushEvents = function(namespace) {
   return function(screenName) {
     return function(efn) {
       return function(activityID){
@@ -2046,7 +2047,7 @@ exports.cachePushEvents = function(namespace) {
   }
 }
 
-exports.isScreenPushActive = function(namespace) {
+export const isScreenPushActive = function(namespace) {
   return function(screenName) {
     return function(activityID){
       return function () {
@@ -2067,7 +2068,7 @@ exports.isScreenPushActive = function(namespace) {
   }
 }
 
-exports.setScreenPushActive = function(namespace) {
+export const setScreenPushActive = function(namespace) {
   return function(screenName) {
     return function(activityID){
       return function () {
@@ -2088,7 +2089,7 @@ exports.setScreenPushActive = function(namespace) {
  * only gets executed in Android.
  *
  */
-exports.canPreRender = function (){
+export const canPreRender = function (){
   if (window.__OS == "ANDROID"){
     if ( typeof window.Android.addStoredViewToParent == "function" &&
       typeof window.Android.prepareAndStoreView == "function"
@@ -2115,20 +2116,20 @@ exports.canPreRender = function (){
  * this function will create dom and send it to mystique in order
  * to keep UI ready ahead of time
  */
-exports.prepareDom = prepareDom;
-function prepareDom (dom, name, namespace){
-  if(dom.props && dom.props.hasOwnProperty('id') && (dom.props.id).toString().trim()){
+
+export function prepareDom (dom, _name, namespace){
+  if(dom.props && Object.prototype.hasOwnProperty.call(dom.props,"id") && (dom.props.id).toString().trim()){
     dom.__ref = {__id: (dom.props.id).toString().trim()};
   }else{
-    dom.__ref = window.createPrestoElement();
+    dom.__ref = createPrestoElement();
   }
 
   if(dom.props) {
     dom.props.root = true;
   }
-  getConstState(namespace).screenHideCallbacks[name] = hideViewInNameSpace(dom.__ref.__id, namespace)
-  getConstState(namespace).screenShowCallbacks[name] = showViewInNameSpace(dom.__ref.__id, namespace)
-  getConstState(namespace).screenRemoveCallbacks[name] = removeViewFromNameSpace(namespace, dom.__ref.__id)
+  getConstState(namespace).screenHideCallbacks[_name] = hideViewInNameSpace(dom.__ref.__id, namespace)
+  getConstState(namespace).screenShowCallbacks[_name] = showViewInNameSpace(dom.__ref.__id, namespace)
+  getConstState(namespace).screenRemoveCallbacks[_name] = removeViewFromNameSpace(namespace, dom.__ref.__id)
   return dom;
 }
 
@@ -2138,16 +2139,16 @@ function prepareDom (dom, name, namespace){
  * if machine not present.
  *
  */
-exports.getCachedMachineImpl = function(just,nothing,namespace,screenName) {
+export const getCachedMachineImpl = function(just,nothing,namespace,screenName) {
   if (window.__OS === "ANDROID"){
     var machine;
     if (state.isPreRenderEnabled) {
       machine = getConstState(namespace).cachedMachine ? getConstState(namespace).cachedMachine[screenName] : null;
     } else {
       var curNamespace = getNamespace(namespace);
-      machine = state.cachedMachine.hasOwnProperty(curNamespace) ? state.cachedMachine[curNamespace][screenName] : null;
+      machine = Object.prototype.hasOwnProperty.call(state.cachedMachine,curNamespace) ? state.cachedMachine[curNamespace][screenName] : null;
     }
-    if (machine != null && (typeof machine == "object")){
+    if (machine !== null && (typeof machine == "object")){
       return just(machine);
     } else {
       return nothing;
@@ -2164,12 +2165,12 @@ exports.getCachedMachineImpl = function(just,nothing,namespace,screenName) {
  * @param {String} screenName - to start animation
  * @return {void}
  */
-exports.addScreenWithAnim = function (dom,  screenName, namespace){
+export const addScreenWithAnim = function (dom,  screenName, namespace){
   if (window.__OS == "ANDROID") {
   //   var namespace = getNamespace(namespace_);
     if(!state.isPreRenderEnabled) namespace = getNamespace(namespace)
     makeRootVisible(namespace);
-    exports.makeScreenVisible(namespace, screenName);
+    makeScreenVisible(namespace, screenName);
     executePostProcess(screenName, namespace, false)();
   }
 }
@@ -2208,7 +2209,7 @@ function getScrollViewIDs(dom){
   return idArray;
 }
 
-exports.startedToPrepare = function(namespace, screenName){
+export const startedToPrepare = function(namespace, screenName){
   if(getConstState(namespace)){
     getConstState(namespace)[screenName] = getConstState(namespace)[screenName] || {};
     getConstState(namespace)[screenName].prepareStarted = true;
@@ -2216,7 +2217,7 @@ exports.startedToPrepare = function(namespace, screenName){
   }
 }
 
-exports.awaitPrerenderFinished = function(namespace, screenName, cb){
+export const awaitPrerenderFinished = function(namespace, screenName, cb){
   if(getConstState(namespace) && getConstState(namespace)[screenName] && getConstState(namespace)[screenName].prepareStarted){
     getConstState(namespace)[screenName].prepareStartedQueue = getConstState(namespace)[screenName].prepareStartedQueue || [];
     getConstState(namespace)[screenName].prepareStartedQueue.push(cb);
@@ -2246,7 +2247,7 @@ function clearStoredID () {
   }
 }
 
-exports.setPreRender = function (screenName) {
+export const setPreRender = function (screenName) {
   return function (namespace) {
     return function () {
       getConstState(namespace).prerenderScreens.push(screenName);
@@ -2254,7 +2255,7 @@ exports.setPreRender = function (screenName) {
   }
 }
 
-exports.setVdomCache = function (screenName) {
+export const setVdomCache = function (screenName) {
   return function (namespace) {
     return function () {
       getConstState(namespace).vdomCached.push(screenName);
@@ -2262,7 +2263,7 @@ exports.setVdomCache = function (screenName) {
   }
 }
 
-exports.isSSRVdomPresent = function(screenName){
+export const isSSRVdomPresent = function(screenName){
   return function(notInStack){
     return function(){
       try{
@@ -2282,29 +2283,29 @@ exports.isSSRVdomPresent = function(screenName){
   }
 }
 
-exports.getTimeInMillis = function(){
+export const getTimeInMillis = function(){
   return Date.now();
 }
 
-exports.setScreenInActive = function (ns) {
-  return function (screen) {
+export const setScreenInActive = function (ns) {
+  return function (_screen) {
     return function () {
-      getScopedState(ns).screenActive[screen] = false
+      getScopedState(ns).screenActive[_screen] = false
     }
   }
 }
-exports.setScreenActive = function (ns) {
-  return function (screen) {
+export const setScreenActive = function (ns) {
+  return function (_screen) {
     return function () {
-      getScopedState(ns).screenActive[screen] = true
+      getScopedState(ns).screenActive[_screen] = true
     }
   }
 }
 
-exports.isScreenActive = function (ns) {
-  return function (screen) {
+export const isScreenActive = function (ns) {
+  return function (_screen) {
     return function () {
-      return getScopedState(ns).screenActive[screen]
+      return getScopedState(ns).screenActive[_screen]
     }
   }
 }

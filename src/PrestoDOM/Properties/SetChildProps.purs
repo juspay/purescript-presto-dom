@@ -198,11 +198,6 @@ btnColor_c = Tuple "btnColor" <<< StringP
 buttonTint_c :: String -> Tuple String GenProp
 buttonTint_c = Tuple "buttonTint" <<< StringP
 
--- | Number
-buttonClickOverlay_c :: Number -> Tuple String GenProp
-buttonClickOverlay_c = Tuple "buttonClickOverlay" <<< NumberP
-
-
 -- | Boolean
 checked_c :: Boolean -> Tuple String GenProp
 checked_c = Tuple "checked" <<< BooleanP
@@ -540,9 +535,6 @@ singleLine_c = Tuple "singleLine" <<< BooleanP
 -- | Unknown
 stroke_c :: String -> Tuple String GenProp
 stroke_c = Tuple "stroke" <<< StringP
-
-caretColor_c :: String -> Tuple String GenProp
-caretColor_c = Tuple "caretColor" <<< StringP
 
 -- | Unknown
 tabTextColors_c :: String -> Tuple String GenProp

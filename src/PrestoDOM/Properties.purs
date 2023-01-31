@@ -790,8 +790,6 @@ popupMenu :: forall i. String -> Prop i
 popupMenu = prop (PropName "popupMenu")
 
 -- | Int -- ime option for edittext
-imeOptions :: forall i. Int -> Prop i
-imeOptions = prop (PropName "imeOptions")
 
 -- | Shimmer Properties -- should start shimmer
 shimmer :: forall i. Shimmer -> Prop i

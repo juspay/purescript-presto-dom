@@ -3,14 +3,15 @@
   "version": "1.41.3",
   "private": true,
   "scripts": {
-    "start": "npx pulp -w build",
-    "compile": "npx pulp build",
+    "start": "spago build -w --before 'npm run eslint' --purs-args '--censor-lib --strict'",
+    "eslint": "eslint src",
+    "compile": "eslint src && spago build --purs-args '--censor-lib --strict'",
+    "spago:install": "spago install",
+    "eslint:fix": "eslint src --fix",
     "prepare": "husky install"
   },
   "dependencies": {
-    "presto-ui": "git+ssh://git@ssh.bitbucket.juspay.net:picaf/presto-ui.git#v1.2.3",
-    "purescript": "^0.12.5",
-    "pulp": "^14"
+    "presto-ui": "git@bitbucket.org:juspay/presto-ui.git#v1.2.3"
   },
   "config": {
     "commitizen": {
@@ -80,7 +81,12 @@
     "commitlint-config-jira": "^1.6.4",
     "commitlint-plugin-jira-rules": "^1.6.4",
     "cz-conventional-changelog": "^3.3.0",
+    "purescript-psa": "^0.8.2",
+    "eslint": "^8.30.0",
     "husky": "^8.0.2",
-    "semantic-release": "^19.0.5"
+    "pulp": "^16.0.2",
+    "purescript": "^0.15.6",
+    "semantic-release": "^19.0.5",
+    "spago": "^0.20.9"
   }
 }

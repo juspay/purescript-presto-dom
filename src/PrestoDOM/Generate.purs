@@ -37,15 +37,15 @@ generateBuildVdom v@(Child vdom) = do
         x -> unsafeCoerce $ throwError "VDOM Error" $ "Unexpected type" <> x <> "present in vdom" --Crashing intentionally
 
 getElemChild :: forall a w. Child -> Effect (Array (VDom (Array (Prop a)) w))
-getElemChild v@(Child vdom) =
+getElemChild (Child vdom) =
   traverse (\a -> do
-              let c@(Child child) = (decodeChild a)
+              let c = (decodeChild a)
               x <- (generateBuildVdom c)
               pure x
             ) vdom.children
 
 getKeyedChild :: forall a w. Child -> Effect (Array (Tuple (String) (VDom (Array (Prop a)) w)))
-getKeyedChild v@(Child vdom) =
+getKeyedChild (Child vdom) =
   traverse (\a -> do
               let c@(Child child) = (decodeChild a)
               x <- (generateBuildVdom c)
@@ -54,7 +54,7 @@ getKeyedChild v@(Child vdom) =
 
 decodeChild :: Foreign -> Child
 decodeChild vdom = case (hush $ runExcept $ decode vdom) of
-                      Just ch@(Child c) -> ch
+                      Just ch -> ch
                       _ -> unsafeCoerce $ throwError "VDOM Error" "Decode of vdom child failed"
 prop ∷ ∀ a b. String → b → Prop a
 prop key val = Property key (propFromAny val)

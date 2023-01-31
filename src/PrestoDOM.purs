@@ -9,7 +9,6 @@ module PrestoDOM
     , module API
     ) where
 
-import PrestoDOM.Core (mapDom) as PrestoDOM
 import PrestoDOM.Core.Types.Language.Flow (initUI, initUIWithNameSpace, initUIWithScreen, mapToScopedScreen, prepareScreen, prepareScreenWithNameSpace, runController, runScreen, runScreenWithNameSpace, showScreen, showScreenWithNameSpace, updateScreen, terminateUI) as API
 import PrestoDOM.Core2 (setManualEvents, getPushFn) as Core2
 import PrestoDOM.Elements.Elements (Leaf, Node, button, calendar, checkBox, container, editText, element, frameLayout, horizontalScrollView, imageView, keyed, linearLayout, linearLayout_, listView, lottieAnimationView, progressBar, relativeLayout, relativeLayout_, scrollView, shimmerFrameLayout, switch, tabLayout, textView, viewPager, viewWidget, webView, mapp, bottomSheetLayout, swipeRefreshLayout, mappWithLoader, textureView) as Elements

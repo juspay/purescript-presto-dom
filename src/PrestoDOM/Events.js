@@ -1,7 +1,5 @@
-"use strict";
-
 const scrollState = {};
-exports.saveScrollPush = function(scrollPush){
+export const saveScrollPush = function(scrollPush){
   return function (identifier){
     return function (){
       scrollState.push = scrollState.push || {}
@@ -10,14 +8,14 @@ exports.saveScrollPush = function(scrollPush){
   }
 }
 
-exports.getScrollPush = function(identifier){
+export const getScrollPush = function(identifier){
   return function(){
     scrollState.push = scrollState.push || {}
     return scrollState.push[identifier] || function () {return function() {return function() {}}}
   }
 }
 
-exports.timeOutScroll = function(identifier){
+export const timeOutScroll = function(identifier){
   return function(scrollPush){
     return function (){
       // console.log(scrollState)
@@ -28,14 +26,14 @@ exports.timeOutScroll = function(identifier){
   }
 }
 
-exports.getLastTimeStamp = function (identifier){
+export const getLastTimeStamp = function (identifier){
   return function(){
     scrollState.lastTimeOut = scrollState.lastTimeOut || {}
     return scrollState.lastTimeOut[identifier] || Date.now()
   }
 }
 
-exports.setLastTimeStamp = function (identifier){
+export const setLastTimeStamp = function (identifier){
   return function(){
     scrollState.lastTimeOut = scrollState.lastTimeOut || {}
     scrollState.lastTimeOut[identifier] = Date.now()
@@ -43,24 +41,17 @@ exports.setLastTimeStamp = function (identifier){
 }
 
 
-exports.backPressHandlerImpl = function () {
+export const backPressHandlerImpl = function () {
   return function(e) {
     window.onBackPressed();
   }
 }
 
-
-exports.backPressHandlerImpl = function () {
-  return function(e) {
-    window.onBackPressed();
-  }
-}
-
-function setManualEvents(screen) {
+export function setManualEvents(_screen) {
   return function(eventName){
     return function(callbackFunction){
       return function () {
-        var screenName = screen.value0 || window.__dui_screen;
+        var screenName = _screen.value0 || window.__dui_screen;
 
         // function was getting cleared when placed outside
         var isDefined = function(val){
@@ -85,9 +76,8 @@ function setManualEvents(screen) {
 }
 
 window.setManualEvents = setManualEvents;
-exports.setManualEvents = setManualEvents;
 
-exports.fireManualEvent = function (eventName) {
+export const fireManualEvent = function (eventName) {
   return function (payload) {
     function isObject(v) {
       return typeof object === "object";

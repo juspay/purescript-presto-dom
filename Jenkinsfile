@@ -1,3 +1,7 @@
+def isVersionBumpCandidateBranch(branch) {
+  (branch =~ /(main|hotfix-)/)
+}
+
 pipeline {
   agent {
     label "sdk"
@@ -26,11 +30,11 @@ pipeline {
         }
     }
 
-    stage("npm/bower install") {
+    stage("npm/spago install") {
       steps {
         script {
           sh ("npm config set package-lock=false; npm i")
-          sh ("bower i")
+          sh ("npm run spago:install")
         }
       }
     }
@@ -47,7 +51,9 @@ pipeline {
     stage("npm release") {
       steps {
         script {
-          sh ("npx semantic-release --debug")
+          if (isVersionBumpCandidateBranch(env.BRANCH_NAME)) {
+            sh ("npx semantic-release --debug")
+          }
         }
       }
     }

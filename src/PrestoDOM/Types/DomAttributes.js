@@ -1,6 +1,4 @@
-"use strict";
-
-exports.stringifyGradient = function (type, angle, values) {
+export const stringifyGradient = function (type, angle, values) {
   var obj = {};
   obj["type"] = type;
   obj["angle"] = angle;
@@ -8,39 +6,39 @@ exports.stringifyGradient = function (type, angle, values) {
   return JSON.stringify(obj);
 };
 
-exports.__IS_ANDROID = function () {
+export const __IS_ANDROID = function () {
   return window.__OS == "ANDROID";
 };
 
-exports.__IS_WEB = function () {
+export const __IS_WEB = function () {
   return window.__OS == "WEB";
 };
 
-exports["toSafeInt"] = function (constructor) {
+export const toSafeInt = function (_constructor) {
   return function (json) {
     return function (left) {
       return function (right) {
         if (json != undefined && !isNaN(parseInt(json))) {
-          return right(constructor(parseInt(json)));
+          return right(_constructor(parseInt(json)));
         } else return left("unable to parse into integer type");
       };
     };
   };
 };
 
-exports["toSafeNumber"] = function (constructor) {
+export const toSafeNumber = function (_constructor) {
   return function (json) {
     return function (left) {
       return function (right) {
         if (json != undefined && !isNaN(parseFloat(json))) {
-          return right(constructor(parseFloat(json)));
+          return right(_constructor(parseFloat(json)));
         } else return left("unable to parse into number type");
       };
     };
   };
 };
 
-exports["toSafeString"] = function (json) {
+export const toSafeString = function (json) {
   if (json != undefined) {
     if (typeof json == "string") {
       return json;
@@ -50,8 +48,8 @@ exports["toSafeString"] = function (json) {
   } else return "";
 };
 
-exports["isUndefined"] = function (json) {
-  return (json === undefined || json == null || json == NaN);
+export const isUndefined = function (json) {
+  return (json === undefined || json === null);
 };
 
 const mapTypes = function (dataArr, typeArr) {
@@ -111,7 +109,7 @@ const mapTypes = function (dataArr, typeArr) {
   }
 };
 
-exports["toSafeArray"] = function (dataConstructor) {
+export const toSafeArray = function (dataConstructor) {
   return function (dataArray) {
     return function (left) {
       return function (right) {
@@ -131,7 +129,7 @@ exports["toSafeArray"] = function (dataConstructor) {
   };
 };
 
-exports["toSafeGradientType"] = function (json) {
+export const toSafeGradientType = function (json) {
   return function (left) {
     return function (right) {
       try {
@@ -154,7 +152,7 @@ exports["toSafeGradientType"] = function (json) {
   };
 };
 
-exports["toSafeObject"] = function (json) {
+export const toSafeObject = function (json) {
   return function (left) {
     return function (right) {
       if (

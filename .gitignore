@@ -7,3 +7,4 @@ dist/
 .psc-ide-port
 .idea
 /**/*.ast
+.spago

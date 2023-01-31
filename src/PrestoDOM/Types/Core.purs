@@ -27,7 +27,7 @@ import Data.Either (Either)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Effect (Effect)
-import Global.Unsafe (unsafeStringify)
+import Presto.Core.Utils.Encoding (unsafeStringify)
 
 import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean, propFromInt, propFromNumber, propFromString)
 import Halogen.VDom.DOM.Prop (Prop) as VDom
@@ -49,6 +49,7 @@ newtype PrestoWidget a = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget
 
 derive instance newtypePrestoWidget ∷ Newtype (PrestoWidget a) _
 
+newtype PropName :: forall k. k -> Type
 newtype PropName value = PropName String
 type PrestoDOM i w = VDom (Array (Prop i)) w
 type Cmd action = Array (Effect action)

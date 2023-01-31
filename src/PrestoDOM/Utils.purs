@@ -27,7 +27,6 @@ import Effect.Uncurried as EFn
 import PrestoDOM.Types.Core (class Loggable, performLog, Eval, Cmd)
 import Effect(Effect)
 import Effect.Ref as Ref
-import Effect.Timer as Timer
 import Foreign(Foreign)
 import Foreign.Object as Object
 
@@ -95,15 +94,6 @@ storeToWindow = EFn.runEffectFn2 storeToWindow_
 getFromWindow :: forall a. String ->  Maybe a
 getFromWindow key = getFromWindow_ key Just Nothing
 
-timeoutDelay :: Int
-timeoutDelay = 300
-
-clearTimeout :: Ref.Ref (Maybe Timer.TimeoutId) -> Effect Unit
-clearTimeout timerRef = do
-  timer <- Ref.read timerRef
-  case timer of
-    Just t -> Timer.clearTimeout t
-    Nothing -> pure unit
 
 logAction :: forall a. Loggable a => Show a => Ref.Ref Int -> (Maybe a) -> (Maybe a) -> Boolean -> (Object.Object Foreign)-> Effect Unit
 logAction timerRef (Just prevAct) (Just currAct) false json = do
@@ -113,9 +103,9 @@ logAction timerRef (Just prevAct) (Just currAct) false json = do
   if show prevAct == show currAct && (currTime - prevTime < 300)
     then pure unit
     else loggerFunction currAct json 
-logAction timerRef Nothing (Just currAct) false json = loggerFunction currAct json 
-logAction timerRef _ (Just currAct) true json = loggerFunction currAct json 
-logAction timerRef _ _ _ _ = pure unit
+logAction _ Nothing (Just currAct) false json = loggerFunction currAct json 
+logAction _ _ (Just currAct) true json = loggerFunction currAct json 
+logAction _ _ _ _ _ = pure unit
 
 loggerFunction :: forall a. Loggable a => Show a => a -> (Object.Object Foreign) -> Effect Unit
 loggerFunction action json = do

@@ -13,7 +13,8 @@ module PrestoDOM.Types.DomAttributes
   , Padding(..)
   , Position(..)
   , Shadow(..)
-  , Shimmer
+  , Shimmer(..)
+  , ShimmerJson
   , Typeface(..)
   , Visibility(..)
   , __IS_ANDROID
@@ -76,7 +77,7 @@ import Control.Monad.Except.Trans (ExceptT, except)
 import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn3, runFn3)
 import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show (genericShow)
+import Data.Show.Generic (genericShow)
 import Data.Int (fromString)
 import Data.List.NonEmpty (NonEmptyList, singleton)
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -441,7 +442,7 @@ decodeVisibilityUtil json =
       "visible"     -> Right VISIBLE
       "invisible"   -> Right INVISIBLE
       "gone"        -> Right GONE
-      x             -> (Left <<< singleton <<< ForeignError) "Visibility is not supported"
+      _             -> (Left <<< singleton <<< ForeignError) "Visibility is not supported"
 
 renderVisibility :: Visibility -> String
 renderVisibility = case _ of
@@ -766,19 +767,19 @@ active f (ColorBuilder a) = ColorBuilder $ a { active = f}
 
 baseAlpha :: Number -> Shimmer -> Shimmer
 baseAlpha f (AlphaBuilder a) = AlphaBuilder $ a {base = Just f}
-baseAlpha f shimmer = shimmer
+baseAlpha _ shimmer = shimmer
 
 highlightAlpha :: Number -> Shimmer -> Shimmer
 highlightAlpha f (AlphaBuilder a) = AlphaBuilder $ a {highlight = Just f}
-highlightAlpha f shimmer = shimmer
+highlightAlpha _ shimmer = shimmer
 
 baseColor :: String -> Shimmer -> Shimmer
 baseColor f (ColorBuilder a) = ColorBuilder $ a {base = Just f}
-baseColor f shimmer = shimmer
+baseColor _ shimmer = shimmer
 
 highlightColor :: String -> Shimmer -> Shimmer
 highlightColor f (ColorBuilder a) = ColorBuilder $ a {highlight = Just f}
-highlightColor f shimmer = shimmer
+highlightColor _ shimmer = shimmer
 
 colorBuilder :: Shimmer
 colorBuilder = ColorBuilder {

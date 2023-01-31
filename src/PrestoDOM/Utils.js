@@ -1,6 +1,4 @@
-"use strict";
-
-exports.concatPropsArrayImpl = function (xs) {
+export const concatPropsArrayImpl = function (xs) {
   return function (ys) {
     var xsLen = xs.length;
     var ysLen = ys.length;
@@ -24,14 +22,14 @@ exports.concatPropsArrayImpl = function (xs) {
   };
 };
 
-exports.storeToWindow_ = function (key, value){
+export const storeToWindow_ = function (key, value){
   window[key] = value;
 }
 
-exports.getFromWindow_ = function (key){
+export const getFromWindow_ = function (key){
   return function (just){
     return function (nothing){
-      if (window.hasOwnProperty(key)){
+      if (Object.prototype.hasOwnProperty.call(window,key)){
         return just(window[key]);
       } else {
         return nothing;
@@ -40,7 +38,7 @@ exports.getFromWindow_ = function (key){
   }
 }
 
-exports.debounce = function (logger){
+export const debounce = function (logger){
   return function (key) {
     return function (value) {
       return function (json){
@@ -68,7 +66,7 @@ exports.debounce = function (logger){
   }
 }
 
-exports.addTime2 = function(key){
+export const addTime2 = function(key){
   return function(){
     var x = Date.now();
     window.timeCheck = window.timeCheck || {}
@@ -77,7 +75,7 @@ exports.addTime2 = function(key){
   }
 }
 
-exports.performanceMeasure = function(key){
+export const performanceMeasure = function(key){
   return function(start){
     return function(end){
       return function(){
@@ -96,8 +94,8 @@ function loggerFunction(logger, key, value, json){
   window.loggerTimeout =  null;
 }
 
-exports.getTime = Date.now
+export const getTime = Date.now
 
-exports.isGenerateVdom = function(){
+export const isGenerateVdom = function(){
   return window.parent.generateVdom
 }

@@ -59,7 +59,7 @@ sanitiseNamespace :: Maybe String -> String
 sanitiseNamespace = fromMaybe "default"
 
 createNameSpaceState :: forall w i. String -> Maybe String -> Effect (NameSpaceState w i)
-createNameSpaceState namespace id = do
+createNameSpaceState _ id = do
   root <- createRoot
   pure $
     { id : id
@@ -126,7 +126,7 @@ setUpBaseState :: String -> Maybe String -> Effect Unit
 setUpBaseState nameSpace id =
   loadRefFromState nameSpace >>=
     case _ of
-      Just value ->
+      Just _ ->
         -- Ignore; initUI was done before
         pure unit
       Nothing ->
@@ -137,7 +137,7 @@ setUpBaseState nameSpace id =
 
 -- TODO Make Root into VDOM
 domAll :: DOM.Node -> String -> String -> Effect Unit
-domAll vdom screenName namespace = do
+domAll vdom _ namespace = do
   stateRef <- loadRefFromState namespace
   _ <- case stateRef, hush $ runExcept $ decode $ unsafeToForeign vdom of
     Just ref, Just v -> extractView ref Nothing v
@@ -160,12 +160,12 @@ domAll vdom screenName namespace = do
 
 
 extractView :: forall i w. Ref (NameSpaceState w i) -> Maybe String -> NodeTree -> Effect (Maybe Foreign)
-extractView ref parentType (NodeTree nd@{props : p, children : c, "type" : "microapp"}) = do
+extractView ref parentType (NodeTree nd@{ "type" : "microapp"}) = do
   cacheMappPayload ref (NodeTree nd)
   extractView ref parentType $ NodeTree $ nd { "type" = "relativeLayout" }
 extractView ref parentType (NodeTree {props : p, children : c, "type" :t}) = do
   children <- catMaybes <$> (extractView ref (Just t) `traverse` c)
-  props <- p # checkAndAddRoot parentType
+  _ <- p # checkAndAddRoot parentType
     # checkAndAddId
     <#> checkAndDeleteFocus
   pure $ Just $ generateCommands $ encode 
@@ -243,7 +243,7 @@ cacheMappPayload ref (NodeTree {requestId: (Just req), service: (Just ser), prop
       _ <- modify (\state -> state {mappQueue = snoc state.mappQueue mapp}) ref
       pure unit
     _, _ -> pure unit
-cacheMappPayload ref _ = pure unit
+cacheMappPayload _ _ = pure unit
 
 -- cacheAnimationPaylod :: forall i w. Ref (NameSpaceState w i) -> NodeTree -> Effect Unit
 -- cacheAnimationPaylod ref (NodeTree {requestId: (Just req), service: (Just ser), props : p}) =
@@ -286,7 +286,7 @@ forkoutListState namespace screenName viewType props = do
       let mapp = fromMaybe (encode $ unit) $ lookup "onMicroappResponse" props
       case keys, payloads of
         Just {id, listData}, Just justPayloads -> forkAff $ Just <$> callMicroAppsForListState id namespace screenName listData justPayloads mapp
-        Just {id, listData}, _ -> forkAff $ pure $ Just listData
+        Just {listData}, _ -> forkAff $ pure $ Just listData
         Nothing, _ -> forkAff $ pure Nothing
     else forkAff $ pure Nothing
 

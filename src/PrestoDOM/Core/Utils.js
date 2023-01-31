@@ -7,7 +7,7 @@ const state = {
 }
 
 
-exports.saveRefToStateImpl = function (key) {
+export const saveRefToStateImpl = function (key) {
   return function(ref) {
     return function() {
       state[key] = ref
@@ -15,7 +15,7 @@ exports.saveRefToStateImpl = function (key) {
   }
 }
 
-exports.loadRefFromStateImpl = function (key) {
+export const loadRefFromStateImpl = function (key) {
   return function (nothing) {
     return function (just) {
       return function () {
@@ -25,10 +25,18 @@ exports.loadRefFromStateImpl = function (key) {
   }
 }
 
-exports.createPrestoElement = function () {
+function getPrestoID() {
+  if (window.__OS === "WEB") {
+    return 1;
+  }
+
+  return top.__PRESTO_ID ? ++top.__PRESTO_ID : 1;
+}
+
+export const createPrestoElement = function () {
   if (
     typeof window.__ui_id_sequence != "undefined" &&
-      window.__ui_id_sequence != null
+      window.__ui_id_sequence !== null
   ) {
     return {
       __id: ++window.__ui_id_sequence
@@ -44,9 +52,9 @@ exports.createPrestoElement = function () {
   }
 };
 
-exports.os = window.__OS
+export const os = window.__OS
 
-const prestoUI = require("presto-ui")
+import * as prestoUI from "presto-ui";
 const prestoDayum = prestoUI.doms;
 
 const generateUUID = function() {
@@ -59,9 +67,9 @@ const generateUUID = function() {
           s4() + "-" + s4() + s4() + s4();
 }
 
-exports.callbackMapper = prestoUI.callbackMapper.map;
+export const callbackMapper = prestoUI.callbackMapper.map;
 
-exports.generateCommands = function (elem) {
+export const generateCommands = function (elem) {
   var type = elem.type;
   var props = elem.props;
   var elemType = elem.elemType;
@@ -81,18 +89,18 @@ exports.generateCommands = function (elem) {
   return prestoDayum(type, props, elem.children);
 }
 
-exports.callMicroAppListItem = function (service) {
+export const callMicroAppListItem = function (service) {
   return function (a) {
     return function (callback) {
       return function () {
         // GENERATE requestId
         // Add a callback
         var success = function (code) {
-          return function (status) {
+          return function (response) {
             return function () {
               try {
-                var t = JSON.parse(status).payload.fragment
-                if(t.hasOwnProperty("holderViews") && t.hasOwnProperty("keyPropMap")) {
+                var t = JSON.parse(response).payload.fragment
+                if(Object.prototype.hasOwnProperty.call(t,"holderViews") && Object.prototype.hasOwnProperty.call(t,"keyPropMap")) {
                   callback(t)()
                   return;
                 }
@@ -119,7 +127,7 @@ exports.callMicroAppListItem = function (service) {
   }
 }
 
-exports.callMicroApp = function (service) {
+export const callMicroApp = function (service) {
   return function (id) {
     return function (a) {
       return function (callback) {
@@ -132,7 +140,7 @@ exports.callMicroApp = function (service) {
                 var action = state.requestIds[id][service] ? "update" :  "process"
                 state.requestIds[id][service] = state.requestIds[id][service] || {}
                 state.requestIds[id][service].requestId = generateUUID();
-                requestId = state.requestIds[id][service].requestId;
+                let requestId = state.requestIds[id][service].requestId;
                 var request = {
                   requestId : requestId,
                   payload : a,
@@ -147,12 +155,12 @@ exports.callMicroApp = function (service) {
                 state.pendingRequests.push(requestId)
 
                 var success = function (code) {
-                  return function (status) {
+                  return function (resp) {
                     return function () {
                       try {
-                        var response = JSON.parse(status)
-                        if( !response.hasOwnProperty("error") || response.error || (response.payload && response.payload.stopAtDom)) {
-                          if(response.hasOwnProperty("payload") && response.payload.hasOwnProperty("state")) {
+                        var response = JSON.parse(resp)
+                        if( !Object.prototype.hasOwnProperty.call(response,"error") || response.error || (response.payload && response.payload.stopAtDom)) {
+                          if(Object.prototype.hasOwnProperty.call(response,"payload") && Object.prototype.hasOwnProperty.call(response.payload,"state")) {
                             state.requestIds[id][service].response = response.payload.state;
                           }
                           if(typeof state.mappCallbacks[service][response.requestId] == "function") {
@@ -206,7 +214,7 @@ function isUrl (value) {
   return false
 }
 
-exports.checkFontisPresent = function (fontName) {
+export const checkFontisPresent = function (fontName) {
   return function (callback) {
     return function () {
       if (window.__OS != "ANDROID" || isUrl(fontName)) {
@@ -214,7 +222,7 @@ exports.checkFontisPresent = function (fontName) {
         return;
       }
       if(window.juspayAssetConfig && window.juspayAssetConfig.fonts){
-        if(window.juspayAssetConfig.fonts[fontName] || window.juspayAssetConfig.fonts['jp_'+fontName])
+        if(window.juspayAssetConfig.fonts[fontName] || window.juspayAssetConfig.fonts["jp_"+fontName])
           callback(true)();
         else
           callback(false)();
@@ -237,18 +245,18 @@ exports.checkFontisPresent = function (fontName) {
   }
 }
 
-exports.checkImageisPresent = function (imageName, name, prp, callback) {
+export const checkImageisPresent = function (imageName, _name, prp, callback) {
   if (window.__OS != "ANDROID" || isUrl(imageName)) {
     if (window.__OS === "ANDROID" && prp && prp.value0 && prp.value0.__id){
-      state.cacheImage[name] = state.cacheImage[name] || {};
-      state.cacheImage[name][imageName] = state.cacheImage[name][imageName] || [];
-      state.cacheImage[name][imageName].push(prp.value0.__id)
+      state.cacheImage[_name] = state.cacheImage[_name] || {};
+      state.cacheImage[_name][imageName] = state.cacheImage[_name][imageName] || [];
+      state.cacheImage[_name][imageName].push(prp.value0.__id)
     }
     callback(true)();
     return;
   }
   if(window.juspayAssetConfig && window.juspayAssetConfig.images){
-    if(window.juspayAssetConfig.images[imageName] || window.juspayAssetConfig.images['jp_'+imageName])
+    if(window.juspayAssetConfig.images[imageName] || window.juspayAssetConfig.images["jp_"+imageName])
       callback(true)();
     else
       callback(false)();
@@ -269,12 +277,12 @@ exports.checkImageisPresent = function (imageName, name, prp, callback) {
   window.Android.runInUI( "set_342372=ctx->getPackageName;set_res=ctx->getResources;set_368248=get_res->getIdentifier:s_" + imageName + ",s_drawable,get_342372;set_res=ctx->getResources;set_482380=get_res->getDrawable:get_368248;",JSON.stringify(cb))
 }
 
-exports.attachUrlImages = function (name){
-  if (window.__OS === "ANDROID" && state.cacheImage.hasOwnProperty(name)){
+export const attachUrlImages = function (_name){
+  if (window.__OS === "ANDROID" && Object.prototype.hasOwnProperty.call(state.cacheImage,_name)){
     var urlSetCommands = "set_directory=ctx->getDir:s_juspay,i_0;" ;
-    for ( var imgUrl in state.cacheImage[name]){
+    for ( var imgUrl in state.cacheImage[_name]){
       var image = imgUrl.substr(imgUrl.lastIndexOf("/") + 1);
-      var ids = state.cacheImage[name][imgUrl];
+      var ids = state.cacheImage[_name][imgUrl];
       for (var i=0;i<ids.length;i++){
         urlSetCommands = urlSetCommands + "set_resolvedFile=java.io.File->new:get_directory,s_" + window.JBridge.getFilePath(image)  + ";" +
                         "set_resolvedPath=get_resolvedFile->toString;" +
@@ -284,12 +292,12 @@ exports.attachUrlImages = function (name){
 
       }
     }
-    delete state.cacheImage[name];
+    delete state.cacheImage[_name];
     window.Android.runInUI(urlSetCommands ,null);
   }
 }
 
-exports.generateAndCheckRequestId = function (id) {
+export const generateAndCheckRequestId = function (id) {
   return function (payloads) {
     return function () {
       state.requestIds = state.requestIds || {};
@@ -301,7 +309,7 @@ exports.generateAndCheckRequestId = function (id) {
   }
 }
 
-exports.getLatestListData = function (id) {
+export const getLatestListData = function (id) {
   return function () {
     var temp = [];
     try {
@@ -317,13 +325,13 @@ exports.getLatestListData = function (id) {
   }
 }
 
-exports.setDebounceToCallback = function (cbstr) {
+export const setDebounceToCallback = function (cbstr) {
   window.__THROTTELED_ACTIONS = window.__THROTTELED_ACTIONS || []
   window.__THROTTELED_ACTIONS.push(cbstr);
   return cbstr;
 }
 
-exports.replayListFragmentCallbacksImpl = function (namespace) {
+export const replayListFragmentCallbacksImpl = function (namespace) {
   return function (nam) {
     return function (push) {
       return function(){

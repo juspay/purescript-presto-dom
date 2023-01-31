@@ -12,9 +12,9 @@ const getTracker = function () {
   
 const tracker = getTracker()
 
-const prestoUI = require("presto-ui")
+import * as prestoUI from "presto-ui";
 const prestoDayum = prestoUI.doms;
-exports.getProps = function(props){
+export const getProps = function(props){
   return function(convertToProp){
     return function(dom){
       return function(){
@@ -25,10 +25,10 @@ exports.getProps = function(props){
             continue
           }
           else if(k!= "id"){
-            prop = convertToProp(k)(x[k])
+            let prop = convertToProp(k)(x[k])
             res.push(prop)
           } else{
-            prop = convertToProp("id2")(x[k])
+            let prop = convertToProp("id2")(x[k])
             res.push(prop)
           } 
         }
@@ -39,13 +39,13 @@ exports.getProps = function(props){
   }
 }
 
-exports.getVdom = function(){
+export const getVdom = function(){
   var insertObject = (window.parent.serverSideKeys || {}).vdom;
   var x = prestoUI.prestoClone(insertObject["dom"])
   return x
 }
 
-exports.throwError = function(key){
+export const throwError = function(key){
   return function(err){
     tracker._trackException("lifecycle")("microapp")("presto_exception")(key)(err)();
     throw err;
