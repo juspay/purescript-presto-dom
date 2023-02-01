@@ -1,3 +1,20 @@
+# [2.0.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v1.41.3...v2.0.0) (2023-02-01)
+
+
+### Bug Fixes
+
+* PICAF-19663: renaming core2 to core ([033df8d](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/033df8d373b4a3beb359166be383c6e56980e674))
+
+
+### Features
+
+* PICAF-19663: shifting presto dom to PS15 ([4338615](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/4338615d1172df85ecdc810db7676435aa422a13))
+
+
+### BREAKING CHANGES
+
+* Purescript version is changed to 0.15.6
+
 ## [1.41.3](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v1.41.2...v1.41.3) (2023-01-24)
 
 
