@@ -113,7 +113,7 @@ module PrestoDOM.Properties
     , rotationX
     , rotationY
     , removeClassList
-    
+
     , sheetState
     , halfExpandedRatio
     , scaleType
@@ -165,6 +165,7 @@ module PrestoDOM.Properties
     , pattern
     , shimmerActive
     , viewGroupTag
+    , useProcessForUpdate
     , useLinearLayout
     , payload
     , cursorColor
@@ -240,11 +241,11 @@ alpha = prop (PropName "alpha")
 animation :: forall i. String -> Prop i
 animation = prop (PropName "animation")
 
--- | Boolean 
+-- | Boolean
 enableRefresh :: forall i. Boolean -> Prop i
 enableRefresh = prop (PropName "enableRefresh")
 
--- | Boolean 
+-- | Boolean
 setEnable :: forall i. Boolean -> Prop i
 setEnable = prop (PropName "setEnable")
 
@@ -662,11 +663,11 @@ selectedTabIndicatorColor = prop (PropName "selectedTabIndicatorColor")
 selectedTabIndicatorHeight :: forall i. Int -> Prop i
 selectedTabIndicatorHeight = prop (PropName "selectedTabIndicatorHeight")
 
--- | String 
+-- | String
 separator :: ∀ i. String -> Prop i
 separator = prop (PropName "separator")
 
--- | String 
+-- | String
 separatorRepeat :: ∀ i. String -> Prop i
 separatorRepeat = prop (PropName "separatorRepeat")
 
@@ -814,6 +815,11 @@ shimmerActive false = prop (PropName "shimmerInactive") true
 
 viewGroupTag :: forall i. String -> Prop i
 viewGroupTag = prop (PropName "viewGroupTag")
+
+-- | by default we trigger `"update"` action on successive updates in `mapp` view.
+-- | Below prop will force it to always use `"process"` action in microapp call
+useProcessForUpdate :: forall i. Boolean -> Prop i
+useProcessForUpdate = prop (PropName "useProcessForUpdate")
 
 cursorColor :: forall i. String -> Prop i
 cursorColor = prop (PropName "cursorColor")

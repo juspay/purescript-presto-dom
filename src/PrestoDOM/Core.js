@@ -1768,7 +1768,11 @@ export const updateMicroAppPayloadImpl = function (payload, element, isPatch) {
     }}}
     setTimeout( function() {
       if(window.JOS && typeof window.JOS.isMAppPresent == "function" &&  typeof window.JOS.isMAppPresent(element.service) == "function" && window.JOS.isMAppPresent(element.service)()) {
-        window.JOS.emitEvent(element.service)("onMerchantEvent")(["update", JSON.stringify(x)])(cb)();
+        let action = "update";
+        if(element.props && element.props.useProcessForUpdate){
+          action = "process";
+        }
+        window.JOS.emitEvent(element.service)("onMerchantEvent")([action, JSON.stringify(x)])(cb)();
       } else {
         cb(0)("error")()
       }
