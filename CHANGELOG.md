@@ -1,3 +1,10 @@
+## [2.0.1](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.0...v2.0.1) (2023-02-06)
+
+
+### Bug Fixes
+
+* PICAF-20217: added support for custom mapp action ([ba752c0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/ba752c01fa3dd4b32065a7b95630ac838775530d))
+
 # [2.0.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v1.41.3...v2.0.0) (2023-02-01)
 
 
