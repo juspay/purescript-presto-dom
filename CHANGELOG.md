@@ -1,3 +1,10 @@
+## [2.0.3](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.2...v2.0.3) (2023-02-28)
+
+
+### Bug Fixes
+
+* VIS-18844: added missing export 'nestedScrollView' ([9723f37](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/9723f37c26cc5ce4cccdcc5e7a0c71d1db89d9ed))
+
 ## [2.0.1](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.0...v2.0.1) (2023-02-06)
 
 
