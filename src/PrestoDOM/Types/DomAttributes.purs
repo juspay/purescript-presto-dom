@@ -531,7 +531,7 @@ decodeGradientUtil json = let
   (gEither :: Either (NonEmptyList ForeignError) GradientType) = (runExcept $ decode json :: _ GradientType)
   (angle :: Either (NonEmptyList ForeignError) Number) = gEither >>= \a -> (runExcept (decode a.angle) :: _ Number) <|> (runExcept (decode a.angle >>= decodeJSON) :: _ Number)
   commonCode g angle =
-    case toLower $ fromMaybe "" g.type of 
+    case toLower $ fromMaybe "" g.type of
       "linear" ->  Right $ Linear angle g.values
       "radial" ->  Right $ Radial g.values 
       _        ->  if angle < 0.0 then Right $ Radial g.values else Right $ Linear angle g.values
