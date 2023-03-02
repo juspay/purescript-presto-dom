@@ -1,3 +1,10 @@
+## [2.0.4](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.3...v2.0.4) (2023-03-02)
+
+
+### Bug Fixes
+
+* PICAF-16909: Dummy commit to create a tag for previous commit ([46e43d2](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/46e43d2c297dbb323e9dff7397ded8bd17171590))
+
 ## [2.0.3](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.2...v2.0.3) (2023-02-28)
 
 
