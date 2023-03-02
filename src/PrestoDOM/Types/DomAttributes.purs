@@ -68,6 +68,8 @@ module PrestoDOM.Types.DomAttributes
   , decodeCornersUtil
   , decodeFontUtil
   , decodeLetterSpacingUtil
+  , decodePositionUtil
+  , decodeTypefaceUtil
   )
   where
 
