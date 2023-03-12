@@ -621,6 +621,7 @@ function cmdForAndroid(config, set, type) {
 
   var id = config.id;
   let cmd = "set_view=ctx->findViewById:i_" + id + ";";
+  config.__id = config.id
   delete config.id;
   config.root = "true";
   let obj = parseParams(type, config, "get");

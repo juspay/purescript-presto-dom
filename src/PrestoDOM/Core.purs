@@ -167,7 +167,8 @@ updateProperties namespace screenName = do
                       >>= updateProp "imageUrl" (verifyImage Nothing "" )
                       >>= updateProp "placeHolder" (verifyImage Nothing "")
                       >>= getListDataFromMapps namespace screenName elem
-                      >>= getPaddingForStroke namespace screenName elem
+                      >>= pure <<< mapProps "shadow" "cornerRadius" elem
+                      >>= pure <<< mapProps "stroke" "padding" elem
                       <#> delete "payload"
                     if isEmpty $ delete "id" updatedProps
                       then pure unit -- Don't send if payload is the only changed key
@@ -205,19 +206,18 @@ getListDataFromMapps namespace screenName elem props = do
         else pure props
     _ -> pure props
 
--- Function aimed at merging mapp responses and m-app listdata
-getPaddingForStroke :: forall elem. String -> String -> elem -> Object Foreign -> Aff (Object Foreign)
-getPaddingForStroke _ _ elem props = do
-  let (vdomTree :: Maybe VdomTree) = hush $ runExcept $ decode $ unsafeToForeign elem
-  case vdomTree of
-    Just tree -> do
-      let (stroke :: Maybe String) = extractAndDecode "stroke" props
-      let padding = extractAndDecode "padding" props
-      let (oldPadding :: Maybe String) = padding <|> (extractAndDecode "padding" tree.props)
-      case stroke, oldPadding of
-        Just _, Just oP -> pure $ insert "padding" (encode oP) props
-        _, _ -> pure props
-    _ -> pure props
+mapProps :: forall elem. String -> String -> elem -> Object Foreign -> (Object Foreign)
+mapProps prop mappedProp elem updatedProps = 
+  let (element :: Maybe VdomTree) = hush $ runExcept $ decode $ unsafeToForeign elem
+  in case element of
+    Just element -> 
+      let (curProp :: Maybe Foreign) = extractAndDecode prop updatedProps
+          (updatedMappedProp :: Maybe Foreign) = extractAndDecode mappedProp updatedProps
+          (oldMappedProp :: Maybe Foreign) = updatedMappedProp <|> (extractAndDecode mappedProp element.props)
+      in case curProp, oldMappedProp of
+        Just _, Just oldProp -> insert mappedProp (encode oldProp) updatedProps
+        _,_ -> updatedProps
+    _ -> updatedProps
 
 updateMicroAppPayload ∷ forall b. String -> EFn.EffectFn3 String b Boolean Unit
 updateMicroAppPayload _ =
