@@ -1,3 +1,10 @@
+## [2.0.5](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.4...v2.0.5) (2023-03-13)
+
+
+### Bug Fixes
+
+* PICAF-20717: Mapping Corner Radius with Shadow prop ([235397d](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/235397dac37b8c95c3900d987726e6d67a4243c9))
+
 ## [2.0.4](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.3...v2.0.4) (2023-03-02)
 
 
