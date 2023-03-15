@@ -7,8 +7,8 @@
     "output"
   ],
   "dependencies": {
-    "purescript-halogen-vdom": "git@bitbucket.org:juspay/purescript-halogen-vdom.git#v3.0.1",
-    "purescript-tracker": "git@bitbucket.org:juspay/purescript-tracker.git#v2.0.2",
+    "purescript-halogen-vdom": "https://github.com/juspay/purescript-halogen-vdom.git#master",
+    "purescript-tracker": "https://github.com/juspay/purescript-tracker.git#master",
     "purescript-hyrule": "https://github.com/mikesol/purescript-hyrule.git#v2.0.0",
     "purescript-web-uievents": "^4.0.0",
     "purescript-filterable": "^5.0.0",
@@ -29,7 +29,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://bitbucket.org/juspay/purescript-presto-dom.git"
+    "url": "https://github.com/juspay/purescript-presto-dom.git"
   },
   "version": "v0.5.0_rc3"
 }
