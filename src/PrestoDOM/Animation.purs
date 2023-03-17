@@ -26,7 +26,6 @@ module PrestoDOM.Animation
   , toAlpha
   , interpolator
   , tag
-  , expandDirection
   , animationSet
   , entryAnimationSet
   , entryAnimationSetForward
@@ -36,9 +35,6 @@ module PrestoDOM.Animation
   , exitAnimationSetBackward
   , hoverAnimationSet
   , _mergeAnimation
-  , decodeRepeatCountUtil
-  , decodeRepeatModeUtil
-  , decodeInterpolatorUtil
   ) where
 
 import Prelude
@@ -61,7 +57,7 @@ import Halogen.VDom.DOM.Prop (Prop)
 import PrestoDOM.Core.Utils (os)
 
 foreign import _mergeAnimation :: forall a. a -> String
-foreign import mergeHoverProps :: forall a. a -> String
+foreign import mergeHoverProps :: forall a. a -> String 
 
 foreign import toSafeInterpolator
   :: forall a. String -- foreign string
@@ -120,7 +116,7 @@ type InterpolatorType = {type :: String, value :: Array Number}
 
 instance encodeInterpolator :: Encode Interpolator where encode = encodeInterpolatorUtil
 encodeInterpolatorUtil :: Interpolator -> Foreign
-encodeInterpolatorUtil =
+encodeInterpolatorUtil = 
   unsafeToForeign <<< case _ of
     EaseIn  -> "easein"
     EaseOut -> "easeout"
@@ -322,10 +318,6 @@ toAlpha = animProp "toAlpha"
 interpolator :: Interpolator -> AnimProp
 interpolator = animProp "interpolator"
 
--- | Animation tag to state that the view is expanded animation
-expandDirection :: Int -> AnimProp
-expandDirection = animProp "expandDirection"  -- 1 LEFT , 2 - UP , 3 - RIGHT , 4 - DOWN
-
 -- | Animation tag used for identifying the animation on event callback
 -- | Not a mandatory prop
 tag :: String -> AnimProp
@@ -353,15 +345,15 @@ animationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> Presto
 animationSet = animationSetImpl "inlineAnimation"
 
 hoverAnimationSet :: forall w. Array (Prop (Effect Unit)) -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
-hoverAnimationSet hoverProps view = do
-  case os, view of
-    "WEB", Elem ns eName props child -> do
+hoverAnimationSet hoverProps view = do 
+  case os, view of 
+    "WEB", Elem ns eName props child -> do 
       let newProps = props <> [prop (PropName "onHover") $ mergeHoverProps hoverProps ]
       Elem ns eName newProps child
-    "WEB", Keyed ns eName props child -> do
+    "WEB", Keyed ns eName props child -> do 
       let newProps = props <> [prop (PropName "onHover") $ mergeHoverProps hoverProps ]
       Keyed ns eName newProps child
-    _, _ -> view
+    _, _ -> view 
 
 -- | Animation set is a composible animation view
 -- | It applies the set of animations on the provided view

@@ -70,11 +70,14 @@ module PrestoDOM.Properties
     , height
     , hint
     , hintColor
+    , androidShadow
+    , shadowTag
     , hoverBg
     , hoverColor
     , hoverPath
 
     , imageUrl
+    , imageWithFallback
     , inputType
     , inputTypeI
 
@@ -113,7 +116,7 @@ module PrestoDOM.Properties
     , rotationX
     , rotationY
     , removeClassList
-
+    
     , sheetState
     , halfExpandedRatio
     , scaleType
@@ -165,7 +168,6 @@ module PrestoDOM.Properties
     , pattern
     , shimmerActive
     , viewGroupTag
-    , useProcessForUpdate
     , useLinearLayout
     , payload
     , cursorColor
@@ -175,10 +177,8 @@ module PrestoDOM.Properties
     , rippleColor
     , enableRoundedRipple
     , autoCorrectionType
-    , numFrames
-    , gifUrl
-    , frameDelay
-    , nestedScrollView
+    , autoCapitalizationType
+    , adjustViewWithKeyboard
     ) where
 
 import Prelude
@@ -186,7 +186,7 @@ import Prelude
 import Data.String (toLower)
 import Halogen.VDom.DOM.Prop (Prop(..))
 import PrestoDOM.Types.Core (class IsProp, Gradient, Gravity, InputType, Length, Margin, Orientation, Padding, Position, PropName(..), Shadow, Typeface, Visibility, toPropValue)
-import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font(..),LetterSpacing, LineSpacing, Shimmer, __IS_ANDROID)
+import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font(..), LineSpacing, Shimmer, __IS_ANDROID)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
@@ -242,11 +242,11 @@ alpha = prop (PropName "alpha")
 animation :: forall i. String -> Prop i
 animation = prop (PropName "animation")
 
--- | Boolean
+-- | Boolean 
 enableRefresh :: forall i. Boolean -> Prop i
 enableRefresh = prop (PropName "enableRefresh")
 
--- | Boolean
+-- | Boolean 
 setEnable :: forall i. Boolean -> Prop i
 setEnable = prop (PropName "setEnable")
 
@@ -450,14 +450,9 @@ hoverPath = prop (PropName "hoverPath")
 imageUrl :: forall i. String -> Prop i
 imageUrl = prop (PropName "imageUrl")
 
-gifUrl :: forall i. String -> Prop i
-gifUrl = prop (PropName "gifUrl")
 
-numFrames :: forall i. Int -> Prop i
-numFrames = prop (PropName "numFrames")
-
-frameDelay :: forall i. Int -> Prop i
-frameDelay = prop (PropName "frameDelay")
+imageWithFallback :: forall i. String -> Prop i
+imageWithFallback = prop (PropName "imageWithFallback")
 
 -- | InputType
 inputType :: forall i. InputType -> Prop i
@@ -496,8 +491,8 @@ autofocus = prop (PropName "autofocus")
 bottomFixed :: forall i. Number -> Prop i
 bottomFixed = prop (PropName "bottomFixed")
 
--- | LetterSpacing: px, em, rem
-letterSpacing :: forall i. LetterSpacing -> Prop i
+-- | Number
+letterSpacing :: forall i. Number -> Prop i
 letterSpacing = prop (PropName "letterSpacing")
 
 lineHeight :: forall i. String -> Prop i
@@ -582,6 +577,12 @@ padding = prop (PropName "padding")
 packageIcon :: forall i. String -> Prop i
 packageIcon = prop (PropName "packageIcon")
 
+androidShadow :: forall i. String -> Prop i
+androidShadow = prop (PropName "androidShadow")
+
+shadowTag :: forall i. String -> Prop i
+shadowTag = prop (PropName "shadowTag")
+
 -- | Boolean
 percentWidth :: forall i. Boolean -> Prop i
 percentWidth = prop (PropName "percentWidth")
@@ -664,11 +665,11 @@ selectedTabIndicatorColor = prop (PropName "selectedTabIndicatorColor")
 selectedTabIndicatorHeight :: forall i. Int -> Prop i
 selectedTabIndicatorHeight = prop (PropName "selectedTabIndicatorHeight")
 
--- | String
+-- | String 
 separator :: ∀ i. String -> Prop i
 separator = prop (PropName "separator")
 
--- | String
+-- | String 
 separatorRepeat :: ∀ i. String -> Prop i
 separatorRepeat = prop (PropName "separatorRepeat")
 
@@ -792,6 +793,8 @@ popupMenu :: forall i. String -> Prop i
 popupMenu = prop (PropName "popupMenu")
 
 -- | Int -- ime option for edittext
+imeOptions :: forall i. Int -> Prop i
+imeOptions = prop (PropName "imeOptions")
 
 -- | Shimmer Properties -- should start shimmer
 shimmer :: forall i. Shimmer -> Prop i
@@ -816,11 +819,6 @@ shimmerActive false = prop (PropName "shimmerInactive") true
 
 viewGroupTag :: forall i. String -> Prop i
 viewGroupTag = prop (PropName "viewGroupTag")
-
--- | by default we trigger `"update"` action on successive updates in `mapp` view.
--- | Below prop will force it to always use `"process"` action in microapp call
-useProcessForUpdate :: forall i. Boolean -> Prop i
-useProcessForUpdate = prop (PropName "useProcessForUpdate")
 
 cursorColor :: forall i. String -> Prop i
 cursorColor = prop (PropName "cursorColor")
@@ -855,5 +853,8 @@ enableRoundedRipple = prop (PropName "enableRoundedRipple")
 autoCorrectionType :: forall i. Int -> Prop i
 autoCorrectionType = prop (PropName "autoCorrectionType")
 
-nestedScrollView :: forall i. Boolean -> Prop i
-nestedScrollView = prop (PropName "nestedScrollView")
+autoCapitalizationType :: forall i. Int -> Prop i
+autoCapitalizationType = prop (PropName "autoCapitalizationType")
+
+adjustViewWithKeyboard :: ∀ i. String -> Prop i
+adjustViewWithKeyboard = prop (PropName "adjustViewWithKeyboard")

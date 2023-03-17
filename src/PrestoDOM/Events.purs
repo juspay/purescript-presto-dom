@@ -7,7 +7,7 @@ module PrestoDOM.Events
     , onBackPressed
     , onNetworkChanged
     , makeEvent
-    , ScrollState
+    , ScrollState(..)
     , onFocus
     , onScroll
     , onScrollStateChange
@@ -25,17 +25,14 @@ module PrestoDOM.Events
     , globalOnScroll
     , onSlide
     , onStateChanged
-    , MouseEventProperties
-    , mouseEventOnClick
     ) where
 
 import Prelude
 
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Either (hush)
-import Control.Monad.Except (runExcept)
 import Effect (Effect)
 import PrestoDOM.Utils (storeToWindow, getFromWindow, debounce)
+import Foreign.Class (class Decode, class Encode, encode)
 import Foreign.Object (Object, empty, insert, lookup)
 import Halogen.VDom.DOM.Prop (Prop(..))
 import Tracker.Labels (Label(..)) as L
@@ -43,11 +40,14 @@ import Tracker (trackAction)
 import Tracker.Types (Level(..), Action(..)) as T
 import Unsafe.Coerce as U
 import Web.Event.Event (EventType(..), Event) as DOM
-import Foreign(Foreign, unsafeToForeign)
-import Foreign.Class (decode, encode)
+import Foreign(Foreign)
 import FRP.Event as E
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (subscribe)
+import Data.Generic.Rep.Eq (genericEq)
+import Data.Generic.Rep (class Generic)
+import Presto.Core.Utils.Encoding (defaultEnumDecode, defaultEnumEncode)
+
 
 {-- foreign import dummyEvent :: E.Event Int --}
 foreign import backPressHandlerImpl :: Effect Unit
@@ -70,6 +70,11 @@ foreign import setLastTimeStamp :: String -> Effect Unit
 
 data ScrollState = SCROLL_STATE_FLING | SCROLL_STATE_IDLE  | SCROLL_STATE_TOUCH_SCROLL
 
+derive instance genericScrollState :: Generic ScrollState _
+instance decodeScrollState :: Decode ScrollState where decode = defaultEnumDecode
+instance encodeScrollState :: Encode ScrollState where encode = defaultEnumEncode
+instance eqScrollState :: Eq ScrollState where eq = genericEq
+
 mapScrollState :: Int -> ScrollState
 mapScrollState value = case value of
     0 -> SCROLL_STATE_IDLE
@@ -86,15 +91,12 @@ makeEvent push = \ev -> do
     pure unit
 
 backPressHandler :: (DOM.Event → Effect Unit)
-backPressHandler = \_ -> do
+backPressHandler = \ev -> do
     _ <- backPressHandlerImpl
     pure unit
 
 onClick :: forall a. (a ->  Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
 onClick push f = event (DOM.EventType "onClick") (Just <<< (makeEvent (push <<< f)))
-
-mouseEventOnClick :: (Maybe MouseEventProperties -> Effect Unit) -> Prop (Effect Unit)
-mouseEventOnClick effFn = event (DOM.EventType "onClick") (Just <<< \evnt -> effFn $ hush $ runExcept $ decode $ unsafeToForeign evnt)
 
 onClickWithLogger :: String -> String -> forall a. (a ->  Effect Unit) -> (Unit -> a) -> Object Foreign -> Prop (Effect Unit)
 onClickWithLogger label value push f json = event (DOM.EventType "onClick") (Just <<< (makeEvent (pushAndLog label value push json <<< f )))
@@ -114,7 +116,7 @@ onChange :: forall a. (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
 onChange push f = event (DOM.EventType "onChange") (Just <<< (makeEvent (push <<< f)))
 
 attachBackPress :: forall a. (a ->  Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
-attachBackPress _ _ = event (DOM.EventType "onClick") (Just <<< backPressHandler)
+attachBackPress push f = event (DOM.EventType "onClick") (Just <<< backPressHandler)
 
 onScroll :: forall a. String -> String -> (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
 onScroll identifier globalEventsIdentifier push f = event (DOM.EventType "onScroll") (Just <<< (makeEvent (\a -> do
@@ -169,13 +171,9 @@ type PushState =
   , isTimeOut :: Boolean
   }
 
-type MouseEventProperties = {
-    clientX :: Number,
-    clientY :: Number
-}
 
 scrollStateUpdate :: String -> PushState -> ScrollS -> ScrollS
-scrollStateUpdate _ newScroll st= do
+scrollStateUpdate gID newScroll st= do
     let currentState = lookup newScroll.identifier st.scrollState
     case currentState of
         Just item -> do

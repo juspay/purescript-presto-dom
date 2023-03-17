@@ -126,7 +126,6 @@ module PrestoDOM.Properties.SetChildProps
 
     , alignParentBottom_c
     , alignParentLeft_c
-    , nestedScrollView_c
     ) where
 
 
@@ -198,6 +197,11 @@ btnColor_c = Tuple "btnColor" <<< StringP
 -- | String
 buttonTint_c :: String -> Tuple String GenProp
 buttonTint_c = Tuple "buttonTint" <<< StringP
+
+-- | Number
+buttonClickOverlay_c :: Number -> Tuple String GenProp
+buttonClickOverlay_c = Tuple "buttonClickOverlay" <<< NumberP
+
 
 -- | Boolean
 checked_c :: Boolean -> Tuple String GenProp
@@ -537,6 +541,9 @@ singleLine_c = Tuple "singleLine" <<< BooleanP
 stroke_c :: String -> Tuple String GenProp
 stroke_c = Tuple "stroke" <<< StringP
 
+caretColor_c :: String -> Tuple String GenProp
+caretColor_c = Tuple "caretColor" <<< StringP
+
 -- | Unknown
 tabTextColors_c :: String -> Tuple String GenProp
 tabTextColors_c = Tuple "tabTextColors" <<< StringP
@@ -614,6 +621,3 @@ alignParentBottom_c = Tuple "alignParentBottom" <<< StringP
 -- | Unknown
 alignParentLeft_c :: String -> Tuple String GenProp
 alignParentLeft_c = Tuple "alignParentLeft" <<< StringP
-
-nestedScrollView_c :: Boolean -> Tuple String GenProp
-nestedScrollView_c = Tuple "nestedScrollView" <<< BooleanP

@@ -5,6 +5,7 @@ module PrestoDOM.Types.Core
     , toPropValue
     , GenProp(..)
     , Screen
+    , Subscreen(..)
     , ScreenBase
     , ScopedScreen
     , Controller
@@ -27,15 +28,15 @@ import Data.Either (Either)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Effect (Effect)
-import Presto.Core.Utils.Encoding (unsafeStringify)
+import Global.Unsafe (unsafeStringify)
 
 import Halogen.VDom.DOM.Prop (Prop, PropValue, propFromBoolean, propFromInt, propFromNumber, propFromString)
 import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Thunk (Thunk)
 import Halogen.VDom.Types (VDom(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
-import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font, Gradient, Gravity, InputType, Length, LetterSpacing, LineSpacing, Margin, Orientation, Padding, Position, Shadow, Shimmer, Typeface, Visibility, renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing,renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility)
-import PrestoDOM.Types.DomAttributes (BottomSheetState(..), Corners(..), Font(..), Gradient(..), Gravity(..), InputType(..), Length(..), LetterSpacing(..), LineSpacing(..), Margin(..), Orientation(..), Padding(..), Position(..), Shadow(..), Shimmer, Typeface(..), Visibility(..), renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing, renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility) as Types
+import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font, Gradient, Gravity, InputType, Length, LineSpacing, Margin, Orientation, Padding, Position, Shadow, Shimmer, Typeface, Visibility, renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility)
+import PrestoDOM.Types.DomAttributes (BottomSheetState(..), Corners(..), Font(..), Gradient(..), Gravity(..), InputType(..), Length(..), LineSpacing(..), Margin(..), Orientation(..), Padding(..), Position(..), Shadow(..), Shimmer, Typeface(..), Visibility(..), renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility) as Types
 {-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
 import Tracker (trackAction)
 import Tracker.Types (Level(..), Action(..)) as T
@@ -49,8 +50,8 @@ newtype PrestoWidget a = PrestoWidget (VDom (Array (Prop a)) (Thunk PrestoWidget
 
 derive instance newtypePrestoWidget ∷ Newtype (PrestoWidget a) _
 
-newtype PropName :: forall k. k -> Type
 newtype PropName value = PropName String
+newtype Subscreen action state returnType = Subscreen (Controller action state returnType)
 type PrestoDOM i w = VDom (Array (Prop i)) w
 type Cmd action = Array (Effect action)
 type Eval action returnType state = Either (Tuple (Maybe (Tuple state (Cmd action))) returnType) (Tuple state (Cmd action))
@@ -179,5 +180,8 @@ instance shimmerIsProp :: IsProp Shimmer where
 instance bottomSheetStateIsProp :: IsProp BottomSheetState where
   toPropValue = propFromString <<< renderBottomSheetState
 
-instance letterSpacingIsProp :: IsProp LetterSpacing where
-  toPropValue = propFromString <<< renderLetterSpacing
+instance subScreenIsProp :: IsProp (Subscreen action state returnType) where
+  toPropValue = propFromSubScreen
+
+propFromSubScreen :: forall action state returnType. Subscreen action state returnType → PropValue
+propFromSubScreen (Subscreen screen) = unsafeCoerce screen
