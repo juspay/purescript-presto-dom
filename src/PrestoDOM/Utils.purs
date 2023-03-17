@@ -12,9 +12,9 @@ module PrestoDOM.Utils
   , getFromWindow
   , debounce
   , logAction
+  , logActionImpl
   , addTime2
   , performanceMeasure
-  , isGenerateVdom
   )where
 
 import Prelude
@@ -27,14 +27,13 @@ import Effect.Uncurried as EFn
 import PrestoDOM.Types.Core (class Loggable, performLog, Eval, Cmd)
 import Effect(Effect)
 import Effect.Ref as Ref
+import Effect.Timer as Timer
 import Foreign(Foreign)
 import Foreign.Object as Object
 
 foreign import addTime2 :: String -> Effect Unit
-foreign import getTime :: Effect Int
 
 foreign import performanceMeasure :: String -> String -> String -> Effect Unit
-foreign import isGenerateVdom :: Effect Boolean
 
 continue
   :: forall state action returnType
@@ -94,19 +93,48 @@ storeToWindow = EFn.runEffectFn2 storeToWindow_
 getFromWindow :: forall a. String ->  Maybe a
 getFromWindow key = getFromWindow_ key Just Nothing
 
+timeoutDelay :: Int
+timeoutDelay = 300
 
-logAction :: forall a. Loggable a => Show a => Ref.Ref Int -> (Maybe a) -> (Maybe a) -> Boolean -> (Object.Object Foreign)-> Effect Unit
-logAction timerRef (Just prevAct) (Just currAct) false json = do
-  currTime <- getTime
-  prevTime <- Ref.read timerRef
-  _ <- Ref.write currTime timerRef
-  if show prevAct == show currAct && (currTime - prevTime < 300)
-    then pure unit
-    else loggerFunction currAct json 
-logAction _ Nothing (Just currAct) false json = loggerFunction currAct json 
-logAction _ _ (Just currAct) true json = loggerFunction currAct json 
-logAction _ _ _ _ _ = pure unit
+clearTimeout :: Ref.Ref (Maybe Timer.TimeoutId) -> Effect Unit
+clearTimeout timerRef = do
+  timer <- Ref.read timerRef
+  case timer of
+    Just t -> Timer.clearTimeout t
+    Nothing -> pure unit
 
-loggerFunction :: forall a. Loggable a => Show a => a -> (Object.Object Foreign) -> Effect Unit
-loggerFunction action json = do
-  performLog action json
+logAction :: forall a. Loggable a => Show a => Ref.Ref (Maybe Timer.TimeoutId) -> (Maybe a) -> (Maybe a) -> Boolean -> (Object.Object Foreign) -> Effect Unit
+logAction timerRef prevAct currAct bool json = 
+  logActionImpl timerRef prevAct currAct bool json performLog show
+
+logActionImpl :: forall a. Ref.Ref (Maybe Timer.TimeoutId) -> (Maybe a) -> (Maybe a) -> Boolean -> (Object.Object Foreign) -> (a -> Object.Object Foreign -> Effect Unit) -> (a -> String) ->  Effect Unit
+logActionImpl timerRef (Just prevAct) (Just currAct) true json pl s = do -- logNow without waiting
+  clearTimeout timerRef
+  loggerFunction timerRef prevAct json pl
+  loggerFunction timerRef currAct json pl
+logActionImpl timerRef (Just prevAct) (Just currAct) logNow json pl s= do
+  let previousAction = s prevAct
+      currentAction = s currAct
+  timer <- Ref.read timerRef
+  if(previousAction == currentAction) then do -- current == previous, if previous log isn't already logged cancell it and setTimeout for current one.
+      clearTimeout timerRef
+      tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct json pl
+      Ref.write (Just tid) timerRef
+    else
+      case timer of
+        Just t -> do -- current != previous, timer running, log current and last log
+          Timer.clearTimeout t
+          loggerFunction timerRef prevAct json pl
+          loggerFunction timerRef currAct json pl
+        Nothing -> do -- current != previous, timer NOT running, set timeout for current log
+          tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct json pl
+          Ref.write (Just tid) timerRef
+logActionImpl timerRef Nothing (Just currAct) logNow json pl s = do
+  tid <- Timer.setTimeout timeoutDelay $ loggerFunction timerRef currAct json pl
+  Ref.write (Just tid) timerRef
+logActionImpl _ _ _ _ _ _ _ = pure unit
+
+loggerFunction :: forall a. Ref.Ref (Maybe Timer.TimeoutId) -> a -> (Object.Object Foreign) -> (a -> Object.Object Foreign -> Effect Unit) -> Effect Unit
+loggerFunction ref action json pl = do
+  pl action json
+  Ref.write Nothing ref-- set ref to nothing after done.

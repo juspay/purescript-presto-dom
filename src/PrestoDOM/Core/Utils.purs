@@ -17,7 +17,7 @@ import Foreign.Object (Object, empty, insert, delete, lookup, union)
 import Foreign.Object (foldM) as Object
 import PrestoDOM.Core.Types (NameSpaceState, VdomTree, NodeTree(..), MicroappData)
 import PrestoDOM.Types.Core (PrestoDOM)
-import PrestoDOM.Elements.Elements (relativeLayout)
+-- import PrestoDOM.Elements.Elements (relativeLayout)
 import PrestoDOM.Properties (root, id, height, width)
 import PrestoDOM.Types.DomAttributes (Length (..))
 import Halogen.VDom.DOM.Prop(PropValue)
@@ -32,13 +32,13 @@ foreign import createPrestoElement :: Effect {__id :: Int}
 
 
 foreign import callbackMapper :: forall a. (EFn.EffectFn1 a Unit) -> String
-foreign import generateCommands :: Foreign -> Foreign
+foreign import generateCommands :: VdomTree -> Foreign
 foreign import generateAndCheckRequestId :: Foreign -> Object Foreign -> Effect Unit
 foreign import callMicroAppListItem :: forall a b. String -> a -> (b -> Effect Unit) -> Effect (Effect Unit)
 foreign import callMicroApp :: forall a. String -> Foreign -> a -> (Foreign -> Effect Unit) -> Foreign -> String -> String -> Effect (Effect Unit)
 foreign import getLatestListData :: Foreign -> Effect (Array (Array (Object Foreign)))
 foreign import os :: String
-foreign import replayListFragmentCallbacksImpl :: forall a. String -> String -> (a -> Effect Unit) -> Effect (Effect Unit)
+foreign import replayListFragmentCallbacks' :: forall a. String -> String -> (a -> Effect Unit) -> Effect (Effect Unit)
 
 -- hack, should be effect, but behaviour is same, even if gets cached
 foreign import setDebounceToCallback :: String -> String
@@ -58,86 +58,86 @@ loadRefFromState key = loadRefFromStateImpl key Nothing Just
 sanitiseNamespace :: Maybe String -> String
 sanitiseNamespace = fromMaybe "default"
 
-createNameSpaceState :: forall w i. String -> Maybe String -> Effect (NameSpaceState w i)
-createNameSpaceState _ id = do
-  root <- createRoot
-  pure $
-    { id : id
-    , root : root.root
-    , machineMap : empty
-    , screenStack : []
-    , hideList : []
-    , removeList : []
-    , screenCache : []
-    , screenHideCallbacks : empty
-    , screenShowCallbacks : empty
-    , screenRemoveCallbacks : empty
-    , cancelers : empty
-    , stackRoot : root.stackRoot
-    , cacheRoot : root.cacheRoot
-    , animations :
-        { entry : empty
-        , exit : empty
-        , entryF : empty
-        , exitF : empty
-        , entryB : empty
-        , exitB : empty
-        , animationStack : []
-        , animationCache : []
-        , lastAnimatedScreen : Nothing
-        }
-    , registeredEvents : empty
-    , shouldHideCacheRoot : false
-    , mappQueue : []
-    , fragmentCallbacks : empty
-    , shouldReplayCallbacks : empty
-    , eventIOs : empty
-    }
+-- createNameSpaceState :: forall w i. String -> Maybe String -> Effect (NameSpaceState w i)
+-- createNameSpaceState namespace id = do
+--   root <- createRoot
+--   pure $
+--     { id : id
+--     , root : root.root
+--     , machineMap : empty
+--     , screenStack : []
+--     , hideList : []
+--     , removeList : []
+--     , screenCache : []
+--     , screenHideCallbacks : empty
+--     , screenShowCallbacks : empty
+--     , screenRemoveCallbacks : empty
+--     , cancelers : empty
+--     , stackRoot : root.stackRoot
+--     , cacheRoot : root.cacheRoot
+--     , animations :
+--         { entry : empty
+--         , exit : empty
+--         , entryF : empty
+--         , exitF : empty
+--         , entryB : empty
+--         , exitB : empty
+--         , animationStack : []
+--         , animationCache : []
+--         , lastAnimatedScreen : Nothing
+--         }
+--     , registeredEvents : empty
+--     , shouldHideCacheRoot : false
+--     , mappQueue : []
+--     , fragmentCallbacks : empty
+--     , shouldReplayCallbacks : empty
+--     , eventIOs : empty
+--     }
 
-createRoot :: forall w i. Effect { stackRoot :: Int, cacheRoot :: Int, root :: PrestoDOM w i}
-createRoot = do
-  rootElem <- createPrestoElement
-  stackRoot <- createPrestoElement
-  cacheRoot <- createPrestoElement
-  pure $
-    { stackRoot : stackRoot.__id
-    , cacheRoot : cacheRoot.__id
-    , root :
-        relativeLayout
-          [ id $ show rootElem.__id
-          , root true
-          , height MATCH_PARENT
-          , width MATCH_PARENT
-          ]
-          [ relativeLayout
-              [ id $ show stackRoot.__id
-              , height MATCH_PARENT
-              , width MATCH_PARENT
-              ][]
-          , relativeLayout
-              [ id $ show cacheRoot.__id
-              , height MATCH_PARENT
-              , width MATCH_PARENT
-              ][]
-          ]
-    }
+-- createRoot :: forall w i. Effect { stackRoot :: Int, cacheRoot :: Int, root :: PrestoDOM w i}
+-- createRoot = do
+--   rootElem <- createPrestoElement
+--   stackRoot <- createPrestoElement
+--   cacheRoot <- createPrestoElement
+--   pure $
+--     { stackRoot : stackRoot.__id
+--     , cacheRoot : cacheRoot.__id
+--     , root :
+--         relativeLayout
+--           [ id $ show rootElem.__id
+--           , root true
+--           , height MATCH_PARENT
+--           , width MATCH_PARENT
+--           ]
+--           [ relativeLayout
+--               [ id $ show stackRoot.__id
+--               , height MATCH_PARENT
+--               , width MATCH_PARENT
+--               ][]
+--           , relativeLayout
+--               [ id $ show cacheRoot.__id
+--               , height MATCH_PARENT
+--               , width MATCH_PARENT
+--               ][]
+--           ]
+--     }
 
-setUpBaseState :: String -> Maybe String -> Effect Unit
-setUpBaseState nameSpace id =
-  loadRefFromState nameSpace >>=
-    case _ of
-      Just _ ->
-        -- Ignore; initUI was done before
-        pure unit
-      Nothing ->
-        createNameSpaceState nameSpace id
-          >>= new
-          >>= saveRefToState nameSpace
+-- setUpBaseState :: String -> Maybe String -> Effect Unit
+-- setUpBaseState nameSpace id =
+--   loadRefFromState nameSpace >>=
+--     case _ of
+--       Just value ->
+--         -- Ignore; initUI was done before
+--         pure unit
+--       Nothing ->
+--         createNameSpaceState nameSpace id
+--           >>= new
+--           >>= saveRefToState nameSpace
 
 
 -- TODO Make Root into VDOM
 domAll :: DOM.Node -> String -> String -> Effect Unit
-domAll vdom _ namespace = do
+domAll vdom screenName namespace = do
   stateRef <- loadRefFromState namespace
   _ <- case stateRef, hush $ runExcept $ decode $ unsafeToForeign vdom of
     Just ref, Just v -> extractView ref Nothing v
@@ -160,25 +160,25 @@ domAll vdom _ namespace = do
 
 
 extractView :: forall i w. Ref (NameSpaceState w i) -> Maybe String -> NodeTree -> Effect (Maybe Foreign)
-extractView ref parentType (NodeTree nd@{ "type" : "microapp"}) = do
+extractView ref parentType (NodeTree nd@{props : p, children : c, "type" : "microapp"}) = do
   cacheMappPayload ref (NodeTree nd)
   extractView ref parentType $ NodeTree $ nd { "type" = "relativeLayout" }
 extractView ref parentType (NodeTree {props : p, children : c, "type" :t}) = do
   children <- catMaybes <$> (extractView ref (Just t) `traverse` c)
-  _ <- p # checkAndAddRoot parentType
+  props <- p # checkAndAddRoot parentType
     # checkAndAddId
     <#> checkAndDeleteFocus
-  pure $ Just $ generateCommands $ encode 
-    ({ "type" : t
+  pure $ Just $ generateCommands
+    { "type" : t
     , props : p
     , children : children
     , parentType : encode parentType
     , __ref : Nothing
     , service : Nothing
     , requestId : Nothing
-    , elemType : Nothing
-    , keyId : Nothing
-    } :: VdomTree)
+    , machine : Nothing
+    , screen : Nothing
+    }
 extractView _ _ _ = pure Nothing
 
 --   = Attribute (Maybe Namespace) String String
@@ -222,6 +222,9 @@ checkAndDeleteAfterRender object
 extractAndDecode :: forall a. Decode a => String -> Object Foreign -> Maybe a
 extractAndDecode a = hush <<< runExcept <<< decode <=< lookup a
 
+extractAndDecode' :: String -> Object Foreign -> Maybe Foreign
+extractAndDecode' a = lookup a
+
 extractJsonAndDecode :: forall a. Decode a => String -> Object Foreign -> Maybe a
 extractJsonAndDecode a = hush <<< runExcept <<< decodeJSON <=< extractAndDecode a
 
@@ -243,7 +246,7 @@ cacheMappPayload ref (NodeTree {requestId: (Just req), service: (Just ser), prop
       _ <- modify (\state -> state {mappQueue = snoc state.mappQueue mapp}) ref
       pure unit
     _, _ -> pure unit
-cacheMappPayload _ _ = pure unit
+cacheMappPayload ref _ = pure unit
 
 -- cacheAnimationPaylod :: forall i w. Ref (NameSpaceState w i) -> NodeTree -> Effect Unit
 -- cacheAnimationPaylod ref (NodeTree {requestId: (Just req), service: (Just ser), props : p}) =
@@ -286,7 +289,7 @@ forkoutListState namespace screenName viewType props = do
       let mapp = fromMaybe (encode $ unit) $ lookup "onMicroappResponse" props
       case keys, payloads of
         Just {id, listData}, Just justPayloads -> forkAff $ Just <$> callMicroAppsForListState id namespace screenName listData justPayloads mapp
-        Just {listData}, _ -> forkAff $ pure $ Just listData
+        Just {id, listData}, _ -> forkAff $ pure $ Just listData
         Nothing, _ -> forkAff $ pure Nothing
     else forkAff $ pure Nothing
 

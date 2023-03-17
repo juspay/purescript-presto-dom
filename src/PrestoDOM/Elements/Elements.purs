@@ -28,6 +28,7 @@ module PrestoDOM.Elements.Elements
     , progressBar
     , textView
     , viewPager
+    , subScreen
     , button
     , calendar
     , checkBox
@@ -35,17 +36,27 @@ module PrestoDOM.Elements.Elements
     , viewWidget
     , webView
     , textureView
+    , multiLineEditText
     ) where
 
 import Prelude
 
-import Data.Array((:))
+import Data.Array ((:))
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple)
+import Effect (Effect)
+import Effect.Class (liftEffect)
 import Halogen.VDom.DOM.Prop (Prop)
+import Halogen.VDom.Thunk (Thunk)
 import Halogen.VDom.Types (ShimmerHolder)
-import PrestoDOM.Types.Core (ElemName(..), VDom(..), Namespace, PropName(..))
 import PrestoDOM.Properties (prop)
+import PrestoDOM.Types.Core (ElemName(..), Namespace, PrestoDOM, PrestoWidget, PropName(..), Screen, VDom(..), Subscreen(..), class Loggable, performLog)
+import Foreign.Object (Object)
+import Foreign (Foreign)
+import Debug.Trace (spy)
+import PrestoDOM.Core2 (getEventIO, patchAndRun)
+import Unsafe.Coerce (unsafeCoerce)
+
 
 type Node i p
    = Array i
@@ -114,6 +125,25 @@ listView = node "listView"
 container :: forall i p. String -> Leaf (Prop i) p
 container namespace props = leaf "fragmentContainerView" $  (prop (PropName "namespace") namespace) : props 
 
+subScreen :: forall action state returnType. Show action => Loggable action => Screen action state returnType -> PrestoDOM (Effect Unit) (Thunk PrestoWidget (Effect Unit))
+subScreen screen = do
+  let parent = Just "subScreenParent"
+  let vDom = screen.view (\a -> do
+                              let _ = spy "value of a in elements" a
+                              eventIO <- getEventIO screen.name parent
+                              eventIO.push a) screen.initialState
+  let initialState = screen.initialState
+      name = screen.name
+      globalEvents = screen.globalEvents
+      eval = screen.eval
+  let emitter state = do
+        eventIO <- getEventIO screen.name parent
+        patchAndRun name parent (screen.view eventIO.push) state
+  let (pl :: action -> Object Foreign -> Effect Unit) = performLog 
+  let (s :: action -> String) = show 
+  let controller = Subscreen {initialState,name,globalEvents,eval,parent,emitter}
+  SubScreen (unsafeCoerce {performLog : pl, show : s, controller}) vDom
+
 scrollView :: forall i p. Node (Prop i) p
 scrollView = node "scrollView"
 
@@ -173,3 +203,6 @@ mappWithLoader service a ch = Microapp service a (Just ch)
 -- can be used for displaying video
 textureView :: forall i p. Leaf (Prop i) p
 textureView = leaf "textureView"
+
+multiLineEditText :: forall i p. Leaf (Prop i) p
+multiLineEditText = leaf "multiLineEditText"

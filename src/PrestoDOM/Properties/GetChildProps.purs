@@ -127,7 +127,6 @@ module PrestoDOM.Properties.GetChildProps
 
     , alignParentBottom_p
     , alignParentLeft_p
-    , nestedScrollView_p
     ) where
 
 import Prelude
@@ -137,7 +136,7 @@ import Data.Maybe (Maybe(..))
 import Foreign.Object (Object, lookup)
 
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.Core (class IsProp, Gravity, InputType, Length, Margin, Orientation, Padding, Font, Shadow, Typeface, Visibility, toPropValue, GenProp(..))
+import PrestoDOM.Types.Core (class IsProp, Gravity, InputType, Length, Margin, Orientation, Padding, Font,Position, Shadow, Typeface, Visibility, toPropValue, GenProp(..))
 
 fromGenProp :: forall a i. IsProp a => String -> a -> Object GenProp -> Prop i
 fromGenProp key default strMap = let value = lookup key strMap
@@ -478,6 +477,10 @@ orientation_p = fromGenProp "orientation"
 padding_p :: forall i. Padding -> Object GenProp -> Prop i
 padding_p = fromGenProp "padding"
 
+
+position_p :: forall i. Position -> Object GenProp -> Prop i
+position_p = fromGenProp "position"
+
 -- | Number
 pivotX_p :: forall i. Number -> Object GenProp -> Prop i
 pivotX_p = fromGenProp "pivotX"
@@ -566,6 +569,9 @@ singleLine_p = fromGenProp "singleLine"
 stroke_p :: forall i. String -> Object GenProp -> Prop i
 stroke_p = fromGenProp "stroke"
 
+caretColor_p :: forall i. String -> Object GenProp -> Prop i
+caretColor_p = fromGenProp "caretColor"
+
 -- | Unknown
 tabTextColors_p :: forall i. String -> Object GenProp -> Prop i
 tabTextColors_p = fromGenProp "tabTextColors"
@@ -643,6 +649,3 @@ alignParentBottom_p = fromGenProp "alignParentBottom"
 -- | Unknown
 alignParentLeft_p :: forall i. String -> Object GenProp -> Prop i
 alignParentLeft_p = fromGenProp "alignParentLeft"
-
-nestedScrollView_p :: forall i. Boolean -> Object GenProp -> Prop i
-nestedScrollView_p = fromGenProp "nestedScrollView"

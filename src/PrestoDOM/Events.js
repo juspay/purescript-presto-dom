@@ -1,5 +1,7 @@
+"use strict";
+
 const scrollState = {};
-export const saveScrollPush = function(scrollPush){
+exports.saveScrollPush = function(scrollPush){
   return function (identifier){
     return function (){
       scrollState.push = scrollState.push || {}
@@ -8,32 +10,32 @@ export const saveScrollPush = function(scrollPush){
   }
 }
 
-export const getScrollPush = function(identifier){
+exports.getScrollPush = function(identifier){
   return function(){
     scrollState.push = scrollState.push || {}
     return scrollState.push[identifier] || function () {return function() {return function() {}}}
-  }
-}
-
-export const timeOutScroll = function(identifier){
-  return function(scrollPush){
-    return function (){
-      // console.log(scrollState)
-      scrollState.timeOut = scrollState.timeOut || {}
-      clearTimeout(scrollState.timeOut[identifier])
-      scrollState.timeOut[identifier] = setTimeout(scrollPush,200)
     }
   }
-}
 
-export const getLastTimeStamp = function (identifier){
+  exports.timeOutScroll = function(identifier){
+    return function(scrollPush){
+      return function (){
+        // console.log(scrollState)
+        scrollState.timeOut = scrollState.timeOut || {}
+        clearTimeout(scrollState.timeOut[identifier])
+        scrollState.timeOut[identifier] = setTimeout(scrollPush,200)
+      }
+    }
+  }
+
+exports.getLastTimeStamp = function (identifier){
   return function(){
     scrollState.lastTimeOut = scrollState.lastTimeOut || {}
     return scrollState.lastTimeOut[identifier] || Date.now()
   }
 }
 
-export const setLastTimeStamp = function (identifier){
+exports.setLastTimeStamp = function (identifier){
   return function(){
     scrollState.lastTimeOut = scrollState.lastTimeOut || {}
     scrollState.lastTimeOut[identifier] = Date.now()
@@ -41,17 +43,24 @@ export const setLastTimeStamp = function (identifier){
 }
 
 
-export const backPressHandlerImpl = function () {
+exports.backPressHandlerImpl = function () {
   return function(e) {
     window.onBackPressed();
   }
 }
 
-export function setManualEvents(_screen) {
+
+exports.backPressHandlerImpl = function () {
+  return function(e) {
+    window.onBackPressed();
+  }
+}
+
+function setManualEvents(screen) {
   return function(eventName){
     return function(callbackFunction){
       return function () {
-        var screenName = _screen.value0 || window.__dui_screen;
+        var screenName = screen.value0 || window.__dui_screen;
 
         // function was getting cleared when placed outside
         var isDefined = function(val){
@@ -76,11 +85,12 @@ export function setManualEvents(_screen) {
 }
 
 window.setManualEvents = setManualEvents;
+exports.setManualEvents = setManualEvents;
 
-export const fireManualEvent = function (eventName) {
+exports.fireManualEvent = function (eventName) {
   return function (payload) {
     function isObject(v) {
-      return typeof object === "object";
+        return typeof object === "object";
     }
 
     if (window.__dui_screen && isObject(window[eventName]) && window[eventName][window.__dui_screen]) {

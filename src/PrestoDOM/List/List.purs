@@ -56,9 +56,9 @@ import Presto.Core.Flow (Flow, doAff)
 import Presto.Core.Types.API (class StandardEncode, standardEncode)
 import PrestoDOM (PropName(..))
 import PrestoDOM.Animation (AnimProp)
-import PrestoDOM.Core.Types (ListItemType, VdomTree)
+import PrestoDOM.Core.Types (ListItemType)
 import PrestoDOM.Core.Utils (callbackMapper, setDebounceToCallback, callMicroAppList, generateCommands,extractAndDecode)
-import PrestoDOM.Core (createPrestoElement)
+import PrestoDOM.Core2 (createPrestoElement)
 import PrestoDOM.Elements.Elements (element)
 import PrestoDOM.Events (makeEvent)
 import PrestoDOM.Properties (prop)
@@ -95,8 +95,8 @@ preComputeListItemWithFragment parentType dom = do
 -- replace value of the holder prop
 -- test samples can be expand or textFromHtml
 
--- allowedHolderProps :: Array String
--- allowedHolderProps = ["background", "text", "color", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "onClick", "primaryKey"]
+allowedHolderProps :: Array String
+allowedHolderProps = ["background", "text", "color", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "onClick", "primaryKey"]
 
 mkListItem :: ListItemType -> ListItem
 mkListItem = unsafeCoerce
@@ -108,31 +108,31 @@ extractView :: forall i p a. Ref.Ref (Array (Object Foreign)) -> Ref.Ref (Object
 extractView hv kpm klm aim parentType (Elem _ (ElemName name) p c) = do
   children <- catMaybes <$> (extractView hv kpm klm aim (encode $ (Nothing :: Maybe String)) `traverse` c)
   props <- addRunInUI hv =<< foldM (parseProps hv kpm klm aim) {id : Nothing , props : empty} p
-  pure $ Just $ generateCommands $ encode
-    ({ "type" : name
+  pure $ Just $ generateCommands
+    { "type" : name
     , props : props
     , children : children
     , parentType
     , __ref : Nothing
     , service : Nothing
     , requestId : Nothing
-    , elemType : Nothing
-    , keyId : Nothing
-    } :: VdomTree)
+    , machine : Nothing
+    , screen : Nothing
+    }
 extractView hv kpm klm aim parentType (Keyed _ (ElemName name) p c) = do
   children <- catMaybes <$> ((extractView hv kpm klm aim (encode $ (Nothing :: Maybe String)) <<< snd) `traverse` c)
   props <- addRunInUI hv =<< foldM (parseProps hv kpm klm aim) {id : Nothing , props : empty} p
-  pure $ Just $ generateCommands $ encode
-    ({ "type" : name
+  pure $ Just $ generateCommands
+    { "type" : name
     , props : props
     , children : children
     , parentType
     , __ref : Nothing
     , service : Nothing
     , requestId : Nothing
-    , elemType : Nothing
-    , keyId : Nothing
-    } :: VdomTree)
+    , machine : Nothing
+    , screen : Nothing
+    }
 extractView hv kpm klm aim parentType (Microapp s p ch) = do
   children' <- catMaybes <$> (extractView hv kpm klm aim (encode $ (Nothing :: Maybe String)) `traverse` (fromMaybe [] ch))
   props <- addRunInUI hv =<< foldM (parseProps hv kpm klm aim) {id : Nothing , props : empty} p
@@ -148,21 +148,21 @@ extractView hv kpm klm aim parentType (Microapp s p ch) = do
         _ <- doAff $ liftEffect $ Ref.modify (union animationIdMap ) aim
         pure $ children' <> [itemView]
     _ -> pure []
-  pure $ Just $ generateCommands $ encode
-    ({ "type" : if useLinearLayout then "linearLayout" else "relativeLayout"
+  pure $ Just $ generateCommands
+    { "type" : if useLinearLayout then "linearLayout" else "relativeLayout"
     , props : props
     , children : children
     , parentType
     , __ref : Nothing
     , service : Just s
     , requestId : Nothing
-    , elemType : Nothing
-    , keyId : Nothing
-    } :: VdomTree)
+    , machine : Nothing
+    , screen : Nothing
+    }
 extractView _ _ _ _ _ _ = pure Nothing
 
 getId :: Ref.Ref (Object (Object String)) -> Maybe Int -> Effect Int
-getId _ (Just i) = pure i
+getId kpm (Just i) = pure i
 getId kpm Nothing = do
   i <- getBaseId
   _ <- Ref.modify (insert (show i) empty) kpm
@@ -191,18 +191,18 @@ parsePropsw hv kpm klm aim obj (P.Property a b)
       _ <- doAff do liftEffect $ Ref.modify (cons object) hv
       pure $ obj { props = insert "id" (unsafeToForeign i) obj.props, id = Just i}
   | otherwise = pure $ obj { props = insert a (unsafeToForeign b) obj.props}
-parsePropsw _ _ _ _ obj (P.Payload a) =
+parsePropsw hv kpm klm aim obj (P.Payload a) =
   pure $ obj { props = insert "payload" (unsafeToForeign a) obj.props}
 parsePropsw _ _ _ _ obj _ = pure $ obj
 
 addRunInUI :: forall a. Ref.Ref (Array (Object Foreign)) -> {id :: Maybe Int, props :: Object Foreign} -> Flow a (Object Foreign)
 addRunInUI hv {id:(Just i), props} = doAff $ liftEffect do
   -- TODO Add this only if props need runInUI
-  _ <- Ref.read hv
+  arr <- Ref.read hv
   let object = insert "runInUI" (encode $ "runInUI" <> (show i)) $ singleton "id" (encode i)
   _ <- Ref.modify (cons object) hv
   pure props
-addRunInUI _ {props} = pure props
+addRunInUI hv {id, props} = pure props
 
 -- | Stringified item view container
 foreign import data ListItem :: Type
@@ -233,8 +233,8 @@ onItemClick push f = P.Handler (DOM.EventType "onItemClick") (Just <<< (makeEven
 
 -- | Properties
 -- | List template data property
--- listData :: forall i. ListData -> P.Prop i
--- listData (ListData val) = prop (PropName "listData") val
+listData :: forall i. ListData -> P.Prop i
+listData (ListData val) = prop (PropName "listData") val
 
 -- | Properties
 -- | List template data property
