@@ -179,6 +179,8 @@ module PrestoDOM.Properties
     , gifUrl
     , frameDelay
     , nestedScrollView
+    , clipToPadding
+    , clipToOutline
     ) where
 
 import Prelude
@@ -308,6 +310,14 @@ clickable = prop (PropName "clickable")
 -- | Boolean
 clipChildren :: forall i. Boolean -> Prop i
 clipChildren = prop (PropName "clipChildren")
+
+-- | Boolean
+clipToPadding :: forall i. Boolean -> Prop i
+clipToPadding = prop (PropName "clipToPadding")
+
+-- | Boolean
+clipToOutline :: forall i. Boolean -> Prop i
+clipToOutline = prop (PropName "clipToOutline")
 
 -- | String
 color :: forall i. String -> Prop i
