@@ -1,3 +1,10 @@
+## [2.0.6](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.5...v2.0.6) (2023-03-29)
+
+
+### Bug Fixes
+
+* PICAF-20717: Added clipToPadding and clipToOutline for android ([63d7b42](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/63d7b4272458f1eda5a2378df46907d7d78bf473))
+
 ## [2.0.5](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.4...v2.0.5) (2023-03-13)
 
 
