@@ -16,7 +16,7 @@ in  upstream
             , "unsafe-coerce"
             , "web-html"
             ]
-        , repo = "ssh://git@bitbucket.org/juspay/purescript-halogen-vdom.git"
+        , repo = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/purescript-halogen-vdom.git"
         , version = "v3.0.1"
         }
   with tracker =
@@ -33,7 +33,7 @@ in  upstream
             , "maybe"
             , "strings"
             ]
-        , repo = "ssh://git@bitbucket.org/juspay/purescript-tracker.git"
+        , repo = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/purescript-tracker.git"
         , version = "v2.0.2"
         }
   with foreign-generic =
@@ -62,7 +62,7 @@ in  upstream
         , "typelevel-prelude"
         , "unsafe-coerce"
         ]
-      , repo = "ssh://git@bitbucket.org/juspay/purescript-foreign-generic.git"
+      , repo = "git+ssh://git@ssh.bitbucket.juspay.net/fram/purescript-foreign-generic.git"
       , version = "v12.0.0"
       }
   with presto =
@@ -89,6 +89,6 @@ in  upstream
             , "tuples"
             , "unsafe-coerce" 
             ]
-        , repo = "ssh://git@bitbucket.org/juspay/purescript-presto.git"
+        , repo = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/purescript-presto.git"
         , version = "v2.0.1"
         }
