@@ -1,3 +1,10 @@
+## [2.0.7](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.6...v2.0.7) (2023-03-30)
+
+
+### Bug Fixes
+
+* PICAF-21473: presto-dom packages dependencies Url update ([2a58dd9](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/2a58dd94144ebf7d66ea05830b59e90a07963a5e))
+
 ## [2.0.6](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.5...v2.0.6) (2023-03-29)
 
 
