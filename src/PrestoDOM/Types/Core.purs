@@ -93,15 +93,15 @@ type ScopedScreen action state returnType = ScreenBase action state returnType (
 
 derive instance newtypePropName :: Newtype (PropName value) _
 
-class Loggable a where 
+class Loggable a where
   performLog :: a -> (Object.Object Foreign) ->Effect Unit
 
-defaultPerformLog :: forall a. Show a => a -> (Object.Object Foreign) ->Effect Unit 
+defaultPerformLog :: forall a. Show a => a -> (Object.Object Foreign) ->Effect Unit
 defaultPerformLog action json = do
-  let value = show action 
+  let value = show action
   trackAction T.User T.Info L.EVAL "data" (encode value) json
 
-defaultSkipLog :: forall a. Show a => a -> (Object.Object Foreign)-> Effect Unit 
+defaultSkipLog :: forall a. Show a => a -> (Object.Object Foreign)-> Effect Unit
 defaultSkipLog _ _ = pure unit
 
 instance stringLoggable :: Loggable String where
@@ -167,7 +167,7 @@ instance shadowIsProp :: IsProp Shadow where
 instance cornersIsProp :: IsProp Corners where
   toPropValue = propFromString <<< renderCorners
 
-instance fontIsProp :: IsProp Font where 
+instance fontIsProp :: IsProp Font where
   toPropValue = propFromString <<< renderFont
 
 instance lineSpacingIsProp :: IsProp LineSpacing where

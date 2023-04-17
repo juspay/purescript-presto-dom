@@ -8,6 +8,7 @@ module PrestoDOM.Properties
   , accessibilityHint
   , adjustViewBounds
   , adjustViewWithKeyboard
+  , autoCapitalizationType
   , alignParentBottom
   , alignParentLeft
   , alignParentRight
@@ -78,6 +79,7 @@ module PrestoDOM.Properties
   , hoverPath
   , id
   , imageUrl
+  , imageWithFallback
   , inputType
   , inputTypeI
   , layoutGravity
@@ -443,6 +445,9 @@ hoverPath = prop (PropName "hoverPath")
 -- | String
 imageUrl :: forall i. String -> Prop i
 imageUrl = prop (PropName "imageUrl")
+
+imageWithFallback :: forall i. String -> Prop i
+imageWithFallback = prop (PropName "imageWithFallback")
 
 gifUrl :: forall i. String -> Prop i
 gifUrl = prop (PropName "gifUrl")
@@ -852,5 +857,8 @@ autoCorrectionType = prop (PropName "autoCorrectionType")
 nestedScrollView :: forall i. Boolean -> Prop i
 nestedScrollView = prop (PropName "nestedScrollView")
 
-adjustViewWithKeyboard :: forall i. String -> Prop i
+autoCapitalizationType :: forall i. Int -> Prop i
+autoCapitalizationType = prop (PropName "autoCapitalizationType")
+
+adjustViewWithKeyboard :: ∀ i. String -> Prop i
 adjustViewWithKeyboard = prop (PropName "adjustViewWithKeyboard")
