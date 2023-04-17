@@ -7,7 +7,7 @@ module PrestoDOM.Events
     , onBackPressed
     , onNetworkChanged
     , makeEvent
-    , ScrollState
+    , ScrollState(..)
     , onFocus
     , onScroll
     , onScrollStateChange
