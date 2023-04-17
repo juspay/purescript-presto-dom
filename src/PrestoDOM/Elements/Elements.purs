@@ -36,6 +36,7 @@ module PrestoDOM.Elements.Elements
     , viewWidget
     , webView
     , textureView
+    , multiLineEditText
     ) where
 
 import Prelude
@@ -113,7 +114,7 @@ listView :: forall i p. Node (Prop i) p
 listView = node "listView"
 
 container :: forall i p. String -> Leaf (Prop i) p
-container namespace props = leaf "fragmentContainerView" $  (prop (PropName "namespace") namespace) : props 
+container namespace props = leaf "fragmentContainerView" $  (prop (PropName "namespace") namespace) : props
 
 scrollView :: forall i p. Node (Prop i) p
 scrollView = node "scrollView"
@@ -177,3 +178,7 @@ mappWithLoader service a ch = Microapp service a (Just ch)
 -- can be used for displaying video
 textureView :: forall i p. Leaf (Prop i) p
 textureView = leaf "textureView"
+
+multiLineEditText :: forall i p. Leaf (Prop i) p
+multiLineEditText = leaf "multiLineEditText"
+

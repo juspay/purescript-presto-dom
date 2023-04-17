@@ -75,6 +75,7 @@ module PrestoDOM.Properties
     , hoverPath
 
     , imageUrl
+    , imageWithFallback
     , inputType
     , inputTypeI
 
@@ -181,6 +182,8 @@ module PrestoDOM.Properties
     , nestedScrollView
     , clipToPadding
     , clipToOutline
+    , autoCapitalizationType
+    , adjustViewWithKeyboard
     ) where
 
 import Prelude
@@ -459,6 +462,9 @@ hoverPath = prop (PropName "hoverPath")
 -- | String
 imageUrl :: forall i. String -> Prop i
 imageUrl = prop (PropName "imageUrl")
+
+imageWithFallback :: forall i. String -> Prop i
+imageWithFallback = prop (PropName "imageWithFallback")
 
 gifUrl :: forall i. String -> Prop i
 gifUrl = prop (PropName "gifUrl")
@@ -867,3 +873,9 @@ autoCorrectionType = prop (PropName "autoCorrectionType")
 
 nestedScrollView :: forall i. Boolean -> Prop i
 nestedScrollView = prop (PropName "nestedScrollView")
+
+autoCapitalizationType :: forall i. Int -> Prop i
+autoCapitalizationType = prop (PropName "autoCapitalizationType")
+
+adjustViewWithKeyboard :: ∀ i. String -> Prop i
+adjustViewWithKeyboard = prop (PropName "adjustViewWithKeyboard")
