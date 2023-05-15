@@ -59,6 +59,7 @@ module PrestoDOM.Properties
   , fontFamily
   , fontSize
   , fontStyle
+  , fontWeight
   , foreground
   , frameDelay
   , fromBottom
@@ -175,7 +176,7 @@ import Prelude
 import Data.String (toLower)
 import Halogen.VDom.DOM.Prop (Prop(..))
 import PrestoDOM.Types.Core (class IsProp, Gradient, Gravity, InputType, Length, Margin, Orientation, Padding, Position, PropName(..), Shadow, Typeface, Visibility, toPropValue)
-import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font(..),LetterSpacing, LineSpacing, Shimmer, __IS_ANDROID)
+import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font(..), FontWeight, LetterSpacing, LineSpacing, Shimmer, __IS_ANDROID)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
@@ -386,6 +387,10 @@ font fontVal = case fontVal of
     Default str -> (if __IS_ANDROID then retFontFamilyAndroid str else fontFamily str)
     FontName str -> fontStyle str
     _ -> (prop (PropName "font")) fontVal
+
+-- | Boolean
+fontWeight :: forall i. FontWeight -> Prop i
+fontWeight = prop (PropName "fontWeight")
 
 -- | Boolean
 foreground :: forall i. Boolean -> Prop i
