@@ -28,6 +28,7 @@
     , "unsafe-coerce"
     , "web-dom"
     , "web-events"
+    , "lite-decode"
     ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs" ]

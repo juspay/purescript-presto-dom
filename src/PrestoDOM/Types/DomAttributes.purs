@@ -89,7 +89,8 @@ import Foreign.Class (class Decode, class Encode, encode, decode)
 import Presto.Core.Utils.Encoding (defaultEncodeJSON)
 import Foreign.Generic (decodeJSON)
 import Control.Alt ((<|>))
-
+import Chain (class ChainDecode, decodeForeign)
+import Main.DecodeError (DecodedVal(..))
 
 foreign import stringifyGradient :: Fn3 String Number (Array String) String
 foreign import __IS_ANDROID :: Boolean
@@ -99,32 +100,32 @@ foreign import isUndefined :: forall a. a -> Boolean
 foreign import toSafeString :: forall a. a -> String
 
 foreign import toSafeInt
-  :: forall a dataConstructor. dataConstructor
+  :: forall a dataConstructor returnType. dataConstructor
   -> String -- foreign string
-  -> (String -> Either (NonEmptyList ForeignError) a) -- error constructor
-  -> (a -> Either (NonEmptyList ForeignError) a) -- data constructor
-  -> Either (NonEmptyList ForeignError) a
+  -> (String -> returnType) -- error constructor
+  -> (a -> returnType) -- data constructor
+  -> returnType
 
 foreign import toSafeNumber
-  :: forall a dataConstructor. dataConstructor
+  :: forall a dataConstructor returnType. dataConstructor
   -> String -- foreign string
-  -> (String -> Either (NonEmptyList ForeignError) a) -- error constructor
-  -> (a -> Either (NonEmptyList ForeignError) a) -- data constructor
-  -> Either (NonEmptyList ForeignError) a
+  -> (String -> returnType) -- error constructor
+  -> (a -> returnType) -- data constructor
+  -> returnType
 
 foreign import toSafeObject
-  :: forall a. String -- foreign string
-  -> (String -> Either (NonEmptyList ForeignError) a) -- error constructor
-  -> (a -> Either (NonEmptyList ForeignError) a) -- data constructor
-  -> Either (NonEmptyList ForeignError) a
+  :: forall a returnType. String -- foreign string
+  -> (String -> returnType) -- error constructor
+  -> (a -> returnType) -- data constructor
+  -> returnType
 
 foreign import toSafeArray
-  :: forall dataType dataConstructor foreignType. dataConstructor
+  :: forall dataType dataConstructor foreignType returnType. dataConstructor
   -> foreignType
-  -> (String -> Either (NonEmptyList ForeignError) dataType) -- error constructor
-  -> (dataType -> Either (NonEmptyList ForeignError) dataType) -- data constructor
+  -> (String -> returnType) -- error constructor
+  -> (dataType -> returnType) -- data constructor
   -> (Array String) -- array of dataConstructor argument types
-  -> (Either (NonEmptyList ForeignError) dataType)
+  -> returnType
 
 foreign import toSafeGradientType
   :: String
@@ -140,6 +141,18 @@ data Length
 
 derive instance genericLength:: Generic Length _
 instance decodeLength :: Decode Length where decode = decodeLengthUtil <<< toSafeString <<< unsafeFromForeign
+instance decodLengthChain :: ChainDecode Length where
+    chainDecode obj success failure = let
+        safeStr =  toSafeString $ unsafeFromForeign obj
+        in
+            if isUndefined safeStr
+                then failure "Length is undefined"
+                else
+                    case toLower safeStr of
+                        "match_parent" -> success MATCH_PARENT
+                        "wrap_content" -> success WRAP_CONTENT
+                        other          -> toSafeInt V other failure success
+
 instance showLength :: Show Length where show = genericShow
 instance encodeLength :: Encode Length where encode = renderLength >>> unsafeToForeign
 
@@ -169,6 +182,19 @@ data Position
 
 derive instance genericPosition :: Generic Position _
 instance decodePosition :: Decode Position where decode = decodePositionUtil <<< toSafeString <<< unsafeFromForeign
+instance deocodePositionChain :: ChainDecode Position where
+    chainDecode obj success failure =
+        if isUndefined safeStr
+            then failure "position is not defined"
+            else case toLower safeStr of
+             "absolute"  -> success ABSOLUTE
+             "relative"  -> success RELATIVE
+             "fixed"     -> success FIXED
+             "static"    -> success STATIC
+             "sticky"    -> success STICKY
+             _           -> failure "Position is not supported"
+        where
+            safeStr = toSafeString $ unsafeFromForeign obj
 instance showPosition :: Show Position where show = genericShow
 instance encodePosition :: Encode Position where encode = renderPosition >>> unsafeToForeign
 
@@ -206,6 +232,11 @@ data Margin
 
 derive instance genericMargin:: Generic Margin _
 instance decodeMargin :: Decode Margin where decode = decodeMarginUtil <<< unsafeFromForeign
+instance decodeMarginChain :: ChainDecode Margin where
+    chainDecode obj success failure =
+        toSafeArray Margin safeStr failure success ["int", "int", "int", "int"]
+        where
+            safeStr = unsafeFromForeign obj
 instance encodeMargin :: Encode Margin where encode = encodeMarginUtil
 instance showMargin :: Show Margin where show = genericShow
 
@@ -254,6 +285,10 @@ data Padding
 
 derive instance genericPadding :: Generic Padding _
 instance decodePadding :: Decode Padding where decode = decodePaddingUtil <<< unsafeFromForeign
+instance decodePaddingChain :: ChainDecode Padding where
+    chainDecode obj success failure =
+     toSafeArray Padding safeStr failure success ["int", "int", "int", "int"]
+     where safeStr = unsafeFromForeign obj
 instance encodePadding :: Encode Padding where encode = encodePaddingUtil
 instance showPadding :: Show Padding where show = genericShow
 
@@ -311,6 +346,19 @@ data InputType
 
 derive instance genericInputType:: Generic InputType _
 instance decodeInputType :: Decode InputType where decode = decodeInputTypeUtil <<< toSafeString <<< unsafeFromForeign
+instance decodeInputTypeChain :: ChainDecode InputType where
+    chainDecode obj success failure =
+        if isUndefined safeStr
+            then failure "inputType is not defined"
+            else case toLower safeStr of
+                     "password"        -> success Password
+                     "numeric"         -> success Numeric
+                     "numericpassword" -> success NumericPassword
+                     "disabled"        -> success Disabled
+                     "typetext"        -> success TypeText
+                     "telephone"       -> success Telephone
+                     _                 -> failure "Input Type is not supported"
+        where safeStr = toSafeString $ unsafeFromForeign obj
 instance showInputType :: Show InputType where show = genericShow
 instance encodeInputType :: Encode InputType where encode = encodeInputTypeUtil >>> unsafeToForeign
 
@@ -358,6 +406,14 @@ data Orientation
 
 derive instance genericOrientation:: Generic Orientation _
 instance decodeOrientation :: Decode Orientation where decode = decodeOrientationUtil <<< toSafeString <<< unsafeFromForeign
+instance decodeOrientationChain :: ChainDecode Orientation where
+    chainDecode obj success failure =
+        if isUndefined safeStr then failure "Orientation is not defined"
+            else case toLower safeStr of
+                   "horizontal"  -> success HORIZONTAL
+                   "vertical"    -> success VERTICAL
+                   _             -> failure "Orientation is not supported"
+        where safeStr = toSafeString $ unsafeFromForeign obj
 instance showOrientation:: Show Orientation where show = genericShow
 instance encodeOrientation :: Encode Orientation where encode = renderOrientation >>> unsafeToForeign
 
@@ -393,6 +449,18 @@ data Typeface
 
 derive instance genericTypeface :: Generic Typeface _
 instance decodeTypeface :: Decode Typeface where decode = decodeTypefaceUtil <<< toSafeString <<< unsafeFromForeign
+instance decodeTypefaceChain :: ChainDecode Typeface where
+    chainDecode obj success failure =
+        if isUndefined safeStr then
+            failure "Typeface is not defined"
+          else
+            case toLower safeStr of
+              "normal"        -> success NORMAL
+              "bold"          -> success BOLD
+              "italic"        -> success ITALIC
+              "bold_italic"   -> success BOLD_ITALIC
+              _              -> failure "Type face is not supported"
+        where safeStr = toSafeString $ unsafeFromForeign obj
 instance showTypeface :: Show Typeface where show = genericShow
 instance encodeTypeface :: Encode Typeface where encode = renderTypeface >>> unsafeToForeign
 
@@ -431,6 +499,15 @@ data Visibility
 derive instance genericVisibility:: Generic Visibility _
 derive instance eqVisibility :: Eq Visibility
 instance decodeVisibility :: Decode Visibility where decode = decodeVisibilityUtil <<< toSafeString <<< unsafeFromForeign
+instance decodeVisibilityChain :: ChainDecode Visibility where
+    chainDecode obj success failure =
+        if isUndefined safeStr then failure "Visibility is not defined"
+            else case toLower safeStr of
+                   "visible"     -> success VISIBLE
+                   "invisible"   -> success INVISIBLE
+                   "gone"        -> success GONE
+                   _             -> failure "Visibility is not supported"
+        where safeStr = toSafeString $ unsafeFromForeign obj
 instance showVisibility:: Show Visibility where show = genericShow
 instance encodeVisibility :: Encode Visibility where encode = renderVisibility >>> unsafeToForeign
 
@@ -478,6 +555,24 @@ data Gravity
 
 derive instance genericGravity:: Generic Gravity _
 instance decodeGravity :: Decode Gravity where decode = decodeGravityUtil <<< toSafeString <<< unsafeFromForeign
+instance decodeGravityChain :: ChainDecode Gravity where
+    chainDecode obj success failure =
+        if isUndefined safeStr then
+            failure "gravity is not defined"
+          else
+            case toLower safeStr of
+              "center_horizontal"   -> success CENTER_HORIZONTAL
+              "center_vertical"     -> success CENTER_VERTICAL
+              "left"                -> success LEFT
+              "right"               -> success RIGHT
+              "center"              -> success CENTER
+              "bottom"              -> success BOTTOM
+              "top_vertical"        -> success TOP_VERTICAL
+              "start"               -> success START
+              "end"                 -> success END
+              "stretch"             -> success STRETCH
+              _                     -> failure "Gravity is not supported"
+        where safeStr = toSafeString $ unsafeFromForeign obj
 instance encodeGravity :: Encode Gravity where encode = renderGravity >>> unsafeToForeign
 instance showGravity:: Show Gravity where show = genericShow
 
@@ -524,6 +619,24 @@ type GradientType = { type :: Maybe String, angle :: Foreign, values :: Array St
 derive instance genericGradient:: Generic Gradient _
 instance showGradient:: Show Gradient where show = genericShow
 instance decodeGradient :: Decode Gradient where decode = decodeGradientUtil
+instance decodeGradientChain :: ChainDecode Gradient where
+    chainDecode obj success failure =
+        case gEither, angle' of
+            Val g, Val ang -> commonCode g ang
+            Val g, _ -> commonCode g 0.0
+            DecodeErr err, _ -> failure err
+        where
+            gEither = decodeForeign obj :: DecodedVal GradientType
+            angle' =
+                case gEither of
+                    DecodeErr err -> DecodeErr err
+                    Val       val -> (decodeForeign val.angle :: DecodedVal Number) -- todo this is different from original
+            commonCode g angle =
+                case toLower $ fromMaybe "" g.type of
+                  "linear" ->  success $ Linear angle g.values
+                  "radial" ->  success $ Radial g.values
+                  _        ->  if angle < 0.0 then success $ Radial g.values else success $ Linear angle g.values
+
 instance encodeGradient :: Encode Gradient where encode = encodeGradientUtil >>> encode
 
 decodeGradientUtil :: forall a. Applicative a => Foreign -> ExceptT (NonEmptyList ForeignError) a Gradient
@@ -559,6 +672,11 @@ data Shadow = Shadow Number Number Number Number String Number
 
 derive instance genericShadow :: Generic Shadow _
 instance decodeShadow :: Decode Shadow where decode = decodeShadowUtil <<< unsafeFromForeign
+instance decodeShadowChain :: ChainDecode Shadow where
+    chainDecode obj success failure =
+        toSafeArray
+            Shadow safeStr failure success ["number", "number", "number", "number", "string", "number"]
+        where safeStr = unsafeFromForeign obj
 instance encodeShadow:: Encode Shadow where encode = encodeShadowUtil >>> unsafeToForeign
 instance showShadow :: Show Shadow where show = genericShow
 
@@ -579,6 +697,11 @@ data Corners
 
 derive instance genericCorners :: Generic Corners _
 instance decodeCorners :: Decode Corners where decode = decodeCornersUtil <<< unsafeFromForeign
+instance decodeCornersChain :: ChainDecode Corners where
+    chainDecode obj success failure =
+        toSafeArray
+            Corners safeStr failure success ["number", "boolean", "boolean", "boolean", "boolean"]
+        where safeStr = unsafeFromForeign obj
 instance encodeCorners :: Encode Corners where encode = encodeCornersUtil >>> unsafeToForeign
 instance showCorners :: Show Corners where show = genericShow
 
@@ -612,6 +735,20 @@ type FontType = {type :: String, value :: String}
 
 derive instance genericFont:: Generic Font _
 instance decodeFont :: Decode Font where decode = decodeFontUtil <<< unsafeFromForeign
+instance decodeFontChain :: ChainDecode Font where
+    chainDecode obj success failure =
+        case parsedFont of
+            DecodeErr err  -> failure err
+            Val       font ->
+                case toLower font.type of
+                    "res"       -> success (Res (fromMaybe 0 (fromString font.value)))
+                    "url"       -> success (Url font.value)
+                    "fontname"  -> success (FontName font.value)
+                    "default"   -> success (Default font.value)
+                    "font"      -> success (Font font.value)
+                    _           -> failure "Font type is not supported"
+        where
+            (parsedFont :: DecodedVal FontType) = decodeForeign obj
 instance showFont:: Show Font where show = genericShow
 instance encodeFont :: Encode Font where encode = encodeFontUtil >>> unsafeToForeign
 
@@ -807,6 +944,13 @@ data LetterSpacing
 
 derive instance genericLetterSpacing:: Generic LetterSpacing _
 instance decodeLetterSpacing :: Decode LetterSpacing where decode = decodeLetterSpacingUtil <<< toSafeString <<< unsafeFromForeign
+instance decodeLetterSpacingChain :: ChainDecode LetterSpacing where
+    chainDecode obj success failure =
+        if isUndefined safeStr then
+            failure "LetterSpacing is undefined"
+          else
+            toSafeNumber PX safeStr failure success
+        where safeStr = toSafeString $ unsafeFromForeign obj
 instance showLetterSpacing :: Show LetterSpacing where show = genericShow
 instance encodeLetterSpacing :: Encode LetterSpacing where encode = renderLetterSpacing >>> unsafeToForeign
 

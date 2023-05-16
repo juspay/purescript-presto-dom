@@ -69,6 +69,8 @@ import PrestoDOM.Core.Utils (os)
 import PrestoDOM.Properties (prop)
 import PrestoDOM.Types.Core (PropName(PropName), VDom(Keyed, Elem), PrestoDOM)
 import PrestoDOM.Types.DomAttributes (isUndefined, toSafeString, toSafeArray, toSafeObject, toSafeInt)
+import Chain (class ChainDecode, decodeForeign)
+import Main.DecodeError (DecodedVal(..))
 
 foreign import _mergeAnimation :: forall a. a -> String
 foreign import mergeHoverProps :: forall a. a -> String
@@ -157,6 +159,19 @@ decodeInterpolatorUtil json = let
           "bounce"    -> Right Bounce
           _           -> (Left <<< singleton <<< ForeignError) $ "Interpolator is not supported"
 
+instance decodeInterpolatorChain :: ChainDecode Interpolator where
+    chainDecode obj success failure =
+        case decodeForeign obj :: DecodedVal InterpolatorType of
+            Val val ->
+                case toLower val.type of
+                  "bezier"    -> toSafeArray Bezier val.value failure success ["number", "number", "number", "number"]
+                  "easein"    -> success EaseIn
+                  "easeout"   -> success EaseOut
+                  "easeinout" -> success EaseInOut
+                  "linear"    -> success Linear
+                  "bounce"    -> success Bounce
+                  _           -> failure "Interpolator is not supported"
+            DecodeErr err -> failure err
 -- | Repeat Mode
 instance decodeRepeatMode :: Decode RepeatMode where decode = decodeRepeatModeUtil <<< toSafeString <<< unsafeFromForeign
 
@@ -170,6 +185,19 @@ decodeRepeatModeUtil json =
         "restart" -> Right Restart
         "reverse" -> Right Reverse
         _         -> (Left <<< singleton <<< ForeignError) $ "Repeat Mode is not supported"
+
+instance decodeRepeatModeChain :: ChainDecode RepeatMode where
+    chainDecode obj success failure =
+        if isUndefined safeStr then
+            failure "Repeat Mode is not defined"
+          else
+              case toLower safeStr of
+                "restart" -> success Restart
+                "reverse" -> success Reverse
+                _         -> failure "Repeat Mode is not supported"
+        where
+        safeStr = toSafeString $ unsafeFromForeign obj
+
 
 instance encodeRepeatMode :: Encode RepeatMode where encode = encodeRepeatModeUtil
 encodeRepeatModeUtil :: RepeatMode -> Foreign
@@ -195,6 +223,19 @@ decodeRepeatCountUtil json = let
           "norepeat"  -> Right NoRepeat
           "infinite"  -> Right Infinite
           _           -> (Left <<< singleton <<< ForeignError) $ "Repeat Count is not supported"
+
+instance chainDecodeRepeatCount :: ChainDecode RepeatCount where
+    chainDecode obj success failure =
+        case decodeForeign obj :: DecodedVal RepeatCountType of
+            DecodeErr err -> failure err
+            Val       val ->
+                case toLower val.type of
+                  "repeat"    -> toSafeInt Repeat val.value failure success
+                  "norepeat"  -> success NoRepeat
+                  "infinite"  -> success Infinite
+                  _           -> failure "Repeat Count is not supported"
+
+
 
 instance encodeRepeatCount :: Encode RepeatCount where encode = encodeRepeatCountUtil
 encodeRepeatCountUtil :: RepeatCount -> Foreign
