@@ -15,8 +15,8 @@ import PrestoDOM.Types.Core (PrestoDOM)
 import Presto.Core.Utils.Encoding (defaultDecode, defaultEncode)
 import Data.Newtype (class Newtype)
 import Data.Generic.Rep (class Generic)
-import Chain (class ChainDecode, decodeForeign)
-import Main.DecodeError (DecodedVal(..))
+import HyperDecode (class HyperDecode, decodeForeign)
+import DecodedVal (DecodedVal(..))
 
 -- Changing types to unify types for all screens
 foreign import data Machine :: Type
@@ -139,8 +139,8 @@ instance decodeNodeTree :: Decode NodeTree where
     NodeTree <$> decode a -- TRY TO DECODE TO NODE
     <|> pure NodeEnd -- IF DECODE FAILS; DONT FAIL ENTIRE TREE; ALWAYS FALLBACK TO END
 
-instance decodeNodeTreeChain :: ChainDecode NodeTree where
-  chainDecode obj success _ =
+instance decodeNodeTreeChain :: HyperDecode NodeTree where
+  hyperDecode obj success _ =
     success $
     case decodeForeign obj of
         Val x -> NodeTree x

@@ -89,8 +89,8 @@ import Foreign.Class (class Decode, class Encode, encode, decode)
 import Presto.Core.Utils.Encoding (defaultEncodeJSON)
 import Foreign.Generic (decodeJSON)
 import Control.Alt ((<|>))
-import Chain (class ChainDecode, decodeForeign)
-import Main.DecodeError (DecodedVal(..))
+import HyperDecode (class HyperDecode, decodeForeign)
+import DecodedVal (DecodedVal(..))
 
 foreign import stringifyGradient :: Fn3 String Number (Array String) String
 foreign import __IS_ANDROID :: Boolean
@@ -141,8 +141,8 @@ data Length
 
 derive instance genericLength:: Generic Length _
 instance decodeLength :: Decode Length where decode = decodeLengthUtil <<< toSafeString <<< unsafeFromForeign
-instance decodLengthChain :: ChainDecode Length where
-    chainDecode obj success failure = let
+instance decodLengthChain :: HyperDecode Length where
+    hyperDecode obj success failure = let
         safeStr =  toSafeString $ unsafeFromForeign obj
         in
             if isUndefined safeStr
@@ -182,8 +182,8 @@ data Position
 
 derive instance genericPosition :: Generic Position _
 instance decodePosition :: Decode Position where decode = decodePositionUtil <<< toSafeString <<< unsafeFromForeign
-instance deocodePositionChain :: ChainDecode Position where
-    chainDecode obj success failure =
+instance deocodePositionChain :: HyperDecode Position where
+    hyperDecode obj success failure =
         if isUndefined safeStr
             then failure "position is not defined"
             else case toLower safeStr of
@@ -232,8 +232,8 @@ data Margin
 
 derive instance genericMargin:: Generic Margin _
 instance decodeMargin :: Decode Margin where decode = decodeMarginUtil <<< unsafeFromForeign
-instance decodeMarginChain :: ChainDecode Margin where
-    chainDecode obj success failure =
+instance decodeMarginChain :: HyperDecode Margin where
+    hyperDecode obj success failure =
         toSafeArray Margin safeStr failure success ["int", "int", "int", "int"]
         where
             safeStr = unsafeFromForeign obj
@@ -285,8 +285,8 @@ data Padding
 
 derive instance genericPadding :: Generic Padding _
 instance decodePadding :: Decode Padding where decode = decodePaddingUtil <<< unsafeFromForeign
-instance decodePaddingChain :: ChainDecode Padding where
-    chainDecode obj success failure =
+instance decodePaddingChain :: HyperDecode Padding where
+    hyperDecode obj success failure =
      toSafeArray Padding safeStr failure success ["int", "int", "int", "int"]
      where safeStr = unsafeFromForeign obj
 instance encodePadding :: Encode Padding where encode = encodePaddingUtil
@@ -346,8 +346,8 @@ data InputType
 
 derive instance genericInputType:: Generic InputType _
 instance decodeInputType :: Decode InputType where decode = decodeInputTypeUtil <<< toSafeString <<< unsafeFromForeign
-instance decodeInputTypeChain :: ChainDecode InputType where
-    chainDecode obj success failure =
+instance decodeInputTypeChain :: HyperDecode InputType where
+    hyperDecode obj success failure =
         if isUndefined safeStr
             then failure "inputType is not defined"
             else case toLower safeStr of
@@ -406,8 +406,8 @@ data Orientation
 
 derive instance genericOrientation:: Generic Orientation _
 instance decodeOrientation :: Decode Orientation where decode = decodeOrientationUtil <<< toSafeString <<< unsafeFromForeign
-instance decodeOrientationChain :: ChainDecode Orientation where
-    chainDecode obj success failure =
+instance decodeOrientationChain :: HyperDecode Orientation where
+    hyperDecode obj success failure =
         if isUndefined safeStr then failure "Orientation is not defined"
             else case toLower safeStr of
                    "horizontal"  -> success HORIZONTAL
@@ -449,8 +449,8 @@ data Typeface
 
 derive instance genericTypeface :: Generic Typeface _
 instance decodeTypeface :: Decode Typeface where decode = decodeTypefaceUtil <<< toSafeString <<< unsafeFromForeign
-instance decodeTypefaceChain :: ChainDecode Typeface where
-    chainDecode obj success failure =
+instance decodeTypefaceChain :: HyperDecode Typeface where
+    hyperDecode obj success failure =
         if isUndefined safeStr then
             failure "Typeface is not defined"
           else
@@ -499,8 +499,8 @@ data Visibility
 derive instance genericVisibility:: Generic Visibility _
 derive instance eqVisibility :: Eq Visibility
 instance decodeVisibility :: Decode Visibility where decode = decodeVisibilityUtil <<< toSafeString <<< unsafeFromForeign
-instance decodeVisibilityChain :: ChainDecode Visibility where
-    chainDecode obj success failure =
+instance decodeVisibilityChain :: HyperDecode Visibility where
+    hyperDecode obj success failure =
         if isUndefined safeStr then failure "Visibility is not defined"
             else case toLower safeStr of
                    "visible"     -> success VISIBLE
@@ -555,8 +555,8 @@ data Gravity
 
 derive instance genericGravity:: Generic Gravity _
 instance decodeGravity :: Decode Gravity where decode = decodeGravityUtil <<< toSafeString <<< unsafeFromForeign
-instance decodeGravityChain :: ChainDecode Gravity where
-    chainDecode obj success failure =
+instance decodeGravityChain :: HyperDecode Gravity where
+    hyperDecode obj success failure =
         if isUndefined safeStr then
             failure "gravity is not defined"
           else
@@ -619,8 +619,8 @@ type GradientType = { type :: Maybe String, angle :: Foreign, values :: Array St
 derive instance genericGradient:: Generic Gradient _
 instance showGradient:: Show Gradient where show = genericShow
 instance decodeGradient :: Decode Gradient where decode = decodeGradientUtil
-instance decodeGradientChain :: ChainDecode Gradient where
-    chainDecode obj success failure =
+instance decodeGradientChain :: HyperDecode Gradient where
+    hyperDecode obj success failure =
         case gEither, angle' of
             Val g, Val ang -> commonCode g ang
             Val g, _ -> commonCode g 0.0
@@ -672,8 +672,8 @@ data Shadow = Shadow Number Number Number Number String Number
 
 derive instance genericShadow :: Generic Shadow _
 instance decodeShadow :: Decode Shadow where decode = decodeShadowUtil <<< unsafeFromForeign
-instance decodeShadowChain :: ChainDecode Shadow where
-    chainDecode obj success failure =
+instance decodeShadowChain :: HyperDecode Shadow where
+    hyperDecode obj success failure =
         toSafeArray
             Shadow safeStr failure success ["number", "number", "number", "number", "string", "number"]
         where safeStr = unsafeFromForeign obj
@@ -697,8 +697,8 @@ data Corners
 
 derive instance genericCorners :: Generic Corners _
 instance decodeCorners :: Decode Corners where decode = decodeCornersUtil <<< unsafeFromForeign
-instance decodeCornersChain :: ChainDecode Corners where
-    chainDecode obj success failure =
+instance decodeCornersChain :: HyperDecode Corners where
+    hyperDecode obj success failure =
         toSafeArray
             Corners safeStr failure success ["number", "boolean", "boolean", "boolean", "boolean"]
         where safeStr = unsafeFromForeign obj
@@ -735,8 +735,8 @@ type FontType = {type :: String, value :: String}
 
 derive instance genericFont:: Generic Font _
 instance decodeFont :: Decode Font where decode = decodeFontUtil <<< unsafeFromForeign
-instance decodeFontChain :: ChainDecode Font where
-    chainDecode obj success failure =
+instance decodeFontChain :: HyperDecode Font where
+    hyperDecode obj success failure =
         case parsedFont of
             DecodeErr err  -> failure err
             Val       font ->
@@ -944,8 +944,8 @@ data LetterSpacing
 
 derive instance genericLetterSpacing:: Generic LetterSpacing _
 instance decodeLetterSpacing :: Decode LetterSpacing where decode = decodeLetterSpacingUtil <<< toSafeString <<< unsafeFromForeign
-instance decodeLetterSpacingChain :: ChainDecode LetterSpacing where
-    chainDecode obj success failure =
+instance decodeLetterSpacingChain :: HyperDecode LetterSpacing where
+    hyperDecode obj success failure =
         if isUndefined safeStr then
             failure "LetterSpacing is undefined"
           else

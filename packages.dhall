@@ -127,6 +127,6 @@ in  upstream
                , "web-dom"
                , "web-html"
             ]
-            , repo = "https://github.com/sridattayalla/ps-lite-decode.git"
+            , repo = "ssh://git@ssh.bitbucket.juspay.net/picaf/hyper-decoder.git"
             , version = "main"
         }

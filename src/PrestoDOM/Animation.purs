@@ -69,8 +69,8 @@ import PrestoDOM.Core.Utils (os)
 import PrestoDOM.Properties (prop)
 import PrestoDOM.Types.Core (PropName(PropName), VDom(Keyed, Elem), PrestoDOM)
 import PrestoDOM.Types.DomAttributes (isUndefined, toSafeString, toSafeArray, toSafeObject, toSafeInt)
-import Chain (class ChainDecode, decodeForeign)
-import Main.DecodeError (DecodedVal(..))
+import HyperDecode (class HyperDecode, decodeForeign)
+import DecodedVal (DecodedVal(..))
 
 foreign import _mergeAnimation :: forall a. a -> String
 foreign import mergeHoverProps :: forall a. a -> String
@@ -159,8 +159,8 @@ decodeInterpolatorUtil json = let
           "bounce"    -> Right Bounce
           _           -> (Left <<< singleton <<< ForeignError) $ "Interpolator is not supported"
 
-instance decodeInterpolatorChain :: ChainDecode Interpolator where
-    chainDecode obj success failure =
+instance decodeInterpolatorChain :: HyperDecode Interpolator where
+    hyperDecode obj success failure =
         case decodeForeign obj :: DecodedVal InterpolatorType of
             Val val ->
                 case toLower val.type of
@@ -186,8 +186,8 @@ decodeRepeatModeUtil json =
         "reverse" -> Right Reverse
         _         -> (Left <<< singleton <<< ForeignError) $ "Repeat Mode is not supported"
 
-instance decodeRepeatModeChain :: ChainDecode RepeatMode where
-    chainDecode obj success failure =
+instance decodeRepeatModeChain :: HyperDecode RepeatMode where
+    hyperDecode obj success failure =
         if isUndefined safeStr then
             failure "Repeat Mode is not defined"
           else
@@ -224,8 +224,8 @@ decodeRepeatCountUtil json = let
           "infinite"  -> Right Infinite
           _           -> (Left <<< singleton <<< ForeignError) $ "Repeat Count is not supported"
 
-instance chainDecodeRepeatCount :: ChainDecode RepeatCount where
-    chainDecode obj success failure =
+instance chainDecodeRepeatCount :: HyperDecode RepeatCount where
+    hyperDecode obj success failure =
         case decodeForeign obj :: DecodedVal RepeatCountType of
             DecodeErr err -> failure err
             Val       val ->
