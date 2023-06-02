@@ -141,7 +141,7 @@ data Length
 
 derive instance genericLength:: Generic Length _
 instance decodeLength :: Decode Length where decode = decodeLengthUtil <<< toSafeString <<< unsafeFromForeign
-instance decodLengthChain :: HyperDecode Length where
+instance hyperDecodLength :: HyperDecode Length where
     hyperDecode obj success failure = let
         safeStr =  toSafeString $ unsafeFromForeign obj
         in
@@ -182,7 +182,7 @@ data Position
 
 derive instance genericPosition :: Generic Position _
 instance decodePosition :: Decode Position where decode = decodePositionUtil <<< toSafeString <<< unsafeFromForeign
-instance deocodePositionChain :: HyperDecode Position where
+instance hyperDeocodePosition :: HyperDecode Position where
     hyperDecode obj success failure =
         if isUndefined safeStr
             then failure "position is not defined"
@@ -232,7 +232,7 @@ data Margin
 
 derive instance genericMargin:: Generic Margin _
 instance decodeMargin :: Decode Margin where decode = decodeMarginUtil <<< unsafeFromForeign
-instance decodeMarginChain :: HyperDecode Margin where
+instance hyperdecodeMargin :: HyperDecode Margin where
     hyperDecode obj success failure =
         toSafeArray Margin safeStr failure success ["int", "int", "int", "int"]
         where
@@ -285,7 +285,7 @@ data Padding
 
 derive instance genericPadding :: Generic Padding _
 instance decodePadding :: Decode Padding where decode = decodePaddingUtil <<< unsafeFromForeign
-instance decodePaddingChain :: HyperDecode Padding where
+instance decodePaddinghyper :: HyperDecode Padding where
     hyperDecode obj success failure =
      toSafeArray Padding safeStr failure success ["int", "int", "int", "int"]
      where safeStr = unsafeFromForeign obj
@@ -346,7 +346,7 @@ data InputType
 
 derive instance genericInputType:: Generic InputType _
 instance decodeInputType :: Decode InputType where decode = decodeInputTypeUtil <<< toSafeString <<< unsafeFromForeign
-instance decodeInputTypeChain :: HyperDecode InputType where
+instance yperdecodeInputTypeh :: HyperDecode InputType where
     hyperDecode obj success failure =
         if isUndefined safeStr
             then failure "inputType is not defined"
@@ -406,7 +406,7 @@ data Orientation
 
 derive instance genericOrientation:: Generic Orientation _
 instance decodeOrientation :: Decode Orientation where decode = decodeOrientationUtil <<< toSafeString <<< unsafeFromForeign
-instance decodeOrientationChain :: HyperDecode Orientation where
+instance decodeOrientationhyper :: HyperDecode Orientation where
     hyperDecode obj success failure =
         if isUndefined safeStr then failure "Orientation is not defined"
             else case toLower safeStr of
@@ -449,7 +449,7 @@ data Typeface
 
 derive instance genericTypeface :: Generic Typeface _
 instance decodeTypeface :: Decode Typeface where decode = decodeTypefaceUtil <<< toSafeString <<< unsafeFromForeign
-instance decodeTypefaceChain :: HyperDecode Typeface where
+instance hyperdecodeTypeface :: HyperDecode Typeface where
     hyperDecode obj success failure =
         if isUndefined safeStr then
             failure "Typeface is not defined"
@@ -499,7 +499,7 @@ data Visibility
 derive instance genericVisibility:: Generic Visibility _
 derive instance eqVisibility :: Eq Visibility
 instance decodeVisibility :: Decode Visibility where decode = decodeVisibilityUtil <<< toSafeString <<< unsafeFromForeign
-instance decodeVisibilityChain :: HyperDecode Visibility where
+instance decodeVisibilityhyper :: HyperDecode Visibility where
     hyperDecode obj success failure =
         if isUndefined safeStr then failure "Visibility is not defined"
             else case toLower safeStr of
@@ -555,7 +555,7 @@ data Gravity
 
 derive instance genericGravity:: Generic Gravity _
 instance decodeGravity :: Decode Gravity where decode = decodeGravityUtil <<< toSafeString <<< unsafeFromForeign
-instance decodeGravityChain :: HyperDecode Gravity where
+instance hyperdecodeGravity :: HyperDecode Gravity where
     hyperDecode obj success failure =
         if isUndefined safeStr then
             failure "gravity is not defined"
@@ -619,7 +619,7 @@ type GradientType = { type :: Maybe String, angle :: Foreign, values :: Array St
 derive instance genericGradient:: Generic Gradient _
 instance showGradient:: Show Gradient where show = genericShow
 instance decodeGradient :: Decode Gradient where decode = decodeGradientUtil
-instance decodeGradientChain :: HyperDecode Gradient where
+instance decodeGradienthyper :: HyperDecode Gradient where
     hyperDecode obj success failure =
         case gEither, angle' of
             Val g, Val ang -> commonCode g ang
@@ -672,7 +672,7 @@ data Shadow = Shadow Number Number Number Number String Number
 
 derive instance genericShadow :: Generic Shadow _
 instance decodeShadow :: Decode Shadow where decode = decodeShadowUtil <<< unsafeFromForeign
-instance decodeShadowChain :: HyperDecode Shadow where
+instance hyperdecodeShadow:: HyperDecode Shadow where
     hyperDecode obj success failure =
         toSafeArray
             Shadow safeStr failure success ["number", "number", "number", "number", "string", "number"]
@@ -697,7 +697,7 @@ data Corners
 
 derive instance genericCorners :: Generic Corners _
 instance decodeCorners :: Decode Corners where decode = decodeCornersUtil <<< unsafeFromForeign
-instance decodeCornersChain :: HyperDecode Corners where
+instance decodeCornershyper :: HyperDecode Corners where
     hyperDecode obj success failure =
         toSafeArray
             Corners safeStr failure success ["number", "boolean", "boolean", "boolean", "boolean"]
@@ -735,7 +735,7 @@ type FontType = {type :: String, value :: String}
 
 derive instance genericFont:: Generic Font _
 instance decodeFont :: Decode Font where decode = decodeFontUtil <<< unsafeFromForeign
-instance decodeFontChain :: HyperDecode Font where
+instance hyperdecodeFont:: HyperDecode Font where
     hyperDecode obj success failure =
         case parsedFont of
             DecodeErr err  -> failure err
@@ -944,7 +944,7 @@ data LetterSpacing
 
 derive instance genericLetterSpacing:: Generic LetterSpacing _
 instance decodeLetterSpacing :: Decode LetterSpacing where decode = decodeLetterSpacingUtil <<< toSafeString <<< unsafeFromForeign
-instance decodeLetterSpacingChain :: HyperDecode LetterSpacing where
+instance hyperdecodeLetterSpacing :: HyperDecode LetterSpacing where
     hyperDecode obj success failure =
         if isUndefined safeStr then
             failure "LetterSpacing is undefined"

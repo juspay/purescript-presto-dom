@@ -159,7 +159,7 @@ decodeInterpolatorUtil json = let
           "bounce"    -> Right Bounce
           _           -> (Left <<< singleton <<< ForeignError) $ "Interpolator is not supported"
 
-instance decodeInterpolatorChain :: HyperDecode Interpolator where
+instance hyperDecodeInterpolator :: HyperDecode Interpolator where
     hyperDecode obj success failure =
         case decodeForeign obj :: DecodedVal InterpolatorType of
             Val val ->
@@ -186,7 +186,7 @@ decodeRepeatModeUtil json =
         "reverse" -> Right Reverse
         _         -> (Left <<< singleton <<< ForeignError) $ "Repeat Mode is not supported"
 
-instance decodeRepeatModeChain :: HyperDecode RepeatMode where
+instance hyperDecodeRepeatMode :: HyperDecode RepeatMode where
     hyperDecode obj success failure =
         if isUndefined safeStr then
             failure "Repeat Mode is not defined"
@@ -224,7 +224,7 @@ decodeRepeatCountUtil json = let
           "infinite"  -> Right Infinite
           _           -> (Left <<< singleton <<< ForeignError) $ "Repeat Count is not supported"
 
-instance chainDecodeRepeatCount :: HyperDecode RepeatCount where
+instance hyperDecodeRepeatCount :: HyperDecode RepeatCount where
     hyperDecode obj success failure =
         case decodeForeign obj :: DecodedVal RepeatCountType of
             DecodeErr err -> failure err

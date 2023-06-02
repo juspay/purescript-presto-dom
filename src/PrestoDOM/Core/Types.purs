@@ -139,7 +139,7 @@ instance decodeNodeTree :: Decode NodeTree where
     NodeTree <$> decode a -- TRY TO DECODE TO NODE
     <|> pure NodeEnd -- IF DECODE FAILS; DONT FAIL ENTIRE TREE; ALWAYS FALLBACK TO END
 
-instance decodeNodeTreeChain :: HyperDecode NodeTree where
+instance hyperDecodeNodeTree :: HyperDecode NodeTree where
   hyperDecode obj success _ =
     success $
     case decodeForeign obj of
