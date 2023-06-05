@@ -1,3 +1,18 @@
+# [2.1.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.7...v2.1.0) (2023-06-05)
+
+
+### Bug Fixes
+
+* PICAF-12345: adding lite decode ([7f22e82](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/7f22e8246964b7a74242147ea10369366803fc44))
+* PICAF-21659: added check to call cb in case of generator ([85b9270](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/85b927061fd2c1b0fcfd02daa53369c1428c4f2a))
+* PICAF-22620: removed unneeded dependencies ([7c7fc76](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/7c7fc76a902b16454caeec0f5fc8780c1ded30b3))
+* PICAF-22626: renamed chaindecode to hyperdecode ([ed2fbd2](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/ed2fbd28c37965ce3945e522bb5ed1a0e9e4c573))
+
+
+### Features
+
+* PICAF-12345: pointing litedecode to bitbucket ([ea5b117](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/ea5b117b2c1bbc09915a2f11424fb2cb430eac69))
+
 ## [2.0.7](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.6...v2.0.7) (2023-03-30)
 
 
