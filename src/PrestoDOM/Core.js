@@ -129,6 +129,13 @@ const state = {
   , currentActivity: "activity"
   , constState : {}
   , pixels : window.__OS == "ANDROID" ? window.JBridge.getPixels() : 1.0
+  , generator : false
+}
+
+export const setGenerator = function(value) {
+  return function() {
+    state.generator = value
+  }
 }
 
 const loopedFunction = function(){
@@ -1061,7 +1068,7 @@ export const awaitRootReady = function(namespace) {
   return function (cb) {
     return function() {
       let state_ = getScopedState(namespace)
-      if(state_ && state_.rootReady) {
+      if((state_ && state_.rootReady)|| state.generator) {
         cb()();
       } else if (state_) {
         state_.awaitRootReady.push(cb());
