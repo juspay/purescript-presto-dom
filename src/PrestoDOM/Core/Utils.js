@@ -69,24 +69,27 @@ const generateUUID = function() {
 
 export const callbackMapper = prestoUI.callbackMapper.map;
 
-export const generateCommands = function (elem) {
-  var type = elem.type;
-  var props = elem.props;
-  var elemType = elem.elemType;
-  var keyId = elem.keyId;
-  if (elem.parentType && window.__OS == "ANDROID") {
-    return prestoDayum({
-      elemType: type,
-      parentType: elem.parentType
-    },
-    props,
-    elem.children
-    );
+export const generateCommands = cb => {
+  return elem => {
+    var type = elem.type;
+    var props = elem.props;
+    var elemType = elem.elemType;
+    var keyId = elem.keyId;
+    if (elem.parentType && window.__OS == "ANDROID") {
+      return prestoDayum({
+        elemType: type,
+        parentType: elem.parentType
+      },
+      props,
+      elem.children,
+      cb
+      );
+    }
+    if(window.__OS == "WEB"){
+      return prestoDayum(type, props, elem.children, elemType, keyId);
+    }
+    return prestoDayum(type, props, elem.children,cb);
   }
-  if(window.__OS == "WEB"){
-    return prestoDayum(type, props, elem.children, elemType, keyId);
-  }
-  return prestoDayum(type, props, elem.children);
 }
 
 export const callMicroAppListItem = function (service) {

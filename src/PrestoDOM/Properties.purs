@@ -82,6 +82,7 @@ module PrestoDOM.Properties
   , id
   , imageUrl
   , imageWithFallback
+  , imageUrlWithFallback
   , inputType
   , inputTypeI
   , layoutGravity
@@ -177,7 +178,7 @@ import Prelude
 import Data.String (toLower)
 import Halogen.VDom.DOM.Prop (Prop(..))
 import PrestoDOM.Types.Core (class IsProp, Gradient, Gravity, InputType, Length, Margin, Orientation, Padding, Position, PropName(..), Shadow, Typeface, Visibility, toPropValue)
-import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font(..),LetterSpacing, LineSpacing, Accessiblity, Shimmer, __IS_ANDROID)
+import PrestoDOM.Types.DomAttributes (ImageUrl, BottomSheetState, Corners, Font(..),LetterSpacing, LineSpacing, Accessiblity, Shimmer, __IS_ANDROID)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
@@ -461,6 +462,9 @@ imageUrl = prop (PropName "imageUrl")
 
 imageWithFallback :: forall i. String -> Prop i
 imageWithFallback = prop (PropName "imageWithFallback")
+
+imageUrlWithFallback :: forall i. ImageUrl -> Prop i
+imageUrlWithFallback = prop (PropName "imageUrlWithFallback")
 
 gifUrl :: forall i. String -> Prop i
 gifUrl = prop (PropName "gifUrl")

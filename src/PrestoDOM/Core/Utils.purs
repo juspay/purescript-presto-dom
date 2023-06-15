@@ -2,20 +2,19 @@ module PrestoDOM.Core.Utils where
 
 import Prelude
 
-import Data.Array (catMaybes, snoc, zipWith,elem)
+import Data.Array (snoc, zipWith,elem)
 import Data.Either (hush, Either(..))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Foldable (foldl)
-import Data.Traversable (traverse)
 import Effect (Effect)
 import Effect.Aff(Aff, makeAff, nonCanceler, Fiber, forkAff)
 import Effect.Ref (Ref, new, modify)
-import Foreign (Foreign, unsafeToForeign)
+import Foreign (Foreign)
 import Foreign.Class (encode, decode, class Decode)
 import Foreign.Generic (decodeJSON)
 import Foreign.Object (Object, empty, insert, delete, lookup, union)
 import Foreign.Object (foldM) as Object
-import PrestoDOM.Core.Types (NameSpaceState, VdomTree, NodeTree(..), MicroappData)
+import PrestoDOM.Core.Types (NameSpaceState, NodeTree(..), MicroappData)
 import PrestoDOM.Types.Core (PrestoDOM)
 import PrestoDOM.Elements.Elements (relativeLayout)
 import PrestoDOM.Properties (root, id, height, width)
@@ -23,7 +22,6 @@ import PrestoDOM.Types.DomAttributes (Length (..))
 import Halogen.VDom.DOM.Prop(PropValue)
 import Control.Monad.Except (runExcept)
 import Unsafe.Coerce (unsafeCoerce)
-import Web.DOM.Node (Node) as DOM
 import Effect.Uncurried as EFn
 
 foreign import saveRefToStateImpl :: forall w i. String -> Ref (NameSpaceState w i) -> Effect Unit
@@ -32,7 +30,7 @@ foreign import createPrestoElement :: Effect {__id :: Int}
 
 
 foreign import callbackMapper :: forall a. (EFn.EffectFn1 a Unit) -> String
-foreign import generateCommands :: Foreign -> Foreign
+foreign import generateCommands :: Foreign -> Foreign -> Foreign
 foreign import generateAndCheckRequestId :: Foreign -> Object Foreign -> Effect Unit
 foreign import callMicroAppListItem :: forall a b. String -> a -> (b -> Effect Unit) -> Effect (Effect Unit)
 foreign import callMicroApp :: forall a. String -> Foreign -> a -> (Foreign -> Effect Unit) -> Foreign -> String -> String -> Effect (Effect Unit)
@@ -134,52 +132,6 @@ setUpBaseState nameSpace id =
           >>= new
           >>= saveRefToState nameSpace
 
-
--- TODO Make Root into VDOM
-domAll :: DOM.Node -> String -> String -> Effect Unit
-domAll vdom _ namespace = do
-  stateRef <- loadRefFromState namespace
-  _ <- case stateRef, hush $ runExcept $ decode $ unsafeToForeign vdom of
-    Just ref, Just v -> extractView ref Nothing v
-    _, _ -> pure Nothing
-
-    -- Add id
-    -- Add root true if parent is null
-    -- _ <- extractView Nothing vdom
-
-    -- Duplicate Id detection logic
-    -- Fragment caching
-    -- OS ANDROID / IOS
-        -- DELETE AFTER RENDER
-        -- CACHE ANIMATIONS
-        -- OS ANDROID
-            -- DELETE PROP FOCUS FALSE
-    -- OS WEB
-        -- onResize to window.resizeEvent
-  pure unit
-
-
-extractView :: forall i w. Ref (NameSpaceState w i) -> Maybe String -> NodeTree -> Effect (Maybe Foreign)
-extractView ref parentType (NodeTree nd@{ "type" : "microapp"}) = do
-  cacheMappPayload ref (NodeTree nd)
-  extractView ref parentType $ NodeTree $ nd { "type" = "relativeLayout" }
-extractView ref parentType (NodeTree {props : p, children : c, "type" :t}) = do
-  children <- catMaybes <$> (extractView ref (Just t) `traverse` c)
-  _ <- p # checkAndAddRoot parentType
-    # checkAndAddId
-    <#> checkAndDeleteFocus
-  pure $ Just $ generateCommands $ encode 
-    ({ "type" : t
-    , props : p
-    , children : children
-    , parentType : encode parentType
-    , __ref : Nothing
-    , service : Nothing
-    , requestId : Nothing
-    , elemType : Nothing
-    , keyId : Nothing
-    } :: VdomTree)
-extractView _ _ _ = pure Nothing
 
 --   = Attribute (Maybe Namespace) String String
 --   | Property String PropValue

@@ -25,7 +25,7 @@ module PrestoDOM.List
   , clickableHolder
   , textFromHtmlHolder
   , preComputeListItem
-  , renderImageSource
+ , renderImageSource
   , preComputeListItemWithFragment
   , animationSetHolder
   , testIdHolder
@@ -36,6 +36,7 @@ import Prelude
 import Control.Monad.Except (runExcept)
 import Data.Array (catMaybes, cons)
 import Data.Either (Either(..), hush)
+import Foreign.NullOrUndefined (undefined)
 import Data.Foldable (foldr, foldM)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String.CodePoints (drop, contains)
@@ -108,7 +109,7 @@ extractView :: forall i p a. Ref.Ref (Array (Object Foreign)) -> Ref.Ref (Object
 extractView hv kpm klm aim parentType (Elem _ (ElemName name) p c) = do
   children <- catMaybes <$> (extractView hv kpm klm aim (encode $ (Nothing :: Maybe String)) `traverse` c)
   props <- addRunInUI hv =<< foldM (parseProps hv kpm klm aim) {id : Nothing , props : empty} p
-  pure $ Just $ generateCommands $ encode
+  pure $ Just $ generateCommands undefined $ encode
     ({ "type" : name
     , props : props
     , children : children
@@ -122,7 +123,7 @@ extractView hv kpm klm aim parentType (Elem _ (ElemName name) p c) = do
 extractView hv kpm klm aim parentType (Keyed _ (ElemName name) p c) = do
   children <- catMaybes <$> ((extractView hv kpm klm aim (encode $ (Nothing :: Maybe String)) <<< snd) `traverse` c)
   props <- addRunInUI hv =<< foldM (parseProps hv kpm klm aim) {id : Nothing , props : empty} p
-  pure $ Just $ generateCommands $ encode
+  pure $ Just $ generateCommands undefined $ encode
     ({ "type" : name
     , props : props
     , children : children
@@ -148,7 +149,7 @@ extractView hv kpm klm aim parentType (Microapp s p ch) = do
         _ <- doAff $ liftEffect $ Ref.modify (union animationIdMap ) aim
         pure $ children' <> [itemView]
     _ -> pure []
-  pure $ Just $ generateCommands $ encode
+  pure $ Just $ generateCommands undefined $ encode
     ({ "type" : if useLinearLayout then "linearLayout" else "relativeLayout"
     , props : props
     , children : children

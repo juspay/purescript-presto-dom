@@ -37,7 +37,14 @@ function addTime(_screen){
     }
   }
 }
-
+function isImagePresent(imageName){
+  if(window.juspayAssetConfig
+    && window.juspayAssetConfig.images 
+    && (window.juspayAssetConfig.images[imageName]
+      ||window.juspayAssetConfig.images["jp_"+imageName])
+  ) return true;
+  return false;
+}
 function makeImageName(imageName){
   var jpImage = "jp_"+imageName;
   if(window.juspayAssetConfig
@@ -398,7 +405,41 @@ function isRecyclerViewSupported(){
   return isSupported;
 }
 
-function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType) {
+
+const addItToQuee = (namespace,screenName,rootId,patch) => {
+  getScopedState(namespace).waitingIcons[screenName][rootId] = getScopedState(namespace).waitingIcons[screenName][rootId] || [];
+  getScopedState(namespace).waitingIcons[screenName][rootId].push(patch);
+}
+export const patchDownloadedImages =
+  namespace => screenName => rootId =>
+    patch => {
+      if(isViewRootAttached(namespace,screenName,rootId)) {
+        patch();
+      } else {
+        addItToQuee(namespace,screenName,rootId,patch);
+      }
+
+    }
+const isViewRootAttached = (namespace,screenName,rootId) => {
+  const rootAttached = getAttachedRoots(namespace,screenName);
+  return rootAttached[rootId];
+}
+
+
+function getAttachedRoots(namespace,screenName) {
+  getScopedState(namespace).rootAttached = getScopedState(namespace).rootAttached || {};
+  getScopedState(namespace).rootAttached[screenName] = getScopedState(namespace).rootAttached[screenName] || {};
+  return getScopedState(namespace).rootAttached[screenName];
+}
+function patchAwaitingImages(namespace,screenName,rootId) {
+  getAttachedRoots(namespace,screenName)[rootId] = true;
+  getScopedState(namespace).waitingIcons = getScopedState(namespace).waitingIcons || {};
+  getScopedState(namespace).waitingIcons[screenName] = getScopedState(namespace).waitingIcons[screenName] || {}
+  let loadingImages = getScopedState(namespace).waitingIcons[screenName][rootId] || [];
+  while(loadingImages.length > 0) loadingImages.pop()();
+  delete getScopedState(namespace).waitingIcons[screenName][rootId];
+}
+function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType, isRoot) {
   if(elem.type == "listView" && isRecyclerViewSupported()){
     elem.type = "recyclerView";
   }
@@ -414,8 +455,27 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType) {
   } else if(!elem.__ref) {
     elem.__ref = createPrestoElement()
   }
+  let elemId = elem.__ref.__id;
   var type = prestoUI.prestoClone(elem.type);
   var props = prestoUI.prestoClone(elem.props);
+  if(isRoot) {
+    let newAfterRender = () => {};
+    if (getConstState(namespace).prerenderScreens.indexOf(screenName) != -1) {
+      getConstState(namespace).waitingIcons = getConstState(namespace).waitingIcons || {};
+      getConstState(namespace).waitingIcons[screenName] = getConstState(namespace).waitingIcons[screenName] || {}
+      getConstState(namespace).waitingIcons[screenName][elemId] = [];
+    }
+    getScopedState(namespace).waitingIcons =  getScopedState(namespace).waitingIcons || {}
+    getScopedState(namespace).waitingIcons[screenName] = getScopedState(namespace).waitingIcons[screenName] || {}
+    getScopedState(namespace).waitingIcons[screenName][elemId] = [];
+    if(props.afterRender) {
+      newAfterRender = props.afterRender;
+    }
+    props.afterRender = () => { 
+      patchAwaitingImages(namespace,screenName,elemId);
+      newAfterRender();
+    }
+  }
 
   if(typeof props.listItem == "object") {
     state.listViewKeys[elem.__ref.__id] = props.listItem.keyPropMap
@@ -434,7 +494,7 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType) {
       , useStartApp : props.useStartApp
       , requestId : elem.requestId
       , service : elem.service
-      , elemId : elem.__ref.__id
+      , elemId
       , callback : props.onMicroappResponse
     }
     if (getScopedState(namespace) && getScopedState(namespace).mappQueue) {
@@ -586,7 +646,7 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType) {
   // Both elemType and keyId are empty strings, so setting it to undefined when elem.elemType is empty string
   var elemType = elem.elemType ? elem.elemType : undefined;
   var keyId = elem.keyId ? elem.keyId : undefined;
-  return {dom : { type : type, props:props, children:elem.children, parentType : elem.parentType || parentType, __ref : elem.__ref, elemType : elemType, keyId : keyId} , ids : VALIDATE_ID}
+  return {elemId,dom : { type : type, props:props, children:elem.children, parentType : elem.parentType || parentType, __ref : elem.__ref, elemType : elemType, keyId : keyId} , ids : VALIDATE_ID}
 }
 
 function hideOldScreenNow(namespace, screenName) {
@@ -1057,6 +1117,7 @@ export function setUpBaseState (namespace) {
       }
       // https://juspay.atlassian.net/browse/PICAF-6628
       getScopedState(namespace).afterRenderFunctions = prestoUI.prestoClone( getConstState(namespace).afterRenderFunctions || {});
+      getScopedState(namespace).waitingIcons = prestoUI.prestoClone(getConstState(namespace).waitingIcons || {});
       getScopedState(namespace).actualLayouts = []
 
       // rethink Logic
@@ -1965,6 +2026,15 @@ function createAnimationObject(animation) {
   return animObj;
 }
 
+const isURL = function (str) {
+  try{
+    const url = new URL(str);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 export const getListDataCommands = function (listData, element) {
   var x = ["background", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "text", "color", "onClick"]
   if(window.__OS == "IOS" ){
@@ -1982,14 +2052,25 @@ export const getListDataCommands = function (listData, element) {
       for(let prop in keyPropMap[id]) {
         if(x.indexOf(keyPropMap[id][prop]) != -1 || window.__OS == "WEB") {
           if(keyPropMap[id][prop] == "imageUrl" && window.__OS != "WEB") {
-            try {
-              // eslint-disable-next-line no-new
-              new URL(listData[j][prop])
+            if(isURL(listData[j][prop])){
               listData[j][prop] = "url->" + listData[j][prop] + ","
-            } catch (e) {
+            }
+            else{
               var images = listData[j][prop].split(",");
               var imageUrl = "";
-              if(images.length>1){
+              if (images.length>2){
+                let preferLocal = (images[2] === "true");
+                let isLocal = isImagePresent(images[0]);
+                let isUrl = isURL(images[1]);
+                if(isLocal&&(preferLocal||!isUrl)){
+                  imageUrl = makeImageName(images[0]);
+                }
+                else{
+                  imageUrl = "url->"+images[1] +",";
+                  imageUrl = imageUrl + makeImageName(images[0]);
+                }
+              }
+              else if(images.length>1){
                 imageUrl = images[0] +",";
                 imageUrl = imageUrl + makeImageName(images[1]);
               }else{
@@ -1999,6 +2080,12 @@ export const getListDataCommands = function (listData, element) {
             }
           }
           item[prop] = listData[j][prop];
+          if(keyPropMap[id][prop] == "imageUrl" && window.__OS == "WEB")
+          {
+            let arr = listData[j][prop].split(",");
+            if(arr.length > 1)
+              item[prop] = arr[1];
+          }
           continue
         }
         ps[keyPropMap[id][prop]] = listData[j][prop];

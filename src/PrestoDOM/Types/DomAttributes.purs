@@ -4,6 +4,7 @@ module PrestoDOM.Types.DomAttributes
   , Font(..)
   , Gradient(..)
   , Gravity(..)
+  , ImageUrl(..)
   , InputType(..)
   , Length(..)
   , LineSpacing(..)
@@ -35,6 +36,10 @@ module PrestoDOM.Types.DomAttributes
   , renderBottomSheetState
   , renderCorners
   , renderFont
+  , renderImageUrl
+  , nameFromImage
+  , urlFromImage
+  , isImageUrlEmpty
   , renderGradient
   , renderGravity
   , renderInputType
@@ -87,10 +92,11 @@ import Data.Int (fromString)
 import Data.List.NonEmpty (NonEmptyList, singleton)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String.Common (toLower)
-import Foreign (Foreign, ForeignError(..), unsafeFromForeign, unsafeToForeign)
+import Foreign (Foreign, ForeignError(..), unsafeFromForeign, unsafeToForeign, readBoolean, readString)
 import Foreign.Class (class Decode, class Encode, encode, decode)
 import Presto.Core.Utils.Encoding (defaultEncodeJSON)
 import Foreign.Generic (decodeJSON)
+import Foreign.Index (readProp)
 import Control.Alt ((<|>))
 import HyperDecode (class HyperDecode, decodeForeign)
 import DecodedVal (DecodedVal(..))
@@ -649,7 +655,7 @@ decodeGradientUtil json = let
   commonCode g angle =
     case toLower $ fromMaybe "" g.type of
       "linear" ->  Right $ Linear angle g.values
-      "radial" ->  Right $ Radial g.values 
+      "radial" ->  Right $ Radial g.values
       _        ->  if angle < 0.0 then Right $ Radial g.values else Right $ Linear angle g.values
   in
   except $
@@ -787,6 +793,81 @@ renderFont = case _ of
     Font path -> "path," <> path
     Default style -> "default," <> style
 
+type ImageUrlType = { fileName :: String, imageUrl :: String, preferLocal :: Boolean}
+
+data ImageUrl
+    = ImageUrl String String Boolean
+    | ListImageUrl String String
+    | ImageName String
+    | ImagePath String
+    | ImageResId Int
+
+derive instance eqImageUrl :: Eq ImageUrl
+
+nameFromImage :: ImageUrl -> String
+nameFromImage (ImageUrl name _ _) = name
+nameFromImage _ = ""
+
+urlFromImage :: ImageUrl -> String
+urlFromImage (ImageUrl _ url _) = url
+urlFromImage _ = ""
+
+isImageUrlEmpty :: ImageUrl -> Boolean
+isImageUrlEmpty (ImageUrl "" "" _) = true
+isImageUrlEmpty _ = false
+
+instance hyperdecodeImageUrl :: HyperDecode ImageUrl where
+    hyperDecode o success failure =
+      case val of
+        Val x -> success $ decodeImageUrlUtil x
+        DecodeErr err -> failure err
+      where
+      val = decodeForeign o
+
+derive instance genericImageUrl :: Generic ImageUrl _
+instance decodeImageUrl :: Decode ImageUrl
+  where
+  decode o =
+    map decodeImageUrlUtil $ do
+      fileName <- readProp "fileName" o >>= readString
+      imageUrl  <- readProp "imageUrl" o >>= readString
+      preferLocal <- readProp "preferLocal" o >>= readBoolean
+      pure $ { fileName, imageUrl, preferLocal }
+
+
+instance encodeImageUrl :: Encode ImageUrl where encode = encodeImageUrlUtil >>> unsafeToForeign
+instance showImageUrl :: Show ImageUrl where show = genericShow
+
+encodeImageUrlUtil :: ImageUrl -> ImageUrlType
+encodeImageUrlUtil imgUrl =
+  case imgUrl of
+      ImageUrl fileName imageUrl preferLocal -> {fileName, imageUrl, preferLocal}
+      ListImageUrl url placeholder -> {fileName : placeholder, imageUrl : url , preferLocal : false}
+      ImagePath path           -> {fileName : path, imageUrl : "", preferLocal : false}
+      ImageResId resId         -> {fileName : (show resId), imageUrl : "", preferLocal : false}
+      ImageName name           -> {fileName : name, imageUrl : "", preferLocal : false}
+
+
+decodeImageUrlUtil :: ImageUrlType -> ImageUrl
+decodeImageUrlUtil x = ImageUrl x.fileName x.imageUrl x.preferLocal
+
+-- decodeImageUrlUtil' :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a ImageUrl
+-- decodeImageUrlUtil' json =
+--   let (parsedObj :: Either (NonEmptyList ForeignError) ImageUrlType) = toSafeObject json (Left <<< singleton <<< ForeignError) Right in
+--   except $
+--     case parsedObj of
+--       Left err -> Left err
+--       Right obj -> Right $ ImageUrl obj.fileName obj.imageUrl obj.preferLocal
+
+renderImageUrl :: ImageUrl -> String
+renderImageUrl imgUrl =
+  case imgUrl of
+      ImageUrl fileName imageUrl preferLocal -> fileName <> "," <> imageUrl <> "," <> show preferLocal
+      ListImageUrl url placeholder -> "url->" <> url <> "," <>  placeholder
+      ImagePath path           -> "path->" <> path
+      ImageResId resId         -> "resId->" <> show resId
+      ImageName name           -> name
+
 data LineSpacing
     = LineSpacing Int Number
     | LineSpacingExtra Int
@@ -841,8 +922,8 @@ data Shimmer
     | ColorBuilder (ShimmerJson String)
 
 derive instance genericShimmer :: Generic Shimmer _
-instance encodeShimmer :: Encode Shimmer 
-    where 
+instance encodeShimmer :: Encode Shimmer
+    where
         encode (AlphaBuilder a) = encode a
         encode (ColorBuilder a) = encode a
 

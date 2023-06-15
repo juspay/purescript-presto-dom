@@ -1,7 +1,7 @@
-module PrestoDOM.Core where
+module PrestoDOM.Core
+  where
 
 import Prelude
-
 import Control.Alt ((<|>))
 import Control.Monad.Except (runExcept)
 import Data.Either (Either(..), either, hush)
@@ -20,7 +20,7 @@ import Effect.Uncurried as Efn
 import FRP.Behavior (sample_, unfold)
 import FRP.Event (EventIO, subscribe)
 import FRP.Event as E
-import Foreign (Foreign, unsafeToForeign)
+import Foreign (Foreign, isUndefined, unsafeToForeign)
 import Foreign.Generic (encode, decode, class Decode)
 import Foreign.NullOrUndefined (undefined)
 import Foreign.Object (Object, update, insert, delete, isEmpty, lookup)
@@ -48,7 +48,9 @@ foreign import addTime3 :: String -> Effect Unit
 foreign import addViewToParent :: EFn.EffectFn1 InsertState Unit
 foreign import postAccess :: Efn.EffectFn3 String String Boolean Unit
 foreign import isSSRVdomPresent :: String -> Boolean ->Effect Boolean
-foreign import parseProps :: EFn.EffectFn5 Foreign String Foreign String Foreign {ids :: Foreign, dom :: Foreign}
+foreign import parseProps :: EFn.EffectFn6 Foreign String Foreign String Foreign Boolean {ids :: Foreign, dom :: Foreign, elemId :: Foreign}
+
+foreign import patchDownloadedImages :: String -> String -> Foreign  -> Foreign
 foreign import storeMachine :: forall a b . EFn.EffectFn3 (Step a b) String String Unit
 foreign import getLatestMachine :: forall a b . EFn.EffectFn2 String String (Step a b)
 foreign import isInStack :: EFn.EffectFn2 String String Boolean
@@ -352,17 +354,19 @@ renderOrPatch {push} { initialState, view, name, parent } false isCache maybeMyD
   -- Calling postAccess function to execute the exceutePostProcess and also add all onClickListeners
   when vdomMode $ liftEffect $ Efn.runEffectFn3 postAccess name ns true
 
-domAll :: forall a. {name :: String, parent :: Maybe String | a} -> Foreign -> Foreign -> Foreign -> Aff Foreign
-domAll {name, parent} ids parentType dom = {--dom--} do
+domAll' :: forall a. Foreign -> {name :: String, parent :: Maybe String | a} -> Foreign -> Foreign -> Foreign -> Aff Foreign
+domAll' rootId {name, parent} ids parentType dom = {--dom--} do
   ns <- liftEffect $ sanitiseNamespace parent
-  {ids: i, dom:d} <- liftEffect $ EFn.runEffectFn5 parseProps dom name ids ns parentType
+  let isRoot = isUndefined rootId
+  {ids: i, dom:d, elemId: elemId} <- liftEffect $ EFn.runEffectFn6 parseProps dom name ids ns parentType (isRoot)
+  let rootId' = if isRoot then elemId else rootId
   case hush $ runExcept $ decode d of
     Just (vdomTree :: VdomTree) -> do
       fontFiber <- forkAff $ verifyFont $ extractAndDecode "fontStyle" vdomTree.props
       imageFiber <- forkAff $ verifyImage vdomTree.__ref (ns <> name) $ extractAndDecode "imageUrl" vdomTree.props
       placeFiber <- forkAff $ verifyImage Nothing "" $ extractAndDecode "placeHolder" vdomTree.props
       listFiber <- forkoutListState ns name vdomTree."type" vdomTree.props
-      children <- domAll {name, parent} i (encode vdomTree.type) `traverse` vdomTree.children
+      children <- domAll' rootId' {name, parent} i (encode vdomTree.type) `traverse` vdomTree.children
       font <- joinFiber fontFiber
       image <- joinFiber imageFiber
       placeHolder <- joinFiber placeFiber
@@ -376,8 +380,12 @@ domAll {name, parent} ids parentType dom = {--dom--} do
             # update (const image) "imageUrl"
             # update (const placeHolder) "placeHolder"
             # update (const listData) "listData"
-      pure $ generateCommands $ encode $ vdomTree {children = children, props = props}
+
+      pure $ generateCommands (patchDownloadedImages ns name (encode rootId)) $ encode $ vdomTree {children = children, props = props}
     a -> pure $ encode a
+
+domAll :: forall a.  {name :: String, parent :: Maybe String | a} -> Foreign -> Foreign -> Foreign -> Aff Foreign
+domAll = domAll' undefined
 
 controllerActions :: forall action state returnType a
   . Show action => Loggable action
