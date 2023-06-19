@@ -382,7 +382,7 @@ function isRecyclerViewSupported(){
       const prestoUIVersion = window.presto_ui_version;
       isSupported = prestoListVersion >= 1.0 && prestoUIVersion >= 1.0;
     } catch(e) {
-      trackExceptionWrapper("recycler_view_support", "error in getting presto list version for recycler view", e);
+      // trackExceptionWrapper("recycler_view_support", "error in getting presto list version for recycler view", e);
     }
   }
   return isSupported;
