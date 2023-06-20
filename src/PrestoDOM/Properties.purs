@@ -847,7 +847,7 @@ disableClickFeedback = prop (PropName "disableFeedback")
 rippleColor :: forall i. String -> Prop i
 rippleColor = prop (PropName "rippleColor")
 
-enableRoundedRipple :: forall i. Boolean -> Prop i
+enableRoundedRipple :: forall i. Number -> Prop i
 enableRoundedRipple = prop (PropName "enableRoundedRipple")
 
 autoCorrectionType :: forall i. Int -> Prop i
