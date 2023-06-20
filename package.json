@@ -4,7 +4,7 @@
     "compile": "npx pulp build"
   },
   "dependencies": {
-    "presto-ui": "git+ssh://git@ssh.bitbucket.juspay.net:picaf/presto-ui.git#release",
+    "presto-ui": "git+ssh://git@ssh.bitbucket.juspay.net:picaf/presto-ui.git#test/ripple",
     "purescript": "^0.12.5",
     "pulp": "^14"
   }
