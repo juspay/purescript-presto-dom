@@ -1,3 +1,10 @@
+## [2.1.1](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.0...v2.1.1) (2023-06-21)
+
+
+### Bug Fixes
+
+* PICAF-22806: removing recycler view exception ([f73544b](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/f73544be1c618fbf3620ec61830cef89f863fbfc))
+
 # [2.1.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.0.7...v2.1.0) (2023-06-05)
 
 
