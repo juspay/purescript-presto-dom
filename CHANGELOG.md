@@ -1,3 +1,10 @@
+## [2.1.2](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.1...v2.1.2) (2023-06-27)
+
+
+### Bug Fixes
+
+* QR-1913: added adjustViewWithKeyboard prop which pushes view up when keyboard is open ([423c3d6](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/423c3d6f36e40f52d309f8f289752b0003a43433))
+
 ## [2.1.1](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.0...v2.1.1) (2023-06-21)
 
 
