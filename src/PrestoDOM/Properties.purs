@@ -175,6 +175,7 @@ module PrestoDOM.Properties
     , autoLoop
     , disableClickFeedback
     , rippleColor
+    , rippleRadius
     , enableRoundedRipple
     , autoCorrectionType
     , autoCapitalizationType
@@ -846,6 +847,9 @@ disableClickFeedback = prop (PropName "disableFeedback")
 
 rippleColor :: forall i. String -> Prop i
 rippleColor = prop (PropName "rippleColor")
+
+rippleRadius ::  forall i. Number -> Prop i
+rippleRadius = prop (PropName "rippleRadius")
 
 enableRoundedRipple :: forall i. Boolean -> Prop i
 enableRoundedRipple = prop (PropName "enableRoundedRipple")
