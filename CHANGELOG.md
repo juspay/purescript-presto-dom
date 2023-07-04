@@ -1,3 +1,10 @@
+## [2.1.4](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.3...v2.1.4) (2023-07-04)
+
+
+### Bug Fixes
+
+* PICAF-23223: adding namespace and screen in outer logs ([85d7824](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/85d7824d7d771c39f89c372cc49c4252126807a5))
+
 ## [2.1.3](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.2...v2.1.3) (2023-07-04)
 
 
