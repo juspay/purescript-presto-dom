@@ -1,3 +1,10 @@
+## [2.1.3](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.2...v2.1.3) (2023-07-04)
+
+
+### Bug Fixes
+
+* QR-1913: exposed adjustViewWithKeyboard prop ([add6867](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/add6867610ce0ea4057a2760fe23ba174c97c4e5))
+
 ## [2.1.2](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.1...v2.1.2) (2023-06-27)
 
 
