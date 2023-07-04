@@ -213,7 +213,7 @@ const getConstState = function (namespace, activityID) {
     return state.constState[namespace];
   }
 };
-const getNamespace = function (namespace, activityID) {
+export const getNamespace = function (namespace, activityID) {
   var id = activityID || state.currentActivity
   if (namespace && namespace.indexOf(id) == -1) {
     namespace = namespace + id;

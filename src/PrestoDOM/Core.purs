@@ -28,8 +28,10 @@ import Halogen.VDom (Step, VDom, VDomSpec(..), buildVDom, extract, step)
 import Halogen.VDom.DOM.Prop (buildProp)
 import Halogen.VDom.Thunk (Thunk, buildThunk)
 import Halogen.VDom.Types (FnObject)
+import Presto.Core.Flow (Flow, doAff)
 import PrestoDOM.Events (manualEventsName)
 import PrestoDOM.Types.Core (class Loggable, PrestoWidget(..), Prop, ScopedScreen, Controller, ScreenBase, PrestoDOM)
+import Presto.Core.Types.Language.Flow (setLogField)
 import PrestoDOM.Utils (continue, logAction, addTime2, performanceMeasure, isGenerateVdom)
 import PrestoDOM.Generate (generateMyDom)
 import Tracker (trackScreen, trackLifeCycle)
@@ -120,6 +122,7 @@ foreign import isScreenActive :: String -> String -> Effect Boolean
 foreign import setUseHintColor :: Boolean -> Effect Unit 
 
 foreign import setGenerator :: Boolean -> Effect Unit
+foreign import getNamespace :: EFn.EffectFn1 String String
 
 updateChildren :: forall a. String -> String -> EFn.EffectFn1 a Unit
 updateChildren namespace screenName = do
@@ -602,3 +605,10 @@ replayListFragmentCallbacks :: forall a.
   (a -> Effect Unit) ->
   Effect (Effect Unit)
 replayListFragmentCallbacks nampespace name action push = replayListFragmentCallbacksImpl nampespace name (push <<< action)
+
+setScreenInLog :: forall a. Maybe String -> String -> Flow a Unit
+setScreenInLog namespace screenName = do
+  nspace <- doAff $ liftEffect $ sanitiseNamespace namespace
+  ns <- doAff $ liftEffect $ EFn.runEffectFn1 getNamespace nspace
+  setLogField "current_namespace" (encode ns)
+  setLogField "current_screen" (encode screenName)

@@ -4,10 +4,10 @@ module PrestoDOM.Core.Types.Language.Flow where
 import Prelude
 
 import Data.Maybe (Maybe(..))
+import Effect (Effect)
 import Effect.Class (liftEffect)
 import Presto.Core.Flow (Flow, doAff)
-import Presto.Core.Types.Language.Flow(getLogFields)
-import Effect(Effect)
+import Presto.Core.Types.Language.Flow (getLogFields)
 import PrestoDOM.Core as PrestoDOM
 import PrestoDOM.Types.Core (class Loggable, ScopedScreen, Controller, Screen)
 import PrestoDOM.Utils (addTime2)
@@ -32,6 +32,7 @@ runScreen :: forall action state retType a. Show action => Loggable action => Sc
 runScreen screen = do
   _ <- doAff $ liftEffect $ addTime2 "Process_Eval_End"
   _ <- doAff $ liftEffect $ addTime2 "Render_runScreen_Start"
+  PrestoDOM.setScreenInLog Nothing screen.name
   json <- getLogFields
   doAff $ PrestoDOM.runScreen (mapToScopedScreen screen) json
 
@@ -39,6 +40,7 @@ runScreenWithNameSpace :: forall action state retType a. Show action => Loggable
 runScreenWithNameSpace screen = do
   _ <- doAff $ liftEffect $ addTime2 "Process_Eval_End"
   _ <- doAff $ liftEffect $ addTime2 "Render_runScreen_Start"
+  PrestoDOM.setScreenInLog screen.parent screen.name
   json <- getLogFields
   doAff $ PrestoDOM.runScreen screen json
 
@@ -56,11 +58,13 @@ prepareScreen screen = do
 
 showScreen :: forall action state retType a. Show action => Loggable action => Screen action state retType -> Flow a retType
 showScreen screen = do
+  PrestoDOM.setScreenInLog Nothing screen.name
   json <- getLogFields
   doAff $ PrestoDOM.showScreen (mapToScopedScreen screen) json
 
 showScreenWithNameSpace :: forall action state retType a. Show action => Loggable action => ScopedScreen action state retType -> Flow a retType
 showScreenWithNameSpace screen = do
+  PrestoDOM.setScreenInLog screen.parent screen.name
   json <- getLogFields
   doAff $ PrestoDOM.showScreen screen json
 
