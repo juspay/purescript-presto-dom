@@ -1084,7 +1084,7 @@ export const render = function (namespace) {
   var id = getIdFromNamespace(namespace);
   var cb = callbackMapper.map(markRootReady(namespace));
   if(window.__OS == "ANDROID") {
-    cb = JSON.stringify(cb); 
+    cb = JSON.stringify(cb);
   }
   if (window.__OS == "ANDROID") {
     if (typeof AndroidWrapper.getNewID == "function") {
@@ -1315,7 +1315,7 @@ export const saveCanceller = function (_name, namespace, canceller) {
   return namespace
 }
 
-export const terminateUIImplWithOutCallback = terminateUIImpl() 
+export const terminateUIImplWithOutCallback = terminateUIImpl()
 export const terminateUIImplWithCallback = terminateUIImpl;
 function terminateUIImpl(callback) {
   return function(namespace) {
@@ -2320,4 +2320,16 @@ export const isScreenActive = function (ns) {
       return getScopedState(ns).screenActive[_screen]
     }
   }
+}
+
+let isStateSame = false;
+export const compareState = function (newState) {
+  return function (oldState) {
+    isStateSame = (oldState === newState)
+    return newState
+  }
+}
+
+export const isOldNewStateSame = function () {
+  return isStateSame
 }

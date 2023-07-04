@@ -9,7 +9,7 @@ import Data.Foldable (for_)
 import Data.Maybe (Maybe(..), fromMaybe, fromMaybe', isJust)
 import Data.Newtype (un)
 import Data.Traversable (traverse)
-import Data.Tuple (Tuple(..), fst)
+import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Effect.Aff (Canceler, effectCanceler, Aff, makeAff, forkAff, joinFiber, launchAff_, nonCanceler)
@@ -119,7 +119,10 @@ foreign import setScreenActive :: String -> String -> Effect Unit
 foreign import setScreenInActive :: String -> String -> Effect Unit
 foreign import isScreenActive :: String -> String -> Effect Boolean
 
-foreign import setUseHintColor :: Boolean -> Effect Unit 
+foreign import setUseHintColor :: Boolean -> Effect Unit
+
+foreign import compareState :: forall a. a -> a -> a
+foreign import isOldNewStateSame :: Effect Boolean
 
 foreign import setGenerator :: Boolean -> Effect Unit
 foreign import getNamespace :: EFn.EffectFn1 String String
@@ -395,8 +398,12 @@ controllerActions {event, push} {initialState, eval, name, globalEvents, parent}
   pure $ effectCanceler (EFn.runEffectFn2 cancelExistingActions name ns)
     where
       onStateChange previousAction currentAction timerRef (Tuple state cmds) = do
-        _ <- emitter state
-        _ <- for_ cmds (\effAction -> effAction >>= push)
+        stateSame <- isOldNewStateSame
+        if stateSame
+          then pure unit
+        else
+          emitter state
+        for_ cmds (\effAction -> effAction >>= push)
         logAction timerRef previousAction currentAction false json -- debounce
       onExit previousAction currentAction timerRef (Tuple sc ret) = do
         ns <- sanitiseNamespace parent
@@ -416,8 +423,18 @@ controllerActions {event, push} {initialState, eval, name, globalEvents, parent}
       execEval action st =
         { previousAction : st.currentAction
         , currentAction : Just action
-        , eitherState : (st.eitherState >>= (eval action <<< fst))
+        , eitherState : calculateEitherState
         }
+        where
+          calculateEitherState =
+            case st.eitherState of
+              Right (Tuple state _) ->
+                let newEitherState = eval action state
+                in case newEitherState of
+                    Right (Tuple newstate cmds) -> Right (Tuple (compareState newstate state) cmds)
+                    Left _ -> newEitherState
+              _ -> st.eitherState
+
 
 -- initUIWithNameSpace
 -- getId and namespace for the same
