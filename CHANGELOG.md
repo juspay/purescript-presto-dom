@@ -1,3 +1,10 @@
+## [2.1.5](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.4...v2.1.5) (2023-07-06)
+
+
+### Bug Fixes
+
+* PICAF-22166: Not call PatchRun if state is same ([8231934](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/82319344b02b1682da73b578df9644e6f54cd29e))
+
 ## [2.1.4](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.3...v2.1.4) (2023-07-04)
 
 
