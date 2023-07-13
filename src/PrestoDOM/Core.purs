@@ -215,10 +215,10 @@ getListDataFromMapps namespace screenName elem props = do
     _ -> pure props
 
 mapProps :: forall elem. String -> String -> elem -> Object Foreign -> (Object Foreign)
-mapProps prop mappedProp elem updatedProps = 
+mapProps prop mappedProp elem updatedProps =
   let (element :: Maybe VdomTree) = hush $ runExcept $ decode $ unsafeToForeign elem
   in case element of
-    Just element -> 
+    Just element ->
       let (curProp :: Maybe Foreign) = extractAndDecode prop updatedProps
           (updatedMappedProp :: Maybe Foreign) = extractAndDecode mappedProp updatedProps
           (oldMappedProp :: Maybe Foreign) = updatedMappedProp <|> (extractAndDecode mappedProp element.props)
@@ -233,7 +233,7 @@ updateMicroAppPayload _ =
     $ \val elem isPatch -> do
         let (vdomTree :: Maybe VdomTree) = hush $ runExcept $ decode $ unsafeToForeign elem
         case vdomTree, isPatch of
-          Just {"type" : viewType}, true -> 
+          Just {"type" : viewType}, true ->
               if isListContainer viewType then pure unit
               else Efn.runEffectFn3 updateMicroAppPayloadImpl val elem isPatch
           _, _ -> Efn.runEffectFn3 updateMicroAppPayloadImpl val elem isPatch
@@ -376,7 +376,7 @@ domAll {name, parent} ids parentType dom = {--dom--} do
             # update (const listData) "listData"
       pure $ generateCommands $ encode $ vdomTree {children = children, props = props}
     a -> pure $ encode a
-    
+
 controllerActions :: forall action state returnType a
   . Show action => Loggable action
   => EventIO action
@@ -479,7 +479,6 @@ runScreen st@{ name, parent, view} json = do
   check <- liftEffect $  EFn.runEffectFn2 isInStack name ns <#> not
   eventIO <- liftEffect $ getEventIO name parent
   _ <- liftEffect $ trackScreen T.Screen T.Info L.CURRENT_SCREEN "screen" name json
-  _ <- liftEffect $ trackScreen T.Screen T.Info L.UPCOMING_SCREEN "screen" name json
   liftEffect $ Efn.runEffectFn1 hideCacheRootOnAnimationEnd ns
   liftEffect $ EFn.runEffectFn2 setToTopOfStack ns name
   _ <- liftEffect $ addTime2 "Render_renderOrPatch_Start"
@@ -488,7 +487,7 @@ runScreen st@{ name, parent, view} json = do
       then do
         _ <- liftEffect $ setVdomCache name ns
         liftEffect generateMyDom <#> Just
-      else 
+      else
         pure Nothing) >>=
       renderOrPatch eventIO st check false
   _ <- liftEffect $ addTime2 "Render_renderOrPatch_End"
@@ -502,7 +501,7 @@ createPushQueue namespace screenName push activityId action = do
   isScreenPushActive namespace screenName activityId >>=
     if _
       then push action
-      else 
+      else
         isScreenActive namespace screenName >>=
           if _
             then cachePushEvents namespace screenName (push action) activityId
@@ -565,7 +564,7 @@ prepareScreen :: forall action state returnType
 prepareScreen screen@{name, parent, view} json = do
   if not (canPreRender unit)
     then pure unit
-    else do 
+    else do
       ns <- liftEffect $ sanitiseNamespace parent
       liftEffect <<< setUpBaseState ns $ encode (Nothing :: Maybe String )
       liftEffect $ EFn.runEffectFn2 startedToPrepare ns name

@@ -170,9 +170,19 @@ const isPreRenderSupported = function(){
   if(window.__OS == "ANDROID"){
     try{
       const preRenderVersion = window.JBridge.getResourceByName("pre_render_version");
-      const clientId = window.__payload.payload.clientId.split("_")[0];
+      const rawClientId = window.__payload
+        && window.__payload.payload
+        ? window.__payload.payload.clientId || window.__payload.payload.client_id || "common"
+        : "common";
+      const clientId = rawClientId.split("_")[0];
       const sdkConfigFile = JSON.parse(window.JBridge.loadFileInDUI("sdk_config.json") || "");
-      isSupported = preRenderVersion >= (sdkConfigFile.preRenderConfig[clientId] || sdkConfigFile.preRenderConfig.common)
+      if(sdkConfigFile.preRenderConfig && typeof sdkConfigFile.preRenderConfig == "object") {
+        const versionFromConfig = (sdkConfigFile.preRenderConfig[clientId] || sdkConfigFile.preRenderConfig.common || "");
+        if(versionFromConfig !== "") {
+          isSupported = preRenderVersion.localeCompare(versionFromConfig, undefined, { numeric: true, sensitivity: "base" }) >= 0;
+        }
+      }
+
     } catch(e) {
       trackExceptionWrapper("ma_pre_render_support", "error in multi-activity-pre-render support check", e);
     }
