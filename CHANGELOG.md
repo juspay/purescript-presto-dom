@@ -1,3 +1,10 @@
+## [2.1.6](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.5...v2.1.6) (2023-07-17)
+
+
+### Bug Fixes
+
+* PICAF-21974: removing and fixing code to reduce logs ([8ce96cb](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/8ce96cbaa0509e9cf4df6c4bda9d8c4a3a8258aa))
+
 ## [2.1.5](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.4...v2.1.5) (2023-07-06)
 
 
