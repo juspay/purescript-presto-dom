@@ -165,6 +165,7 @@ updateProperties namespace screenName = do
   Efn.mkEffectFn2
     $ \elem rawProps -> do
         let
+          decodedVDOM = decodeVDOM elem
           default = Efn.runEffectFn2 function rawProps elem
           aff = rawProps # unsafeCoerce
             # decode # runExcept # hush
@@ -174,14 +175,17 @@ updateProperties namespace screenName = do
                       # updateProp "fontStyle" verifyFont
                       >>= updateProp "imageUrl" (verifyImage Nothing "" )
                       >>= updateProp "placeHolder" (verifyImage Nothing "")
-                      >>= getListDataFromMapps namespace screenName elem
-                      >>= pure <<< mapProps "shadow" "cornerRadius" elem
-                      >>= pure <<< mapProps "stroke" "padding" elem
+                      >>= getListDataFromMapps namespace screenName decodedVDOM
+                      >>= pure <<< mapProps "shadow" "cornerRadius" decodedVDOM
+                      >>= pure <<< mapProps "stroke" "padding" decodedVDOM
                       <#> delete "payload"
                     if isEmpty $ delete "id" updatedProps
                       then pure unit -- Don't send if payload is the only changed key
                       else liftEffect $ Efn.runEffectFn2 function (unsafeCoerce $ encode updatedProps) elem
         fromMaybe default aff
+
+decodeVDOM :: forall a. Decode VdomTree => a -> Maybe VdomTree
+decodeVDOM elem = hush $ runExcept $ decode $ unsafeToForeign elem
 
 updateProp :: forall a. Decode a => String -> (Maybe a -> Aff (Maybe Foreign)) -> Object Foreign -> Aff (Object Foreign)
 updateProp key checkFunc props = do
@@ -189,9 +193,8 @@ updateProp key checkFunc props = do
   pure $ update (const a) key props
 
 -- Function aimed at merging mapp responses and m-app listdata
-getListDataFromMapps :: forall elem. String -> String -> elem -> Object Foreign -> Aff (Object Foreign)
-getListDataFromMapps namespace screenName elem props = do
-  let (vdomTree :: Maybe VdomTree) = hush $ runExcept $ decode $ unsafeToForeign elem
+getListDataFromMapps :: String -> String -> Maybe VdomTree -> Object Foreign -> Aff (Object Foreign)
+getListDataFromMapps namespace screenName vdomTree props = do
   case vdomTree of
     Just tree@{"type" : viewType, __ref : (Just {__id : id})} -> do
       if isListContainer viewType
@@ -214,10 +217,9 @@ getListDataFromMapps namespace screenName elem props = do
         else pure props
     _ -> pure props
 
-mapProps :: forall elem. String -> String -> elem -> Object Foreign -> (Object Foreign)
-mapProps prop mappedProp elem updatedProps =
-  let (element :: Maybe VdomTree) = hush $ runExcept $ decode $ unsafeToForeign elem
-  in case element of
+mapProps :: String -> String -> Maybe VdomTree -> Object Foreign -> (Object Foreign)
+mapProps prop mappedProp vdomTree updatedProps =
+  case vdomTree of
     Just element ->
       let (curProp :: Maybe Foreign) = extractAndDecode prop updatedProps
           (updatedMappedProp :: Maybe Foreign) = extractAndDecode mappedProp updatedProps

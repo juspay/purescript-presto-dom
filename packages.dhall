@@ -63,7 +63,7 @@ in  upstream
         , "unsafe-coerce"
         ]
       , repo = "git+ssh://git@ssh.bitbucket.juspay.net/fram/purescript-foreign-generic.git"
-      , version = "v12.0.0"
+      , version = "decode-optimization"
       }
   with presto =
         { dependencies =
