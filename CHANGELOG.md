@@ -1,3 +1,10 @@
+# [2.2.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.6...v2.2.0) (2023-07-21)
+
+
+### Features
+
+* PICAF-88888: Listitem opt ([c7df3e3](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/c7df3e37f032c72fd888639461d57134e7b304f8))
+
 ## [2.1.6](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.5...v2.1.6) (2023-07-17)
 
 
