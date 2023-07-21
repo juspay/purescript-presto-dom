@@ -1,3 +1,10 @@
+## [2.2.1](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.2.0...v2.2.1) (2023-07-21)
+
+
+### Bug Fixes
+
+* PICAF-23354: Updating foreign generic ([6562634](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/656263414bc7c2b96fe5f7bd936c75e8193d97b2))
+
 # [2.2.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.1.6...v2.2.0) (2023-07-21)
 
 
