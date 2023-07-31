@@ -1,3 +1,10 @@
+## [2.2.2](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.2.1...v2.2.2) (2023-07-31)
+
+
+### Bug Fixes
+
+* PICAF-23468: fixed negative latency logs ([f22c399](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/f22c399c362754e17b78d08adb0d488fbcda5601))
+
 ## [2.2.1](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.2.0...v2.2.1) (2023-07-21)
 
 
