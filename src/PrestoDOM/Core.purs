@@ -340,7 +340,6 @@ renderOrPatch {event, push} st@{ initialState, view, name , parent } true isCach
           _ <- liftEffect $ addTime2 "Render_addViewToParent_Start"
           makeAff \cb -> awaitRootReady ns (cb <<< Right) $> nonCanceler
           liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
-          _ <- liftEffect $ addTime2 "Render_addViewToParent_End"
           _ <- liftEffect $ performanceMeasure "Render_addViewToParent" "Render_addViewToParent_Start" "Render_addViewToParent_End"
           liftEffect $ addTime2 "AfterRender_Start"
 renderOrPatch {push} { initialState, view, name, parent } false isCache maybeMyDom = liftEffect do
@@ -492,9 +491,7 @@ runScreen st@{ name, parent, view} json = do
       else
         pure Nothing) >>=
       renderOrPatch eventIO st check false
-  _ <- liftEffect $ addTime2 "Render_renderOrPatch_End"
   _ <- liftEffect $ performanceMeasure "Render_renderOrPatch" "Render_renderOrPatch_Start" "Render_renderOrPatch_End"
-  _ <- liftEffect $ addTime2 "Render_runScreen_End"
   _ <- liftEffect $ performanceMeasure "Render_runScreen" "Render_runScreen_Start" "Render_runScreen_End"
   makeAff $ controllerActions eventIO st json (patchAndRun name parent (view eventIO.push))
 

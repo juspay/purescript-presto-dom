@@ -872,6 +872,13 @@ export const postAccess = function(nam, namespace, cache){
   getConstState(namespace).vdomCached = []
 }
 
+function storeEndlatency () {
+  let endTime = Date.now();
+  window.timeCheck["Render_runScreen_End"] = endTime;
+  window.timeCheck["Render_renderOrPatch_End"] = endTime;
+  window.timeCheck["Render_addViewToParent_End"] = endTime;
+}
+
 function executePostProcess(nam, namespace, cache) {
   return function(a) {
     if(a != undefined && typeof a == "string" && a.toLowerCase() == "failure"){
@@ -879,11 +886,12 @@ function executePostProcess(nam, namespace, cache) {
     } else {
       tracker._trackAction("system")("info")("execute_post_process")({"namespace":namespace, "name":nam, "callbackWithParam": a})();
     }
+    storeEndlatency();
     callAnimation__(nam, namespace, cache);
     processMapps(namespace, nam, 75);
     triggerAfterRender(namespace, nam);
     triggerChunkCascade(namespace, nam);
-    addTime(nam + "_Rendered")()
+    addTime(nam + "_Rendered")();
   };
 }
 
