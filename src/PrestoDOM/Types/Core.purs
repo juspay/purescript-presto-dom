@@ -34,8 +34,8 @@ import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Thunk (Thunk)
 import Halogen.VDom.Types (VDom(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
-import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font, Gradient, Gravity, InputType, Length, LetterSpacing, LineSpacing, Margin, Orientation, Padding, Position, Shadow, Shimmer, Typeface, Visibility, renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing,renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility)
-import PrestoDOM.Types.DomAttributes (BottomSheetState(..), Corners(..), Font(..), Gradient(..), Gravity(..), InputType(..), Length(..), LetterSpacing(..), LineSpacing(..), Margin(..), Orientation(..), Padding(..), Position(..), Shadow(..), Shimmer, Typeface(..), Visibility(..), renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing, renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility) as Types
+import PrestoDOM.Types.DomAttributes (FontWeight, BottomSheetState, Corners, Font, Gradient, Gravity, InputType, Length, LetterSpacing, LineSpacing, Margin, Orientation, Padding, Position, Shadow, Shimmer, Typeface, Visibility, renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing,renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility, renderFontWeight)
+import PrestoDOM.Types.DomAttributes (FontWeight(..), BottomSheetState(..), Corners(..), Font(..), Gradient(..), Gravity(..), InputType(..), Length(..), LetterSpacing(..), LineSpacing(..), Margin(..), Orientation(..), Padding(..), Position(..), Shadow(..), Shimmer, Typeface(..), Visibility(..), renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing, renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility) as Types
 {-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
 import Tracker (trackAction)
 import Tracker.Types (Level(..), Action(..)) as T
@@ -181,3 +181,6 @@ instance bottomSheetStateIsProp :: IsProp BottomSheetState where
 
 instance letterSpacingIsProp :: IsProp LetterSpacing where
   toPropValue = propFromString <<< renderLetterSpacing
+
+instance fontWeightIsProp :: IsProp FontWeight where
+  toPropValue = propFromString <<< renderFontWeight

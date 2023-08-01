@@ -1,5 +1,6 @@
 module PrestoDOM.Types.DomAttributes
   ( BottomSheetState(..)
+  , FontWeight(..)
   , Corners(..)
   , Font(..)
   , Gradient(..)
@@ -17,6 +18,7 @@ module PrestoDOM.Types.DomAttributes
   , ShimmerJson
   , Typeface(..)
   , Visibility(..)
+  , renderFontWeight
   , __IS_ANDROID
   , active
   , alphaBuilder
@@ -794,6 +796,15 @@ renderLineSpacing = case _ of
     LineSpacing extra multiplier      -> (show extra) <> "," <> (show multiplier)
     LineSpacingExtra extra            -> (show extra) <> ",1.0"
     LineSpacingMultiplier multiplier  -> "0," <> (show multiplier)
+
+data FontWeight 
+  = FontWeight Int
+  | FontWeightWithItalic Int Boolean
+
+renderFontWeight :: FontWeight -> String
+renderFontWeight = case _ of
+  FontWeight weight -> (show weight) <> "," <> "false"
+  FontWeightWithItalic weight italic -> (show weight) <> "," <> (show italic)
 
 data BottomSheetState
  = EXPANDED
