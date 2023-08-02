@@ -1672,7 +1672,7 @@ function fireManualEvent (namespace, nam) {
         }
         for (var key in state.scopedState) {
           try {
-            if(getConstState(key) && getConstState(key).registeredEvents && Object.prototype.hasOwnProperty.call(getConstState(key).registeredEvents,eventName)) {
+            if(getScopedState(key) && getConstState(key) && getConstState(key).registeredEvents && Object.prototype.hasOwnProperty.call(getConstState(key).registeredEvents,eventName)) {
               let screenName_ = getScopedState(key).activeScreen
               var isNotAnimating = getScopedState(key).activateScreen
               if(isNotAnimating && screenName_ && typeof getConstState(key).registeredEvents[eventName][screenName_] == "function")
