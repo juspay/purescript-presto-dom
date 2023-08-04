@@ -154,6 +154,7 @@ module PrestoDOM.Properties
   , translationX
   , translationY
   , translationZ
+  , zIndex
   , typeface
   , unNestPayload
   , url
@@ -338,7 +339,8 @@ dividerDrawable = prop (PropName "dividerDrawable")
 duration :: forall i. String -> Prop i
 duration = prop (PropName "duration")
 
-
+zIndex :: forall i.Number -> Prop i
+zIndex = prop (PropName "zIndex")
 
 -- | Int
 elevation :: forall i. Int -> Prop i

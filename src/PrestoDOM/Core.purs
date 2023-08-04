@@ -177,6 +177,7 @@ updateProperties namespace screenName = do
                       >>= updateProp "placeHolder" (verifyImage Nothing "")
                       >>= getListDataFromMapps namespace screenName decodedVDOM
                       >>= pure <<< mapProps "shadow" "cornerRadius" decodedVDOM
+                      >>= pure <<< mapProps "shadow" "cornerRadii" decodedVDOM
                       >>= pure <<< mapProps "stroke" "padding" decodedVDOM
                       <#> delete "payload"
                     if isEmpty $ delete "id" updatedProps

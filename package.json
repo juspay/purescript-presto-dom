@@ -11,7 +11,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "presto-ui": "git+ssh://git@ssh.bitbucket.juspay.net/picaf/presto-ui.git#v1.2.3"
+    "presto-ui": "git+ssh://git@ssh.bitbucket.juspay.net/picaf/presto-ui.git#deb137aaaf678eaa90df257683e1c0898dc1686d"
   },
   "config": {
     "commitizen": {
