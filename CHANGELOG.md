@@ -1,3 +1,10 @@
+## [2.2.3](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.2.2...v2.2.3) (2023-08-07)
+
+
+### Bug Fixes
+
+* PICAF-22620: fixing decode of int in hyper-decode ([1a9d315](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/1a9d3154de3cd58c0656820c655059a85a562e85))
+
 ## [2.2.2](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.2.1...v2.2.2) (2023-07-31)
 
 
