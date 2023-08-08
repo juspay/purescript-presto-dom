@@ -1,3 +1,10 @@
+## [2.2.4](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.2.3...v2.2.4) (2023-08-08)
+
+
+### Bug Fixes
+
+* PICAF-20717: Added Corner Radii fix with shadow + zindex support ([539b08a](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/539b08a0d354961c330706a8e72a63c326cc3cec))
+
 ## [2.2.3](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.2.2...v2.2.3) (2023-08-07)
 
 
