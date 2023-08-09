@@ -34,8 +34,8 @@ import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Thunk (Thunk)
 import Halogen.VDom.Types (VDom(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
-import PrestoDOM.Types.DomAttributes (FontWeight, BottomSheetState, Corners, Font, Gradient, Gravity, InputType, Length, LetterSpacing, LineSpacing, Margin, Orientation, Padding, Position, Shadow, Shimmer, Typeface, Visibility, renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing,renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility, renderFontWeight)
-import PrestoDOM.Types.DomAttributes (FontWeight(..), BottomSheetState(..), Corners(..), Font(..), Gradient(..), Gravity(..), InputType(..), Length(..), LetterSpacing(..), LineSpacing(..), Margin(..), Orientation(..), Padding(..), Position(..), Shadow(..), Shimmer, Typeface(..), Visibility(..), renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing, renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility) as Types
+import PrestoDOM.Types.DomAttributes (FontWeight, BottomSheetState, Corners, Font, Gradient, Gravity, InputType, Length, LetterSpacing, LineSpacing, Margin, Orientation, Padding, Position, Shadow, Shimmer, Typeface, Visibility, Accessiblity, renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing,renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility, renderFontWeight, renderAccessiblity)
+import PrestoDOM.Types.DomAttributes (FontWeight(..), BottomSheetState(..), Corners(..), Font(..), Gradient(..), Gravity(..), InputType(..), Length(..), LetterSpacing(..), LineSpacing(..), Margin(..), Orientation(..), Padding(..), Position(..), Shadow(..), Shimmer, Typeface(..), Visibility(..), Accessiblity(..), renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing, renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility, renderAccessiblity) as Types
 {-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
 import Tracker (trackAction)
 import Tracker.Types (Level(..), Action(..)) as T
@@ -75,6 +75,7 @@ data GenProp
     | TextP String
     | ShadowP Shadow
     | CornersP Corners
+    | AccessiblityP Accessiblity
 
 
 type Screen action state returnType = ScreenBase action state returnType (view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit)))
@@ -184,3 +185,6 @@ instance letterSpacingIsProp :: IsProp LetterSpacing where
 
 instance fontWeightIsProp :: IsProp FontWeight where
   toPropValue = propFromString <<< renderFontWeight
+
+instance accessiblityIsProp :: IsProp Accessiblity where
+  toPropValue = propFromString <<< renderAccessiblity

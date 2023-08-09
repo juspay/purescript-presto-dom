@@ -8,6 +8,7 @@ module PrestoDOM.Properties.GetChildProps
     , absolute_p
     , accessibilityHint_p
     , accessibilityImportance_p
+    -- , accessibilityFocusable_p
     , adjustViewBounds_p
     , alpha_p
 
@@ -138,7 +139,7 @@ import Data.Maybe (Maybe(..))
 import Foreign.Object (Object, lookup)
 
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.Core (class IsProp, Gravity, InputType, Length, Margin, Orientation, Padding, Font, Shadow, Typeface, Visibility, toPropValue, GenProp(..))
+import PrestoDOM.Types.Core (class IsProp, Gravity, InputType, Length, Margin, Orientation, Padding, Font, Shadow, Typeface, Visibility, Accessiblity, toPropValue, GenProp(..))
 
 fromGenProp :: forall a i. IsProp a => String -> a -> Object GenProp -> Prop i
 fromGenProp key default strMap = let value = lookup key strMap
@@ -160,6 +161,7 @@ fromGenProp key default strMap = let value = lookup key strMap
                                   Just (TextP v) -> Property "text" $ toPropValue v
                                   Just (CornersP v) -> Property key $ toPropValue v
                                   Just (FontP v) -> Property key $ toPropValue v
+                                  Just (AccessiblityP v) -> Property key $ toPropValue v
                                   Nothing -> Property key $ toPropValue default
 
 
@@ -187,8 +189,9 @@ absolute_p = fromGenProp "absolute"
 accessibilityHint_p :: forall i. String -> Object GenProp -> Prop i
 accessibilityHint_p = fromGenProp "accessibilityHint"
 
--- | Int
-accessibilityImportance_p :: forall i. Int -> Object GenProp -> Prop i
+
+-- | Accessiblity
+accessibilityImportance_p :: forall i. Accessiblity -> Object GenProp -> Prop i
 accessibilityImportance_p = fromGenProp "accessibilityImportance"
 
 -- | Boolean

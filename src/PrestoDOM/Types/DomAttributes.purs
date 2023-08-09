@@ -18,6 +18,7 @@ module PrestoDOM.Types.DomAttributes
   , ShimmerJson
   , Typeface(..)
   , Visibility(..)
+  , Accessiblity(..)
   , renderFontWeight
   , __IS_ANDROID
   , active
@@ -50,6 +51,7 @@ module PrestoDOM.Types.DomAttributes
   , renderShimmer
   , renderTypeface
   , renderVisibility
+  , renderAccessiblity
   , repeatCount
   , repeatDelay
   , shape
@@ -72,6 +74,7 @@ module PrestoDOM.Types.DomAttributes
   , decodeLetterSpacingUtil
   , decodePositionUtil
   , decodeTypefaceUtil
+  , decodeAccessiblityUtil
   )
   where
 
@@ -982,3 +985,34 @@ renderLetterSpacing =
     func pre suff = case __IS_WEB unit of
       true  -> pre <> suff
       false -> pre
+
+-- accessibilityImportance:
+
+-- type: 'i'
+-- disable_accessibility: 2 
+-- enable_accessibility: 1
+
+data Accessiblity
+  = ENABLE
+  | DISABLE
+
+derive instance genericAccessiblity:: Generic Accessiblity _
+instance decodeAccessiblity :: Decode Accessiblity where decode = decodeAccessiblityUtil <<< toSafeString <<< unsafeFromForeign
+instance showAccessiblity:: Show Accessiblity where show = genericShow
+instance encodeAccessiblity :: Encode Accessiblity where encode = renderAccessiblity >>> unsafeToForeign
+
+decodeAccessiblityUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a Accessiblity
+decodeAccessiblityUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "Accessiblity is not defined"
+  else
+    except $
+    case toLower json of
+      "enable_accessibility"    -> Right ENABLE
+      "disable_accessibility"   -> Right DISABLE
+      _             -> (Left <<< singleton <<< ForeignError) "Accessiblity is not supported"
+
+renderAccessiblity :: Accessiblity -> String
+renderAccessiblity = case _ of
+    ENABLE -> "enable_accessibility"
+    DISABLE -> "disable_accessibility"

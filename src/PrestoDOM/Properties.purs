@@ -177,7 +177,7 @@ import Prelude
 import Data.String (toLower)
 import Halogen.VDom.DOM.Prop (Prop(..))
 import PrestoDOM.Types.Core (class IsProp, Gradient, Gravity, InputType, Length, Margin, Orientation, Padding, Position, PropName(..), FontWeight, Shadow, Typeface, Visibility, toPropValue)
-import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font(..),LetterSpacing, LineSpacing, Shimmer, __IS_ANDROID)
+import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font(..),LetterSpacing,Accessiblity, LineSpacing, Shimmer, __IS_ANDROID)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
@@ -222,9 +222,8 @@ absolute = prop (PropName "absolute")
 accessibilityHint :: forall i. String -> Prop i
 accessibilityHint = prop (PropName "accessibilityHint")
 
-
--- | Int
-accessibilityImportance :: forall i. Int -> Prop i
+-- | Accessiblity: enable_accessibility, disable_accessibility
+accessibilityImportance :: forall i. Accessiblity -> Prop i
 accessibilityImportance = prop (PropName "accessibilityImportance")
 
 -- | Boolean

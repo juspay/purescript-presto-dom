@@ -134,7 +134,7 @@ module PrestoDOM.Properties.SetChildProps
 import Prelude
 
 import Data.Tuple (Tuple(..))
-import PrestoDOM.Types.Core (Gravity, InputType, Length, Margin, Font, Orientation, Padding, Position, Shadow, Typeface, Visibility, GenProp(..))
+import PrestoDOM.Types.Core (Gravity, InputType, Length, Margin, Font, Orientation, Padding, Position, Shadow, Typeface, Visibility, Accessiblity, GenProp(..))
 
 
 override_c :: String -> String -> Tuple String GenProp
@@ -162,9 +162,9 @@ absolute_c = Tuple "absolute" <<< BooleanP
 accessibilityHint_c :: String -> Tuple String GenProp
 accessibilityHint_c = Tuple "accessibilityHint" <<< StringP
 
--- | Int
-accessibilityImportance_c :: Int -> Tuple String GenProp
-accessibilityImportance_c = Tuple "accessibilityImportance" <<< IntP
+-- | Accessiblity: enable_accessibility, disable_accessibility
+accessibilityImportance_c :: Accessiblity -> Tuple String GenProp
+accessibilityImportance_c = Tuple "accessibilityImportance" <<< AccessiblityP
 
 -- | Boolean
 adjustViewBounds_c :: Boolean -> Tuple String GenProp
