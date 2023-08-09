@@ -7,6 +7,7 @@ module PrestoDOM.Properties.GetChildProps
     , a_scaleY_p
     , absolute_p
     , accessibilityHint_p
+    , accessibilityImportance_p
     , adjustViewBounds_p
     , alpha_p
 
@@ -185,6 +186,10 @@ absolute_p = fromGenProp "absolute"
 -- | String
 accessibilityHint_p :: forall i. String -> Object GenProp -> Prop i
 accessibilityHint_p = fromGenProp "accessibilityHint"
+
+-- | Int
+accessibilityImportance_p :: forall i. Int -> Object GenProp -> Prop i
+accessibilityImportance_p = fromGenProp "accessibilityImportance"
 
 -- | Boolean
 adjustViewBounds_p :: forall i. Boolean -> Object GenProp -> Prop i

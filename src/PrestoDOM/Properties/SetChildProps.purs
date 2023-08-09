@@ -7,6 +7,7 @@ module PrestoDOM.Properties.SetChildProps
     , a_scaleY_c
     , absolute_c
     , accessibilityHint_c
+    , accessibilityImportance_c
     , adjustViewBounds_c
     , alpha_c
 
@@ -160,6 +161,10 @@ absolute_c = Tuple "absolute" <<< BooleanP
 -- | String
 accessibilityHint_c :: String -> Tuple String GenProp
 accessibilityHint_c = Tuple "accessibilityHint" <<< StringP
+
+-- | Int
+accessibilityImportance_c :: Int -> Tuple String GenProp
+accessibilityImportance_c = Tuple "accessibilityImportance" <<< IntP
 
 -- | Boolean
 adjustViewBounds_c :: Boolean -> Tuple String GenProp
