@@ -27,6 +27,7 @@ module PrestoDOM.Events
     , onStateChanged
     , MouseEventProperties
     , mouseEventOnClick
+    , onInspectClick
     ) where
 
 import Prelude
@@ -60,6 +61,7 @@ foreign import getScrollPush :: forall a. String -> Effect (a -> Effect Unit)
 foreign import timeOutScroll :: String -> Effect Unit -> Effect Unit
 foreign import getLastTimeStamp :: String -> Effect Number
 foreign import setLastTimeStamp :: String -> Effect Unit
+foreign import emitComponentConfig :: String -> Effect Unit
 
 
 {-- foreign import saveCanceler --}
@@ -85,6 +87,11 @@ makeEvent push = \ev -> do
     _ <- push (U.unsafeCoerce ev)
     pure unit
 
+makeEvent' :: forall a. (a -> Effect Unit ) -> String -> (DOM.Event → Effect Unit)
+makeEvent' push s = \_ -> do
+    _ <- push (U.unsafeCoerce s)
+    pure unit
+
 backPressHandler :: (DOM.Event → Effect Unit)
 backPressHandler = \_ -> do
     _ <- backPressHandlerImpl
@@ -92,6 +99,9 @@ backPressHandler = \_ -> do
 
 onClick :: forall a. (a ->  Effect Unit) -> (Unit -> a) -> Prop (Effect Unit)
 onClick push f = event (DOM.EventType "onClick") (Just <<< (makeEvent (push <<< f)))
+
+onInspectClick :: String -> Prop (Effect Unit)
+onInspectClick f = event (DOM.EventType "onInspectClick") (Just <<< (makeEvent' emitComponentConfig f))
 
 mouseEventOnClick :: (Maybe MouseEventProperties -> Effect Unit) -> Prop (Effect Unit)
 mouseEventOnClick effFn = event (DOM.EventType "onClick") (Just <<< \evnt -> effFn $ hush $ runExcept $ decode $ unsafeToForeign evnt)

@@ -88,3 +88,13 @@ export const fireManualEvent = function (eventName) {
     }
   }
 };
+
+export const emitComponentConfig = function (json) {
+  return function () {
+    const componentConfigPath = {
+      event: "componentConfigPath",
+      payload: JSON.stringify({json})
+    }
+    window.JBridge.runInJuspayBrowser("onEvent", JSON.stringify(componentConfigPath), "");
+  }
+}
