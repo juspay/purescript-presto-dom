@@ -995,6 +995,7 @@ renderLetterSpacing =
 data Accessiblity
   = ENABLE
   | DISABLE
+  | DISABLE_DESCENDANT
 
 derive instance genericAccessiblity:: Generic Accessiblity _
 instance decodeAccessiblity :: Decode Accessiblity where decode = decodeAccessiblityUtil <<< toSafeString <<< unsafeFromForeign
@@ -1010,9 +1011,11 @@ decodeAccessiblityUtil json =
     case toLower json of
       "enable_accessibility"    -> Right ENABLE
       "disable_accessibility"   -> Right DISABLE
+      "disable_descendant_accessibility" -> Right DISABLE_DESCENDANT
       _             -> (Left <<< singleton <<< ForeignError) "Accessiblity is not supported"
 
 renderAccessiblity :: Accessiblity -> String
 renderAccessiblity = case _ of
     ENABLE -> "enable_accessibility"
     DISABLE -> "disable_accessibility"
+    DISABLE_DESCENDANT -> "disable_descendant_accessibility"
