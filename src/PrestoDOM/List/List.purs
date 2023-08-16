@@ -11,6 +11,7 @@ module PrestoDOM.List
   , listItem
   , onItemClick
   , onClickHolder
+  , onClickHolder'
   , textHolder
   , colorHolder
   , imageUrlHolder
@@ -61,7 +62,7 @@ import PrestoDOM.Core.Types (ListItemType, VdomTree)
 import PrestoDOM.Core.Utils (callbackMapper, setDebounceToCallback, callMicroAppList, generateCommands,extractAndDecode)
 import PrestoDOM.Core (createPrestoElement)
 import PrestoDOM.Elements.Elements (element)
-import PrestoDOM.Events (makeEvent)
+import PrestoDOM.Events (makeEvent, emitComponentConfig)
 import PrestoDOM.Properties (prop)
 import PrestoDOM.Types.Core (toPropValue, PrestoDOM)
 import Type.Row.Homogeneous (class Homogeneous)
@@ -249,6 +250,9 @@ listItem val = P.Nopatch "listItem" $ toPropValue $ encode $ getValueFromListIte
 
 onClickHolder :: forall action i. (action -> Effect Unit) -> (Int -> action) -> P.Prop i
 onClickHolder push action = prop (PropName "holder_onClick") $ createOnclick $ push <<< action
+
+onClickHolder' :: forall action i. String -> P.Prop i
+onClickHolder' path = prop (PropName "holder_onInspectClick") $ createOnclick $ (\x -> emitComponentConfig path)
 
 createOnclick :: (Int -> Effect Unit) -> String
 createOnclick = setDebounceToCallback <<< callbackMapper <<< EFn.mkEffectFn1

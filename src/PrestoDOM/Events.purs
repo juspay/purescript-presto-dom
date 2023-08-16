@@ -28,6 +28,7 @@ module PrestoDOM.Events
     , MouseEventProperties
     , mouseEventOnClick
     , onInspectClick
+    , emitComponentConfig
     ) where
 
 import Prelude

@@ -2036,7 +2036,7 @@ const isURL = function (str) {
 }
 
 export const getListDataCommands = function (listData, element) {
-  var x = ["background", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "text", "color", "onClick"]
+  var x = ["background", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "text", "color", "onClick", "onInspectClick"]
   if(window.__OS == "IOS" ){
     x.push("testID");
   }
