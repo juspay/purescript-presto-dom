@@ -1,3 +1,10 @@
+## [2.2.5](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.2.4...v2.2.5) (2023-08-21)
+
+
+### Bug Fixes
+
+* PICAF-23822: Remove uncaught JS expection when scoped state is not ([ee129df](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/ee129df4c0c8f3f21712cba05c8ef31b042e0bdb))
+
 ## [2.2.4](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.2.3...v2.2.4) (2023-08-08)
 
 
