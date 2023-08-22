@@ -159,6 +159,7 @@ fromGenProp key default strMap = let value = lookup key strMap
                                   Just (TextP v) -> Property "text" $ toPropValue v
                                   Just (CornersP v) -> Property key $ toPropValue v
                                   Just (FontP v) -> Property key $ toPropValue v
+                                  Just (AccessiblityP v) -> Property key $ toPropValue v
                                   Nothing -> Property key $ toPropValue default
 
 

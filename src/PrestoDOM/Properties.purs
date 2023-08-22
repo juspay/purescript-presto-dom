@@ -6,6 +6,8 @@ module PrestoDOM.Properties
   , a_translationY
   , absolute
   , accessibilityHint
+  , accessibilityImportance
+  , accessibilityFocusable
   , adjustViewBounds
   , adjustViewWithKeyboard
   , autoCapitalizationType
@@ -175,7 +177,7 @@ import Prelude
 import Data.String (toLower)
 import Halogen.VDom.DOM.Prop (Prop(..))
 import PrestoDOM.Types.Core (class IsProp, Gradient, Gravity, InputType, Length, Margin, Orientation, Padding, Position, PropName(..), Shadow, Typeface, Visibility, toPropValue)
-import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font(..),LetterSpacing, LineSpacing, Shimmer, __IS_ANDROID)
+import PrestoDOM.Types.DomAttributes (BottomSheetState, Corners, Font(..),LetterSpacing, LineSpacing, Accessiblity, Shimmer, __IS_ANDROID)
 
 
 prop :: forall value i. IsProp value => PropName value -> value -> Prop i
@@ -219,6 +221,15 @@ absolute = prop (PropName "absolute")
 -- | String
 accessibilityHint :: forall i. String -> Prop i
 accessibilityHint = prop (PropName "accessibilityHint")
+
+
+-- | Accessiblity = ENABLE | DISABLE | DISABLE_DESCENDANT 
+accessibilityImportance :: forall i. Accessiblity -> Prop i
+accessibilityImportance = prop (PropName "accessibilityImportance")
+
+-- | Boolean
+accessibilityFocusable :: forall i. Boolean -> Prop i
+accessibilityFocusable = prop (PropName "accessibilityFocusable")
 
 -- | Boolean
 adjustViewBounds :: forall i. Boolean -> Prop i
