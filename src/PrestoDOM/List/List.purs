@@ -251,8 +251,8 @@ listItem val = P.Nopatch "listItem" $ toPropValue $ encode $ getValueFromListIte
 onClickHolder :: forall action i. (action -> Effect Unit) -> (Int -> action) -> P.Prop i
 onClickHolder push action = prop (PropName "holder_onClick") $ createOnclick $ push <<< action
 
-onClickHolder' :: forall action i. String -> P.Prop i
-onClickHolder' path = prop (PropName "holder_onInspectClick") $ createOnclick $ (\x -> emitComponentConfig path)
+onClickHolder' :: forall i. String -> P.Prop i
+onClickHolder' path = prop (PropName "holder_onInspectClick") $ createOnclick $ (\_ -> emitComponentConfig path)
 
 createOnclick :: (Int -> Effect Unit) -> String
 createOnclick = setDebounceToCallback <<< callbackMapper <<< EFn.mkEffectFn1
