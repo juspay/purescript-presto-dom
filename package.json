@@ -1,6 +1,6 @@
 {
   "name": "purescript-presto-dom",
-  "version": "2.2.5",
+  "version": "2.3.0",
   "private": true,
   "scripts": {
     "start": "spago build -w --before 'npm run eslint' --purs-args '--censor-lib --strict'",

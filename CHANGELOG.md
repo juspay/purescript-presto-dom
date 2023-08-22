@@ -1,3 +1,10 @@
+# [2.3.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.2.5...v2.3.0) (2023-08-22)
+
+
+### Features
+
+* PICAF-23893: Added accessibility properties ([ed20fbc](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/ed20fbcdcbdfd02f71e89105149fcced48cdce62))
+
 ## [2.2.5](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.2.4...v2.2.5) (2023-08-21)
 
 
