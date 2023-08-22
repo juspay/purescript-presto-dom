@@ -91,6 +91,9 @@ export const fireManualEvent = function (eventName) {
 
 export const emitComponentConfig = function (json) {
   return function () {
+    if (!window.__isInspectMode) {
+      return;
+    }
     const componentConfigPath = {
       event: "componentConfigPath",
       payload: JSON.stringify({json})
