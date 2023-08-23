@@ -91,6 +91,7 @@ export const fireManualEvent = function (eventName) {
 
 export const emitComponentConfig = function (json) {
   return function () {
+    // window.__isInspectMode is being set in HW on receiving the event `inspectMode` from SDK.
     if (!window.__isInspectMode) {
       return;
     }
