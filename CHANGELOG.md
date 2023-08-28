@@ -1,3 +1,10 @@
+# [2.4.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.3.0...v2.4.0) (2023-08-28)
+
+
+### Features
+
+* PICAF-23275: Icons V2 Version Change ([6c08c2e](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/6c08c2e7df3ce62c9ac79a011682f8ab6cedd84a))
+
 # [2.3.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.2.5...v2.3.0) (2023-08-22)
 
 
