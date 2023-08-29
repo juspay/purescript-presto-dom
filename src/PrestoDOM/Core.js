@@ -2049,6 +2049,7 @@ export const getListDataCommands = function (listData, element) {
   var x = ["background", "imageUrl", "visibility", "fontStyle", "textSize", "packageIcon", "alpha", "text", "color", "onClick", "onInspectClick"]
   if(window.__OS == "IOS" ){
     x.push("testID");
+    x.push("textFromHtml");
   }
   var y = [];
   var keyPropMap = state.listViewKeys[element.__ref.__id]
