@@ -932,6 +932,10 @@ data BottomSheetState
  | HIDDEN
  | HALF_EXPANDED
 
+derive instance genericBottomSheetState :: Generic BottomSheetState _
+derive instance eqBottomSheetState :: Eq BottomSheetState
+instance showBottomSheetState :: Show BottomSheetState where show = genericShow
+
 renderBottomSheetState :: BottomSheetState -> String
 renderBottomSheetState EXPANDED = "expanded"
 renderBottomSheetState COLLAPSED = "collapsed"
@@ -1105,7 +1109,7 @@ renderLetterSpacing =
       false -> pre
 
 
--- accessibilityImportance:
+-- accessibility:
 
 -- type: 'i'
 -- disable_accessibility: 2
