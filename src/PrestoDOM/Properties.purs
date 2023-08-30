@@ -6,7 +6,7 @@ module PrestoDOM.Properties
   , a_translationY
   , absolute
   , accessibilityHint
-  , accessibilityImportance
+  , accessibility
   , accessibilityFocusable
   , adjustViewBounds
   , adjustViewWithKeyboard
@@ -232,8 +232,8 @@ accessibilityHint = prop (PropName "accessibilityHint")
 
 
 -- | Accessiblity = ENABLE | DISABLE | DISABLE_DESCENDANT 
-accessibilityImportance :: forall i. Accessiblity -> Prop i
-accessibilityImportance = prop (PropName "accessibilityImportance")
+accessibility :: forall i. Accessiblity -> Prop i
+accessibility = prop (PropName "accessibility")
 
 -- | Boolean
 accessibilityFocusable :: forall i. Boolean -> Prop i
