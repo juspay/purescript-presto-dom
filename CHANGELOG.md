@@ -1,3 +1,14 @@
+## [2.4.1](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.4.0...v2.4.1) (2023-09-04)
+
+
+### Bug Fixes
+
+* PICAF-23966: adding inspect mode ([11f9376](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/11f9376a8e028df2678cf095d7dd1a964bf162b1))
+* PICAF-23966: adding inspect mode ([209dece](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/209decef041bf6071256b3010e49ac271df3a284))
+* PICAF-23966: adding inspect mode ([07bc4fd](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/07bc4fd349fca0b95d58ebfdae6e8d0fb3aef868))
+* PICAF-23966: adding onInspect click ([2353445](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/23534451986ceee0e699e42a744c028cee13064d))
+* PICAF-23966: comments ([cae0dca](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/cae0dcaa885fb58c2e49442c34d0cacbd1ddadc2))
+
 # [2.4.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.3.0...v2.4.0) (2023-08-28)
 
 
