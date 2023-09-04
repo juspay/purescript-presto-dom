@@ -192,7 +192,7 @@ accessibilityHint_p = fromGenProp "accessibilityHint"
 
 -- | Accessiblity
 accessibilityImportance_p :: forall i. Accessiblity -> Object GenProp -> Prop i
-accessibilityImportance_p = fromGenProp "accessibilityImportance"
+accessibilityImportance_p = fromGenProp "accessibility"
 
 -- | Boolean
 adjustViewBounds_p :: forall i. Boolean -> Object GenProp -> Prop i

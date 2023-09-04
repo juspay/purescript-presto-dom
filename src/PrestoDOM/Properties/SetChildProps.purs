@@ -164,7 +164,7 @@ accessibilityHint_c = Tuple "accessibilityHint" <<< StringP
 
 -- | Accessiblity: enable_accessibility, disable_accessibility
 accessibilityImportance_c :: Accessiblity -> Tuple String GenProp
-accessibilityImportance_c = Tuple "accessibilityImportance" <<< AccessiblityP
+accessibilityImportance_c = Tuple "accessibility" <<< AccessiblityP
 
 -- | Boolean
 adjustViewBounds_c :: Boolean -> Tuple String GenProp
