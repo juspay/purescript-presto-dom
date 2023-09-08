@@ -69,7 +69,7 @@ import PrestoDOM.Core.Utils (os)
 import PrestoDOM.Properties (prop)
 import PrestoDOM.Types.Core (PropName(PropName), VDom(Keyed, Elem), PrestoDOM)
 import PrestoDOM.Types.DomAttributes (isUndefined, toSafeString, toSafeArray, toSafeObject, toSafeInt)
-import HyperDecode (class HyperDecode, decodeForeign)
+import HyperDecode (class HyperDecode, decodeForeign, hyperDecode)
 import DecodedVal (DecodedVal(..))
 
 foreign import _mergeAnimation :: forall a. a -> String
@@ -172,6 +172,7 @@ instance hyperDecodeInterpolator :: HyperDecode Interpolator where
                   "bounce"    -> success Bounce
                   _           -> failure "Interpolator is not supported"
             DecodeErr err -> failure err
+    partialDecode _ = hyperDecode
 -- | Repeat Mode
 instance decodeRepeatMode :: Decode RepeatMode where decode = decodeRepeatModeUtil <<< toSafeString <<< unsafeFromForeign
 
@@ -197,6 +198,7 @@ instance hyperDecodeRepeatMode :: HyperDecode RepeatMode where
                 _         -> failure "Repeat Mode is not supported"
         where
         safeStr = toSafeString $ unsafeFromForeign obj
+    partialDecode _ = hyperDecode
 
 
 instance encodeRepeatMode :: Encode RepeatMode where encode = encodeRepeatModeUtil
@@ -234,6 +236,7 @@ instance hyperDecodeRepeatCount :: HyperDecode RepeatCount where
                   "norepeat"  -> success NoRepeat
                   "infinite"  -> success Infinite
                   _           -> failure "Repeat Count is not supported"
+    partialDecode _ = hyperDecode
 
 
 

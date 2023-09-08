@@ -15,7 +15,7 @@ import PrestoDOM.Types.Core (PrestoDOM)
 import Presto.Core.Utils.Encoding (defaultDecode, defaultEncode)
 import Data.Newtype (class Newtype)
 import Data.Generic.Rep (class Generic)
-import HyperDecode (class HyperDecode, decodeForeign)
+import HyperDecode (class HyperDecode, decodeForeign, hyperDecode)
 import DecodedVal (DecodedVal(..))
 
 -- Changing types to unify types for all screens
@@ -34,7 +34,7 @@ makeEvent = unsafeCoerce
 unEvent :: forall a. Event -> EventIO a
 unEvent = unsafeCoerce
 
-type NameSpaceState w i = 
+type NameSpaceState w i =
   { id :: Maybe String
   , root :: PrestoDOM w i
   , machineMap :: Object Machine
@@ -104,11 +104,11 @@ type VdomTree = {
     , elemType :: Maybe String
     , keyId :: Maybe String
     }
-newtype Child = Child 
-  { keyId :: Maybe String, 
-    type :: String, 
-    children :: Array (Foreign), 
-    props :: Foreign, 
+newtype Child = Child
+  { keyId :: Maybe String,
+    type :: String,
+    children :: Array (Foreign),
+    props :: Foreign,
     elemType :: Maybe String
   }
 
@@ -124,7 +124,7 @@ instance encodeChild :: Encode Child where encode = defaultEncode
 -- requestId
 -- service
 -- Children Array DOM.Node
-data NodeTree 
+data NodeTree
   = NodeTree {
       "type" :: String
     , children :: Array NodeTree
@@ -135,7 +135,7 @@ data NodeTree
   | NodeEnd
 
 instance decodeNodeTree :: Decode NodeTree where
-  decode a = 
+  decode a =
     NodeTree <$> decode a -- TRY TO DECODE TO NODE
     <|> pure NodeEnd -- IF DECODE FAILS; DONT FAIL ENTIRE TREE; ALWAYS FALLBACK TO END
 
@@ -145,6 +145,7 @@ instance hyperDecodeNodeTree :: HyperDecode NodeTree where
     case decodeForeign obj of
         Val x -> NodeTree x
         _     -> NodeEnd
+  partialDecode _ = hyperDecode
 
 type InsertState =
   { rootId :: Foreign

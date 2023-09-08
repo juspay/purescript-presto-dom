@@ -98,7 +98,7 @@ import Presto.Core.Utils.Encoding (defaultEncodeJSON)
 import Foreign.Generic (decodeJSON)
 import Foreign.Index (readProp)
 import Control.Alt ((<|>))
-import HyperDecode (class HyperDecode, decodeForeign)
+import HyperDecode (class HyperDecode, decodeForeign, hyperDecode)
 import DecodedVal (DecodedVal(..))
 
 foreign import stringifyGradient :: Fn3 String Number (Array String) String
@@ -161,6 +161,7 @@ instance hyperDecodLength :: HyperDecode Length where
                         "match_parent" -> success MATCH_PARENT
                         "wrap_content" -> success WRAP_CONTENT
                         other          -> toSafeInt V other failure success
+    partialDecode _ = hyperDecode
 
 instance showLength :: Show Length where show = genericShow
 instance encodeLength :: Encode Length where encode = renderLength >>> unsafeToForeign
@@ -204,6 +205,7 @@ instance hyperDeocodePosition :: HyperDecode Position where
              _           -> failure "Position is not supported"
         where
             safeStr = toSafeString $ unsafeFromForeign obj
+    partialDecode _ = hyperDecode
 instance showPosition :: Show Position where show = genericShow
 instance encodePosition :: Encode Position where encode = renderPosition >>> unsafeToForeign
 
@@ -246,6 +248,7 @@ instance hyperdecodeMargin :: HyperDecode Margin where
         toSafeArray Margin safeStr failure success ["int", "int", "int", "int"]
         where
             safeStr = unsafeFromForeign obj
+    partialDecode _ = hyperDecode
 instance encodeMargin :: Encode Margin where encode = encodeMarginUtil
 instance showMargin :: Show Margin where show = genericShow
 
@@ -298,6 +301,7 @@ instance decodePaddinghyper :: HyperDecode Padding where
     hyperDecode obj success failure =
      toSafeArray Padding safeStr failure success ["int", "int", "int", "int"]
      where safeStr = unsafeFromForeign obj
+    partialDecode _ = hyperDecode
 instance encodePadding :: Encode Padding where encode = encodePaddingUtil
 instance showPadding :: Show Padding where show = genericShow
 
@@ -368,6 +372,7 @@ instance yperdecodeInputTypeh :: HyperDecode InputType where
                      "telephone"       -> success Telephone
                      _                 -> failure "Input Type is not supported"
         where safeStr = toSafeString $ unsafeFromForeign obj
+    partialDecode _ = hyperDecode
 instance showInputType :: Show InputType where show = genericShow
 instance encodeInputType :: Encode InputType where encode = encodeInputTypeUtil >>> unsafeToForeign
 
@@ -423,6 +428,7 @@ instance decodeOrientationhyper :: HyperDecode Orientation where
                    "vertical"    -> success VERTICAL
                    _             -> failure "Orientation is not supported"
         where safeStr = toSafeString $ unsafeFromForeign obj
+    partialDecode _ = hyperDecode
 instance showOrientation:: Show Orientation where show = genericShow
 instance encodeOrientation :: Encode Orientation where encode = renderOrientation >>> unsafeToForeign
 
@@ -470,6 +476,7 @@ instance hyperdecodeTypeface :: HyperDecode Typeface where
               "bold_italic"   -> success BOLD_ITALIC
               _              -> failure "Type face is not supported"
         where safeStr = toSafeString $ unsafeFromForeign obj
+    partialDecode _ = hyperDecode
 instance showTypeface :: Show Typeface where show = genericShow
 instance encodeTypeface :: Encode Typeface where encode = renderTypeface >>> unsafeToForeign
 
@@ -517,6 +524,7 @@ instance decodeVisibilityhyper :: HyperDecode Visibility where
                    "gone"        -> success GONE
                    _             -> failure "Visibility is not supported"
         where safeStr = toSafeString $ unsafeFromForeign obj
+    partialDecode _ = hyperDecode
 instance showVisibility:: Show Visibility where show = genericShow
 instance encodeVisibility :: Encode Visibility where encode = renderVisibility >>> unsafeToForeign
 
@@ -582,6 +590,7 @@ instance hyperdecodeGravity :: HyperDecode Gravity where
               "stretch"             -> success STRETCH
               _                     -> failure "Gravity is not supported"
         where safeStr = toSafeString $ unsafeFromForeign obj
+    partialDecode _ = hyperDecode
 instance encodeGravity :: Encode Gravity where encode = renderGravity >>> unsafeToForeign
 instance showGravity:: Show Gravity where show = genericShow
 
@@ -645,6 +654,7 @@ instance decodeGradienthyper :: HyperDecode Gradient where
                   "linear" ->  success $ Linear angle g.values
                   "radial" ->  success $ Radial g.values
                   _        ->  if angle < 0.0 then success $ Radial g.values else success $ Linear angle g.values
+    partialDecode _ = hyperDecode
 
 instance encodeGradient :: Encode Gradient where encode = encodeGradientUtil >>> encode
 
@@ -686,6 +696,7 @@ instance hyperdecodeShadow:: HyperDecode Shadow where
         toSafeArray
             Shadow safeStr failure success ["number", "number", "number", "number", "string", "number"]
         where safeStr = unsafeFromForeign obj
+    partialDecode _ = hyperDecode
 instance encodeShadow:: Encode Shadow where encode = encodeShadowUtil >>> unsafeToForeign
 instance showShadow :: Show Shadow where show = genericShow
 
@@ -711,6 +722,7 @@ instance decodeCornershyper :: HyperDecode Corners where
         toSafeArray
             Corners safeStr failure success ["number", "boolean", "boolean", "boolean", "boolean"]
         where safeStr = unsafeFromForeign obj
+    partialDecode _ = hyperDecode
 instance encodeCorners :: Encode Corners where encode = encodeCornersUtil >>> unsafeToForeign
 instance showCorners :: Show Corners where show = genericShow
 
@@ -758,6 +770,7 @@ instance hyperdecodeFont:: HyperDecode Font where
                     _           -> failure "Font type is not supported"
         where
             (parsedFont :: DecodedVal FontType) = decodeForeign obj
+    partialDecode _ = hyperDecode
 instance showFont:: Show Font where show = genericShow
 instance encodeFont :: Encode Font where encode = encodeFontUtil >>> unsafeToForeign
 
@@ -823,6 +836,7 @@ instance hyperdecodeImageUrl :: HyperDecode ImageUrl where
         DecodeErr err -> failure err
       where
       val = decodeForeign o
+    partialDecode _ = hyperDecode
 
 derive instance genericImageUrl :: Generic ImageUrl _
 instance decodeImageUrl :: Decode ImageUrl
@@ -1035,6 +1049,7 @@ instance hyperdecodeLetterSpacing :: HyperDecode LetterSpacing where
           else
             toSafeNumber PX safeStr failure success
         where safeStr = toSafeString $ unsafeFromForeign obj
+    partialDecode _ = hyperDecode
 instance showLetterSpacing :: Show LetterSpacing where show = genericShow
 instance encodeLetterSpacing :: Encode LetterSpacing where encode = renderLetterSpacing >>> unsafeToForeign
 
@@ -1060,7 +1075,7 @@ renderLetterSpacing =
 -- accessibilityImportance:
 
 -- type: 'i'
--- disable_accessibility: 2 
+-- disable_accessibility: 2
 -- enable_accessibility: 1
 -- disable_descendant_accessibility : 4
 

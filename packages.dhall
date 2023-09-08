@@ -23,7 +23,7 @@ in  upstream
         { dependencies =
             [ "effect"
             , "prelude"
-            , "presto" 
+            , "presto"
             , "arrays"
             , "debug"
             , "foldable-traversable"
@@ -87,7 +87,7 @@ in  upstream
             , "record"
             , "transformers"
             , "tuples"
-            , "unsafe-coerce" 
+            , "unsafe-coerce"
             ]
         , repo = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/purescript-presto.git"
         , version = "v2.0.1"
@@ -109,5 +109,5 @@ in  upstream
           , "control"
           ]
         , repo = "ssh://git@ssh.bitbucket.juspay.net/picaf/hyper-decoder.git"
-        , version = "v1.0.1"
+        , version = "PICAF-22620-optimising-foreign-decodes"
       }
