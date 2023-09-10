@@ -1521,7 +1521,10 @@ export const addChildImpl = function (namespace) {
       }
       var cb = callbackMapper.map(function(){
         if (window.__OS ===  "WEB"){
-          setTimeout(function(){ processMapps(namespace, screenName, 75)},500)
+          setTimeout(function(){ 
+            processMapps(namespace, screenName, 75)
+            triggerAfterRender(namespace, screenName)
+          },500)
         } else {
           processMapps(namespace, screenName, 75)
           triggerAfterRender(namespace, screenName)
