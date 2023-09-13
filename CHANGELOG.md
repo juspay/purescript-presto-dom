@@ -1,3 +1,10 @@
+## [2.4.2](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.4.1...v2.4.2) (2023-09-13)
+
+
+### Bug Fixes
+
+* PICAF-23805: Fixing child afterrender for web ([9709418](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/970941898619e6727c8237f18a6bf8ca83bceaa5))
+
 ## [2.4.1](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.4.0...v2.4.1) (2023-09-04)
 
 
