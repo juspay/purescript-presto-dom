@@ -1,3 +1,10 @@
+# [2.5.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.4.2...v2.5.0) (2023-09-15)
+
+
+### Features
+
+* PICAF-22620: added partial decode instances ([961fbc5](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/961fbc571b8a1eb7663aa7d5ea58b197fb25214e))
+
 ## [2.4.2](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.4.1...v2.4.2) (2023-09-13)
 
 
