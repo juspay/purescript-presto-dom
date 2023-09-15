@@ -1,3 +1,10 @@
+## [2.5.1](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.5.0...v2.5.1) (2023-09-15)
+
+
+### Bug Fixes
+
+* PICAF-22620: Updating hyper decoder tag ([1e3463f](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/1e3463fa9bf68d405ba605092cbe220712f30440))
+
 # [2.5.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.4.2...v2.5.0) (2023-09-15)
 
 
