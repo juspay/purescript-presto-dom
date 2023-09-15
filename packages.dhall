@@ -109,5 +109,5 @@ in  upstream
           , "control"
           ]
         , repo = "ssh://git@ssh.bitbucket.juspay.net/picaf/hyper-decoder.git"
-        , version = "PICAF-22620-optimising-foreign-decodes"
+        , version = "v1.1.1"
       }
