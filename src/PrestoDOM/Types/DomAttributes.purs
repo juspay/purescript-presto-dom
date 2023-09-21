@@ -2,6 +2,7 @@ module PrestoDOM.Types.DomAttributes
   ( BottomSheetState(..)
   , Corners(..)
   , Font(..)
+  , FontWeight(..)
   , Gradient(..)
   , Gravity(..)
   , ImageUrl(..)
@@ -45,6 +46,7 @@ module PrestoDOM.Types.DomAttributes
   , nameFromImage
   , urlFromImage
   , isImageUrlEmpty
+  , renderFontWeight
   , renderGradient
   , renderGravity
   , renderInputType
@@ -925,6 +927,15 @@ renderLineSpacing = case _ of
     LineSpacing extra multiplier      -> (show extra) <> "," <> (show multiplier)
     LineSpacingExtra extra            -> (show extra) <> ",1.0"
     LineSpacingMultiplier multiplier  -> "0," <> (show multiplier)
+
+data FontWeight 
+  = FontWeight Int
+  | FontWeightWithItalic Int Boolean
+
+renderFontWeight :: FontWeight -> String
+renderFontWeight = case _ of
+  FontWeight weight -> (show weight) <> "," <> "false"
+  FontWeightWithItalic weight italic -> (show weight) <> "," <> (show italic)
 
 data BottomSheetState
  = EXPANDED
