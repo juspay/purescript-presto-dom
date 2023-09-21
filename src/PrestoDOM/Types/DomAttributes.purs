@@ -2,6 +2,7 @@ module PrestoDOM.Types.DomAttributes
   ( BottomSheetState(..)
   , Corners(..)
   , Font(..)
+  , FontWeight(..)
   , Gradient(..)
   , Gravity(..)
   , ImageUrl(..)
@@ -45,6 +46,7 @@ module PrestoDOM.Types.DomAttributes
   , nameFromImage
   , urlFromImage
   , isImageUrlEmpty
+  , renderFontWeight
   , renderGradient
   , renderGravity
   , renderInputType
@@ -974,6 +976,14 @@ instance decodeHyperLineSpacing :: HyperDecode LineSpacing where
                           Val val -> (Val val.multiplier)
     partialDecode _ = hyperDecode
 
+data FontWeight 
+  = FontWeight Int
+  | FontWeightWithItalic Int Boolean
+
+renderFontWeight :: FontWeight -> String
+renderFontWeight = case _ of
+  FontWeight weight -> (show weight) <> "," <> "false"
+  FontWeightWithItalic weight italic -> (show weight) <> "," <> (show italic)
 
 data BottomSheetState
  = EXPANDED
