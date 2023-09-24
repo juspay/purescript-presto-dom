@@ -139,6 +139,7 @@ module PrestoDOM.Properties
   , setDate
   , setEnable
   , shadow
+  , autoFillHint
   , sheetState
   , shimmer
   , shimmerActive
@@ -695,6 +696,9 @@ setDate = prop (PropName "setDate")
 -- | Shadow
 shadow :: forall i. Shadow -> Prop i
 shadow = prop (PropName "shadow")
+
+autoFillHint :: forall i. String -> Prop i
+autoFillHint = prop (PropName "autoFillHint")
 
 -- | Int
 showDividers :: forall i. Int -> Prop i
