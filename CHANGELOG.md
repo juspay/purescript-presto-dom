@@ -1,3 +1,10 @@
+## [2.5.2](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.5.1...v2.5.2) (2023-09-25)
+
+
+### Bug Fixes
+
+* PICAF-23812: Deleting all dependent namespace while terminateUI ([1b30d45](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/1b30d45bdf7607c03964672bee9e28003ea89b3f))
+
 ## [2.5.1](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.5.0...v2.5.1) (2023-09-15)
 
 
