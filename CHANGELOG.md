@@ -1,3 +1,10 @@
+## [2.5.3](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.5.2...v2.5.3) (2023-09-25)
+
+
+### Bug Fixes
+
+* PICAF-24204: Added textForhtml support in PrestoList for iOS ([df8f78b](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/df8f78bc34ed6264605d911f8bbd0bca80ed5529))
+
 ## [2.5.2](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.5.1...v2.5.2) (2023-09-25)
 
 
