@@ -240,6 +240,11 @@ export const getNamespace = function (namespace, activityID) {
 
 const deleteScopedState = function (namespace, activityID) {
   var id = activityID || state.currentActivity;
+  if(getScopedState(namespace) && getScopedState(namespace).childNamespaces && getScopedState(namespace).childNamespaces.length > 0){
+    for(var i = 0; i < getScopedState(namespace).childNamespaces.length; i++){
+      deleteScopedState(getScopedState(namespace).childNamespaces[i])
+    }
+  }
   if(!state.isPreRenderEnabled) {
     if (state.scopedState[getNamespace(namespace, activityID)]) {
       delete state.scopedState[getNamespace(namespace, activityID)];
@@ -516,6 +521,8 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType, is
       var newElem = getScopedState(props.namespace).root
       newElem.props = props;
       newElem.props.afterRender = markRootReady(props.namespace);
+      getScopedState(namespace).childNamespaces = getScopedState(namespace).childNamespaces || [];
+      getScopedState(namespace).childNamespaces.push(props.namespace);
       return parsePropsImpl(newElem, screenName, VALIDATE_ID, namespace)
     }
   }
