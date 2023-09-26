@@ -177,6 +177,8 @@ module PrestoDOM.Properties
   , justifyContent
   , alignItems
   , alignContent
+  , topShift
+  , bottomShift
   )
   where
 
@@ -620,6 +622,12 @@ pivotX = prop (PropName "pivotX")
 -- | Number
 pivotY :: forall i. Number -> Prop i
 pivotY = prop (PropName "pivotY")
+
+topShift :: forall i. Number -> Prop i
+topShift = prop (PropName "topShift")
+
+bottomShift :: forall i. Number -> Prop i
+bottomShift = prop (PropName "bottomShift")
 
 -- | String
 progressColor :: forall i. String -> Prop i
