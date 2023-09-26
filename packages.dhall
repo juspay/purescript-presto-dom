@@ -108,6 +108,6 @@ in  upstream
           , "unsafe-coerce"
           , "control"
           ]
-        , repo = "ssh://git@ssh.bitbucket.juspay.net/picaf/hyper-decoder.git"
-        , version = "v1.1.1"
+        , repo = "https://github.com/juspay/hyper-decoder.git"
+        , version = "nammayatri"
       }
