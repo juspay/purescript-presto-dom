@@ -16,14 +16,14 @@ in  upstream
             , "unsafe-coerce"
             , "web-html"
             ]
-        , repo = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/purescript-halogen-vdom.git"
-        , version = "v3.0.5"
+        , repo = "https://github.com/juspay/purescript-halogen-vdom.git"
+        , version = "update/github-purescript-halogen-vdom-repo"
         }
   with tracker =
         { dependencies =
             [ "effect"
             , "prelude"
-            , "presto"
+            , "presto" 
             , "arrays"
             , "debug"
             , "foldable-traversable"
@@ -33,8 +33,8 @@ in  upstream
             , "maybe"
             , "strings"
             ]
-        , repo = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/purescript-tracker.git"
-        , version = "v2.0.2"
+        , repo = "https://github.com/juspay/purescript-tracker.git"
+        , version = "update/github-purescript-tracker-repo"
         }
   with foreign-generic =
       { dependencies =
@@ -62,8 +62,8 @@ in  upstream
         , "typelevel-prelude"
         , "unsafe-coerce"
         ]
-      , repo = "git+ssh://git@ssh.bitbucket.juspay.net/fram/purescript-foreign-generic.git"
-      , version = "v12.0.1"
+      , repo = "https://github.com/juspay/purescript-foreign-generic.git"
+      , version = "main"
       }
   with presto =
         { dependencies =
@@ -87,10 +87,10 @@ in  upstream
             , "record"
             , "transformers"
             , "tuples"
-            , "unsafe-coerce"
+            , "unsafe-coerce" 
             ]
-        , repo = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/purescript-presto.git"
-        , version = "v2.0.1"
+        , repo = "https://github.com/juspay/purescript-presto.git"
+        , version = "update/github-purescript-presto"
         }
   with lite-decode =
       { dependencies =
@@ -108,6 +108,6 @@ in  upstream
           , "unsafe-coerce"
           , "control"
           ]
-        , repo = "ssh://git@ssh.bitbucket.juspay.net/picaf/hyper-decoder.git"
-        , version = "v1.1.1"
+        , repo = "https://github.com/juspay/hyper-decoder.git"
+        , version = "nammayatri"
       }
