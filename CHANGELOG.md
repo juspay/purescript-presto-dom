@@ -1,3 +1,10 @@
+## [2.5.4](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.5.3...v2.5.4) (2023-09-26)
+
+
+### Bug Fixes
+
+* PICAF-24530: integrating android autofill hint api ([8aa17c9](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/8aa17c9350ad54a61624fd52d80877555ff38e21))
+
 ## [2.5.3](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.5.2...v2.5.3) (2023-09-25)
 
 
