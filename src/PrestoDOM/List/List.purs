@@ -15,6 +15,7 @@ module PrestoDOM.List
   , textHolder
   , colorHolder
   , imageUrlHolder
+  , imageUrlWithFallbackHolder
   , primaryKeyHolder
   , packageIconHolder
   , textSizeHolder
@@ -269,6 +270,9 @@ primaryKeyHolder = prop (PropName "holder_primaryKey")
 
 imageUrlHolder :: forall i. String -> P.Prop i
 imageUrlHolder = prop (PropName "holder_imageUrl")
+
+imageUrlWithFallbackHolder :: forall i. String -> P.Prop i
+imageUrlWithFallbackHolder = prop (PropName "holder_imageUrlWithFallback")
 
 packageIconHolder :: forall i. String -> P.Prop i
 packageIconHolder = prop (PropName "holder_packageIcon")
