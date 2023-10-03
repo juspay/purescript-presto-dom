@@ -92,7 +92,7 @@ import Data.Int (fromString)
 import Data.List.NonEmpty (NonEmptyList, singleton)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String.Common (toLower)
-import Foreign (Foreign, ForeignError(..), unsafeFromForeign, unsafeToForeign, readBoolean, readString)
+import Foreign (Foreign, ForeignError(..), typeOf, unsafeFromForeign, unsafeToForeign, readString)
 import Foreign.Class (class Decode, class Encode, encode, decode)
 import Presto.Core.Utils.Encoding (defaultEncodeJSON)
 import Foreign.Generic (decodeJSON)
@@ -829,38 +829,56 @@ isImageUrlEmpty :: ImageUrl -> Boolean
 isImageUrlEmpty (ImageUrl "" "" _) = true
 isImageUrlEmpty _ = false
 
+decodeImageResUtil :: {resId :: Int} -> ImageUrl
+decodeImageResUtil {resId} = ImageResId resId
+
+decodeImagePathUtil :: {path :: String} -> ImageUrl
+decodeImagePathUtil input = ImagePath input.path
+
+decodeImageName :: {image :: String} -> ImageUrl
+decodeImageName {image} = ImageName image
+
+decodeListUrlImageUtl :: {placeholder :: String, url :: String } -> ImageUrl
+decodeListUrlImageUtl listUrl = ListImageUrl listUrl.url listUrl.placeholder
+
 instance hyperdecodeImageUrl :: HyperDecode ImageUrl where
     hyperDecode o success failure =
-      case val of
-        Val x -> success $ decodeImageUrlUtil x
-        DecodeErr err -> failure err
-      where
-      val = decodeForeign o
+      if typeOf o == "string"
+        then let
+          safeString = toSafeString $ unsafeFromForeign o
+          in
+          success $ ImageUrl safeString safeString false
+        else let
+          imageType =
+            case runExcept $ readProp "type" o >>= readString of
+              Right tp -> tp
+              _ -> "imageUrl"
+          in
+          case imageType of
+            "imageUrl" -> hyperDecode o (success <<< decodeImageUrlUtil) failure
+            "path"     -> hyperDecode o (success <<< decodeImagePathUtil) failure
+            "resId"    -> hyperDecode o (success <<< decodeImageResUtil) failure
+            "list"     -> hyperDecode o (success <<< decodeListUrlImageUtl) failure
+            _          -> hyperDecode o (success <<< decodeImageName) failure
     partialDecode _ = hyperDecode
 
 derive instance genericImageUrl :: Generic ImageUrl _
 instance decodeImageUrl :: Decode ImageUrl
   where
-  decode o =
-    map decodeImageUrlUtil $ do
-      fileName <- readProp "fileName" o >>= readString
-      imageUrl  <- readProp "imageUrl" o >>= readString
-      preferLocal <- readProp "preferLocal" o >>= readBoolean
-      pure $ { fileName, imageUrl, preferLocal }
+  decode o = hyperDecode o (except <<< Right) (except <<< Left <<< singleton <<< ForeignError)
 
 
-instance encodeImageUrl :: Encode ImageUrl where encode = encodeImageUrlUtil >>> unsafeToForeign
+instance encodeImageUrl :: Encode ImageUrl where encode = encodeImageUrlUtil
 instance showImageUrl :: Show ImageUrl where show = genericShow
 
-encodeImageUrlUtil :: ImageUrl -> ImageUrlType
+encodeImageUrlUtil :: ImageUrl -> Foreign
 encodeImageUrlUtil imgUrl =
   case imgUrl of
-      ImageUrl fileName imageUrl preferLocal -> {fileName, imageUrl, preferLocal}
-      ListImageUrl url placeholder -> {fileName : placeholder, imageUrl : url , preferLocal : false}
-      ImagePath path           -> {fileName : path, imageUrl : "", preferLocal : false}
-      ImageResId resId         -> {fileName : (show resId), imageUrl : "", preferLocal : false}
-      ImageName name           -> {fileName : name, imageUrl : "", preferLocal : false}
-
+      ImageUrl fileName imageUrl preferLocal -> encode {fileName, imageUrl, preferLocal}
+      ListImageUrl url placeholder -> encode {placeholder , url }
+      ImagePath path           -> encode {path}
+      ImageResId resId         -> encode {resId}
+      ImageName name           -> encode {name}
 
 decodeImageUrlUtil :: ImageUrlType -> ImageUrl
 decodeImageUrlUtil x = ImageUrl x.fileName x.imageUrl x.preferLocal
