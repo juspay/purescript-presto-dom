@@ -1,3 +1,11 @@
+## [2.5.5](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.5.4...v2.5.5) (2023-10-04)
+
+
+### Bug Fixes
+
+* PICAF-18913: moving to purescript 15.10 from latest ([1d6ea76](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/1d6ea76e8ad323101a208797744d845f2e7b24c2))
+* PICAF-23275: added string support for url with fallback ([c9dfc60](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/c9dfc60fbdc174f77fece9e6b139373c1f8f6c91))
+
 ## [2.5.4](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.5.3...v2.5.4) (2023-09-26)
 
 
