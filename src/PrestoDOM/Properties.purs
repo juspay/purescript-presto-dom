@@ -25,6 +25,7 @@ module PrestoDOM.Properties
   , backgroundTint
   , bottomFixed
   , btnBackground
+  , draggingEnabled
   , btnColor
   , buttonClickOverlay
   , buttonTint
@@ -838,6 +839,9 @@ shimmer = prop (PropName "shimmer")
 
 peakHeight :: forall i. Int -> Prop i
 peakHeight = prop (PropName "peakHeight")
+
+draggingEnabled :: forall i. Boolean -> Prop i
+draggingEnabled = prop (PropName "draggingEnabled")
 
 hideable :: forall i. Boolean -> Prop i
 hideable = prop (PropName "hideable")
