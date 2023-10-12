@@ -171,6 +171,11 @@ module PrestoDOM.Properties
   , visibility
   , weight
   , width
+  , flexDirection
+  , flexWrap
+  , justifyContent
+  , alignItems
+  , alignContent
   )
   where
 
@@ -178,7 +183,7 @@ import Prelude
 
 import Data.String (toLower)
 import Halogen.VDom.DOM.Prop (Prop(..))
-import PrestoDOM.Types.Core (class IsProp, Gradient, Gravity, InputType, Length, Margin, Orientation, Padding, Position, PropName(..), Shadow, Typeface, Visibility, toPropValue)
+import PrestoDOM.Types.Core (class IsProp, Gradient, Gravity, InputType, Length, Margin, Orientation, Padding, Position, PropName(..), Shadow, Typeface, Visibility, FlexDirection, JustifyContent, AlignContent, AlignItems, FlexWrap, toPropValue)
 import PrestoDOM.Types.DomAttributes (ImageUrl, BottomSheetState, Corners, Font(..),LetterSpacing, LineSpacing, Accessiblity, Shimmer, __IS_ANDROID)
 
 
@@ -883,3 +888,23 @@ autoCapitalizationType = prop (PropName "autoCapitalizationType")
 
 adjustViewWithKeyboard :: ∀ i. String -> Prop i
 adjustViewWithKeyboard = prop (PropName "adjustViewWithKeyboard")
+
+-- | FlexDirection
+flexDirection :: forall i. FlexDirection -> Prop i
+flexDirection = prop (PropName "flexDirection")
+
+-- | FlexWrap
+flexWrap :: forall i. FlexWrap -> Prop i
+flexWrap = prop (PropName "flexWrap")
+
+-- | JustifyContent
+justifyContent :: forall i. JustifyContent -> Prop i
+justifyContent = prop (PropName "justifyContent")
+
+-- | AlignItems
+alignItems :: forall i. AlignItems -> Prop i
+alignItems = prop (PropName "alignItems")
+
+-- | AlignContent
+alignContent :: forall i. AlignContent -> Prop i
+alignContent = prop (PropName "alignContent")

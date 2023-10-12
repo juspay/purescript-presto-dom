@@ -34,8 +34,8 @@ import Halogen.VDom.DOM.Prop (Prop) as VDom
 import Halogen.VDom.Thunk (Thunk)
 import Halogen.VDom.Types (VDom(..), ElemName(..), Namespace(..)) as VDom
 import Halogen.VDom.Types (VDom)
-import PrestoDOM.Types.DomAttributes (ImageUrl, renderImageUrl, BottomSheetState, Corners, Font, Gradient, Gravity, InputType, Length, LetterSpacing, LineSpacing, Margin, Orientation, Padding, Position, Shadow, Shimmer, Typeface, Visibility, Accessiblity, renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing,renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility, renderAccessiblity)
-import PrestoDOM.Types.DomAttributes (ImageUrl(..), nameFromImage, urlFromImage, isImageUrlEmpty, BottomSheetState(..), Corners(..), Font(..), Gradient(..), Gravity(..), InputType(..), Length(..), LetterSpacing(..), LineSpacing(..), Margin(..), Orientation(..), Padding(..), Position(..), Shadow(..), Shimmer, Typeface(..), Visibility(..), Accessiblity(..), renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing, renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility, renderAccessiblity) as Types
+import PrestoDOM.Types.DomAttributes (ImageUrl, renderImageUrl, BottomSheetState, Corners, Font, Gradient, Gravity, InputType, Length, LetterSpacing, LineSpacing, Margin, Orientation, Padding, Position, Shadow, Shimmer, Typeface, Visibility, Accessiblity, FlexDirection, JustifyContent, AlignContent, AlignItems, FlexWrap, renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing,renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility, renderAccessiblity, renderFlexDirection, renderJustifyContent, renderAlignContent, renderAlignItems, renderFlexWrap)
+import PrestoDOM.Types.DomAttributes (ImageUrl(..), nameFromImage, urlFromImage, isImageUrlEmpty, BottomSheetState(..), Corners(..), Font(..), Gradient(..), Gravity(..), InputType(..), Length(..), LetterSpacing(..), LineSpacing(..), Margin(..), Orientation(..), Padding(..), Position(..), Shadow(..), Shimmer, Typeface(..), Visibility(..), Accessiblity(..), FlexDirection(..), JustifyContent(..), AlignContent(..), AlignItems(..), FlexWrap(..), renderBottomSheetState, renderCorners, renderFont, renderGradient, renderGravity, renderInputType, renderLength, renderLetterSpacing, renderLineSpacing, renderMargin, renderOrientation, renderPadding, renderPosition, renderShadow, renderShimmer, renderTypeface, renderVisibility, renderAccessiblity, renderFlexDirection, renderJustifyContent, renderAlignContent, renderAlignItems, renderFlexWrap) as Types
 {-- data Thunk b = Thunk b (b → Effect DOM.Node) --}
 import Tracker (trackAction)
 import Tracker.Types (Level(..), Action(..)) as T
@@ -76,6 +76,11 @@ data GenProp
     | ShadowP Shadow
     | CornersP Corners
     | AccessiblityP Accessiblity
+    | FlexDirectionP FlexDirection
+    | FlexWrapP FlexWrap
+    | JustifyContentP JustifyContent
+    | AlignItemsP AlignItems
+    | AlignContentP AlignContent
 
 
 type Screen action state returnType = ScreenBase action state returnType (view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit)))
@@ -188,3 +193,17 @@ instance letterSpacingIsProp :: IsProp LetterSpacing where
 
 instance accessiblityIsProp :: IsProp Accessiblity where
   toPropValue = propFromString <<< renderAccessiblity
+instance flexDirectionIsProp :: IsProp FlexDirection where
+  toPropValue = propFromString <<< renderFlexDirection
+
+instance flexWrapIsProp :: IsProp FlexWrap where
+  toPropValue = propFromString <<< renderFlexWrap
+
+instance justifyContentIsProp :: IsProp JustifyContent where
+  toPropValue = propFromString <<< renderJustifyContent
+
+instance alignItemsIsProps :: IsProp AlignItems where
+  toPropValue = propFromString <<< renderAlignItems
+
+instance alignContentIsProps :: IsProp AlignContent where
+  toPropValue = propFromString <<< renderAlignContent

@@ -37,6 +37,7 @@ module PrestoDOM.Elements.Elements
     , webView
     , textureView
     , multiLineEditText
+    , flexBoxLayout
     ) where
 
 import Prelude
@@ -90,8 +91,6 @@ linearLayout_ screenName = rootElement screenName (ElemName "linearLayout")
 relativeLayout_ :: forall i p. Namespace -> Node (Prop i) p
 relativeLayout_ screenName = rootElement screenName (ElemName "relativeLayout")
 
-
-
 linearLayout :: forall i p. Node (Prop i) p
 linearLayout = node "linearLayout"
 
@@ -131,6 +130,8 @@ tabLayout = node "tabLayout"
 viewPager :: forall i p. Node (Prop i) p
 viewPager = node "viewPager"
 
+flexBoxLayout :: forall i p. Node (Prop i) p
+flexBoxLayout = node "flexBoxLayout"
 
 
 lottieAnimationView :: forall i p. Leaf (Prop i) p

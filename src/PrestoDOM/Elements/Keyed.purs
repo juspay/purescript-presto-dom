@@ -9,6 +9,7 @@ module PrestoDOM.Elements.Keyed
     , tabLayout
     , viewPager
     , scrollView
+    , flexBoxLayout
     ) where
 
 import Data.Tuple (Tuple)
@@ -53,4 +54,6 @@ viewPager = keyedNode "viewPager"
 scrollView :: forall i p. KeyedNode (Prop i) p
 scrollView = keyedNode "scrollView"
 
+flexBoxLayout :: forall i p. KeyedNode (Prop i) p
+flexBoxLayout = keyedNode "flexBoxLayout"
 

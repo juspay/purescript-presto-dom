@@ -2,6 +2,7 @@ module PrestoDOM.Elements.Chunk
     ( ChunkedNode
     , linearLayout
     , relativeLayout
+    , flexBoxLayout
     ) where
 
 import Halogen.VDom (ElemName(ElemName), VDom)
@@ -24,3 +25,6 @@ linearLayout = chunkedNode "linearLayout"
 
 relativeLayout :: forall i p. ChunkedNode (Prop i) p
 relativeLayout = chunkedNode "relativeLayout"
+
+flexBoxLayout :: forall i p. ChunkedNode (Prop i) p
+flexBoxLayout = chunkedNode "flexBoxLayout"

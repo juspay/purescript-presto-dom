@@ -19,6 +19,11 @@ module PrestoDOM.Types.DomAttributes
   , Typeface(..)
   , Visibility(..)
   , Accessiblity(..)
+  , FlexDirection(..)
+  , FlexWrap(..)
+  , JustifyContent(..)
+  , AlignItems(..)
+  , AlignContent(..)
   , __IS_ANDROID
   , active
   , alphaBuilder
@@ -55,6 +60,11 @@ module PrestoDOM.Types.DomAttributes
   , renderTypeface
   , renderVisibility
   , renderAccessiblity
+  , renderFlexDirection
+  , renderFlexWrap
+  , renderJustifyContent
+  , renderAlignItems
+  , renderAlignContent
   , repeatCount
   , repeatDelay
   , shape
@@ -78,6 +88,11 @@ module PrestoDOM.Types.DomAttributes
   , decodePositionUtil
   , decodeTypefaceUtil
   , decodeAccessiblityUtil
+  , decodeFlexDirectionUtil
+  , decodeFlexWrapUtil
+  , decodeJustifyContentUtil
+  , decodeAlignItemsUtil
+  , decodeAlignContentUtil
   )
   where
 
@@ -1124,3 +1139,200 @@ renderAccessiblity = case _ of
     ENABLE -> "enable_accessibility"
     DISABLE -> "disable_accessibility"
     DISABLE_DESCENDANT -> "disable_descendant_accessibility"
+-- flexDirection:
+
+-- type: 'i'
+-- row: 0
+-- row_reverse: 1
+-- column: 2 
+-- column_reverse: 3
+data FlexDirection
+    = ROW
+    | ROW_REVERSE
+    | COLUMN
+    | COLUMN_REVERSE
+
+derive instance genericFlexDirection:: Generic FlexDirection _
+instance decodeFlexDirection :: Decode FlexDirection where decode = decodeFlexDirectionUtil <<< toSafeString <<< unsafeFromForeign
+instance showFlexDirection:: Show FlexDirection where show = genericShow
+instance encodeFlexDirection :: Encode FlexDirection where encode = renderFlexDirection >>> unsafeToForeign
+
+decodeFlexDirectionUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a FlexDirection
+decodeFlexDirectionUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "FlexDirection is not defined"
+  else
+    except $
+    case toLower json of
+      "row"            -> Right ROW
+      "row_reverse"    -> Right ROW_REVERSE
+      "column"         -> Right COLUMN
+      "column_reverse" -> Right COLUMN_REVERSE
+      _             -> (Left <<< singleton <<< ForeignError) "FlexDirection is not supported"
+
+renderFlexDirection :: FlexDirection -> String
+renderFlexDirection = case _ of
+    ROW -> "row"
+    ROW_REVERSE -> "row_reverse"
+    COLUMN -> "column"
+    COLUMN_REVERSE -> "column_reverse"
+
+-- flexWrap:
+
+-- type: 'i'
+-- no_wrap: 0
+-- wrap: 1
+-- wrap_reverse: 2 
+data FlexWrap
+    = NO_WRAP
+    | WRAP
+    | WRAP_REVERSE
+
+derive instance genericFlexWrap:: Generic FlexWrap _
+instance decodeFlexWrap :: Decode FlexWrap where decode = decodeFlexWrapUtil <<< toSafeString <<< unsafeFromForeign
+instance showFlexWrap:: Show FlexWrap where show = genericShow
+instance encodeFlexWrap :: Encode FlexWrap where encode = renderFlexWrap >>> unsafeToForeign
+
+decodeFlexWrapUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a FlexWrap
+decodeFlexWrapUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "FlexWrap is not defined"
+  else
+    except $
+    case toLower json of
+      "no_wrap"            -> Right NO_WRAP
+      "wrap"               -> Right WRAP
+      "wrap_reverse"       -> Right WRAP_REVERSE
+      _             -> (Left <<< singleton <<< ForeignError) "FlexWrap is not supported"
+
+renderFlexWrap :: FlexWrap -> String
+renderFlexWrap = case _ of
+    NO_WRAP -> "no_wrap"
+    WRAP -> "wrap"
+    WRAP_REVERSE -> "wrap_reverse"
+
+-- JustifyContent:
+
+-- type: 'i'
+-- no_wrap: 0
+-- wrap: 1
+-- wrap_reverse: 2 
+data JustifyContent
+    = JUSTIFY_START
+    | JUSTIFY_END
+    | JUSTIFY_CENTER
+    | JUSTIFY_BETWEEN
+    | JUSTIFY_AROUND
+    | JUSTIFY_EVENLY
+
+derive instance genericJustifyContent:: Generic JustifyContent _
+instance decodeJustifyContent :: Decode JustifyContent where decode = decodeJustifyContentUtil <<< toSafeString <<< unsafeFromForeign
+instance showJustifyContent:: Show JustifyContent where show = genericShow
+instance encodeJustifyContent :: Encode JustifyContent where encode = renderJustifyContent >>> unsafeToForeign
+
+decodeJustifyContentUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a JustifyContent
+decodeJustifyContentUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "JustifyContent is not defined"
+  else
+    except $
+    case toLower json of
+      "flex_start" -> Right JUSTIFY_START
+      "flex_end" -> Right JUSTIFY_END
+      "center" -> Right JUSTIFY_CENTER
+      "space_between" -> Right JUSTIFY_BETWEEN
+      "space_around" -> Right JUSTIFY_AROUND
+      "space_evenly" -> Right JUSTIFY_EVENLY
+      _             -> (Left <<< singleton <<< ForeignError) "JustifyContent is not supported"
+
+renderJustifyContent :: JustifyContent -> String
+renderJustifyContent = case _ of
+    JUSTIFY_START -> "flex_start"
+    JUSTIFY_END -> "flex_end"
+    JUSTIFY_CENTER -> "center"
+    JUSTIFY_BETWEEN -> "space_between"
+    JUSTIFY_AROUND -> "space_around"
+    JUSTIFY_EVENLY -> "space_evenly"
+
+-- AlignItems:
+
+-- type: 'i'
+-- no_wrap: 0
+-- wrap: 1
+-- wrap_reverse: 2 
+data AlignItems
+    = ALIGN_START
+    | ALIGN_END
+    | ALIGN_CENTER
+    | ALIGN_BASELINE
+    | ALIGN_STRETCH
+
+derive instance genericAlignItems:: Generic AlignItems _
+instance decodeAlignItems :: Decode AlignItems where decode = decodeAlignItemsUtil <<< toSafeString <<< unsafeFromForeign
+instance showAlignItems:: Show AlignItems where show = genericShow
+instance encodeAlignItems :: Encode AlignItems where encode = renderAlignItems >>> unsafeToForeign
+
+decodeAlignItemsUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a AlignItems
+decodeAlignItemsUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "AlignItems is not defined"
+  else
+    except $
+    case toLower json of
+      "flex_start" -> Right ALIGN_START
+      "flex_end" -> Right ALIGN_END
+      "center" -> Right ALIGN_CENTER
+      "base_line" -> Right ALIGN_BASELINE
+      "stretch" -> Right ALIGN_STRETCH
+      _             -> (Left <<< singleton <<< ForeignError) "AlignItems is not supported"
+
+renderAlignItems :: AlignItems -> String
+renderAlignItems = case _ of
+    ALIGN_START -> "flex_start"
+    ALIGN_END -> "flex_end"
+    ALIGN_CENTER -> "center"
+    ALIGN_BASELINE -> "base_line"
+    ALIGN_STRETCH -> "stretch"
+
+-- AlignContent:
+
+-- type: 'i'
+-- no_wrap: 0
+-- wrap: 1
+-- wrap_reverse: 2 
+data AlignContent
+    = CONTENT_START
+    | CONTENT_END
+    | CONTENT_CENTER
+    | CONTENT_BETWEEN
+    | CONTENT_AROUND
+    | CONTENT_STRETCH
+
+derive instance genericAlignContent:: Generic AlignContent _
+instance decodeAlignContent :: Decode AlignContent where decode = decodeAlignContentUtil <<< toSafeString <<< unsafeFromForeign
+instance showAlignContent:: Show AlignContent where show = genericShow
+instance encodeAlignContent :: Encode AlignContent where encode = renderAlignContent >>> unsafeToForeign
+
+decodeAlignContentUtil :: forall a. Applicative a => String -> ExceptT (NonEmptyList ForeignError) a AlignContent
+decodeAlignContentUtil json =
+  if isUndefined json then
+    (except <<< Left <<< singleton <<< ForeignError) "AlignContent is not defined"
+  else
+    except $
+    case toLower json of
+      "flex_start" -> Right CONTENT_START
+      "flex_end" -> Right CONTENT_END
+      "center" -> Right CONTENT_CENTER
+      "space_between" -> Right CONTENT_BETWEEN
+      "space_around"  -> Right CONTENT_AROUND
+      "stretch" -> Right CONTENT_STRETCH
+      _             -> (Left <<< singleton <<< ForeignError) "AlignContent is not supported"
+
+renderAlignContent :: AlignContent -> String
+renderAlignContent = case _ of
+    CONTENT_START -> "flex_start"
+    CONTENT_END -> "flex_end"
+    CONTENT_CENTER -> "center"
+    CONTENT_BETWEEN -> "space_between"
+    CONTENT_AROUND -> "space_arounde"
+    CONTENT_STRETCH -> "stretch"
