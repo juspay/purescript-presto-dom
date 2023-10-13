@@ -66,12 +66,14 @@ foreign import addToCachedList :: EFn.EffectFn2 String String Unit
 foreign import makeCacheRootVisible :: EFn.EffectFn1 String Unit
 foreign import hideCacheRootOnAnimationEnd :: EFn.EffectFn1 String Unit
 foreign import makeScreenVisible :: EFn.EffectFn2 String String Unit
+foreign import isAndroid :: Effect Boolean
 
 foreign import addChildImpl :: forall a b. String -> String -> EFn.EffectFn3 a b Int InsertState
 foreign import addProperty :: forall a b. String -> EFn.EffectFn3 String a b Unit
 foreign import cancelBehavior :: EFn.EffectFn1 String Unit
 foreign import createPrestoElement :: forall a. Effect a
 foreign import moveChild :: forall a b. String -> EFn.EffectFn3 a b Int Unit
+
 foreign import removeChild :: forall a b. String -> EFn.EffectFn3 a b Int Unit
 foreign import replaceView :: forall a. String -> String -> EFn.EffectFn3 a String (Array String) Unit
 foreign import updatePropertiesImpl :: forall a b. String -> String ->  EFn.EffectFn2 a b Unit
@@ -149,6 +151,7 @@ updateChildrenImpl :: String -> String -> Array UpdateActions -> Aff (Array Unit
 updateChildrenImpl namespace screenName = do
   traverse
     \{action, parent, elem, index} -> do
+        isAndroid' <- liftEffect $ isAndroid
         isGenerateVdom' <- liftEffect $ isGenerateVdom
         if isGenerateVdom'
           then pure unit -- Not allowing patching when generateVdom is true
@@ -157,7 +160,11 @@ updateChildrenImpl namespace screenName = do
                 insertState <- liftEffect $ Efn.runEffectFn3 (addChildImpl namespace screenName) (encode elem) (encode parent) index
                 domAllOut <- domAll {name : screenName, parent : Just namespace} (unsafeToForeign {}) undefined insertState.dom
                 liftEffect $ EFn.runEffectFn1 addViewToParent (insertState {dom = domAllOut})
-            "move" -> liftEffect $ EFn.runEffectFn3 (moveChild namespace) elem parent index
+            "move" ->
+              liftEffect
+                if isAndroid'
+                  then EFn.runEffectFn3 (moveChild namespace) (encode elem) (encode parent) index
+                  else EFn.runEffectFn3 (moveChild namespace) elem parent index
             _ -> pure unit -- Should never reach here
 
 updateProperties :: forall a b. String -> String -> EFn.EffectFn2 a b Unit

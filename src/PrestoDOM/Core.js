@@ -39,7 +39,7 @@ function addTime(_screen){
 }
 function isImagePresent(imageName){
   if(window.juspayAssetConfig
-    && window.juspayAssetConfig.images 
+    && window.juspayAssetConfig.images
     && (window.juspayAssetConfig.images[imageName]
       ||window.juspayAssetConfig.images["jp_"+imageName])
   ) return true;
@@ -273,6 +273,11 @@ window.getIdFromNamespace = function(namespace) {
   }
 };
 
+export const isAndroid = function () {
+  return window.__OS == "ANDROID";
+}
+
+
 function getPrestoID() {
   if (window.__OS === "WEB") {
     return 1;
@@ -476,7 +481,7 @@ function parsePropsImpl(elem, screenName, VALIDATE_ID, namespace, parentType, is
     if(props.afterRender) {
       newAfterRender = props.afterRender;
     }
-    props.afterRender = () => { 
+    props.afterRender = () => {
       patchAwaitingImages(namespace,screenName,elemId);
       newAfterRender();
     }
@@ -1528,7 +1533,7 @@ export const addChildImpl = function (namespace) {
       }
       var cb = callbackMapper.map(function(){
         if (window.__OS ===  "WEB"){
-          setTimeout(function(){ 
+          setTimeout(function(){
             processMapps(namespace, screenName, 75)
             triggerAfterRender(namespace, screenName)
           },500)
@@ -1658,6 +1663,7 @@ export const cancelBehavior = function (ty) {
   var canceler = window.__CANCELER[ty];
   canceler();
 }
+
 
 
 export const moveChild = function(namespace) {
