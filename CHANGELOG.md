@@ -1,3 +1,16 @@
+# [2.6.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.5.5...v2.6.0) (2023-10-16)
+
+
+### Bug Fixes
+
+* PICAF-18913: Fix compilation error caused by PR:42 ([08b6929](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/08b6929968747a45f7c4fa73e4764579a0af66b7))
+* PICAF-18913: fixed move view for android alone ([6a0ae18](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/6a0ae186b0b843a3e01ee3ff6464324bd52da882))
+
+
+### Features
+
+* PICAF-23365: Added FlexBoxLayout ([4622c6b](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/4622c6b9d8c505703c585939911bd033b5142913))
+
 ## [2.5.5](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.5.4...v2.5.5) (2023-10-04)
 
 
