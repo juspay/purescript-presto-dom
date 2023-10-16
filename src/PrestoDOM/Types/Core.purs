@@ -3,7 +3,6 @@ module PrestoDOM.Types.Core
     , PrestoDOM
     , Props
     , toPropValue
-    , GenProp(..)
     , Screen
     , ScreenBase
     , ScopedScreen
@@ -56,32 +55,6 @@ type Cmd action = Array (Effect action)
 type Eval action returnType state = Either (Tuple (Maybe (Tuple state (Cmd action))) returnType) (Tuple state (Cmd action))
 
 type Props i = Array (Prop i)
-
-data GenProp
-    = LengthP Length
-    | PositionP Position
-    | MarginP Margin
-    | PaddingP Padding
-    | FontP Font
-    | InputTypeP InputType
-    | OrientationP Orientation
-    | TypefaceP Typeface
-    | VisibilityP Visibility
-    | GravityP Gravity
-    | NumberP Number
-    | BooleanP Boolean
-    | IntP Int
-    | StringP String
-    | TextP String
-    | ShadowP Shadow
-    | CornersP Corners
-    | AccessiblityP Accessiblity
-    | FlexDirectionP FlexDirection
-    | FlexWrapP FlexWrap
-    | JustifyContentP JustifyContent
-    | AlignItemsP AlignItems
-    | AlignContentP AlignContent
-
 
 type Screen action state returnType = ScreenBase action state returnType (view :: (action -> Effect Unit) -> state -> VDom (Array (Prop (Effect Unit))) (Thunk PrestoWidget (Effect Unit)))
 
