@@ -7,6 +7,7 @@ module PrestoDOM.List
   , createListItem
   , createOnclick
   , list
+  , viewPager2
   , listDataV2
   , listItem
   , onItemClick
@@ -31,6 +32,7 @@ module PrestoDOM.List
   , preComputeListItemWithFragment
   , animationSetHolder
   , testIdHolder
+  , cornerRadiusHolder
   ) where
 
 import Prelude
@@ -229,6 +231,9 @@ createListData vals = vals
 list :: forall i p. Array (P.Prop i) -> VDom (Array (P.Prop i)) p
 list props = element (ElemName "listView") props []
 
+viewPager2 :: forall i p. Array (P.Prop i) -> VDom (Array (P.Prop i)) p
+viewPager2 props = element (ElemName "viewPager2") props []
+
 -- | Events
 -- | Events supported by list item
 onItemClick :: forall a. (a -> Effect Unit ) -> (Int -> a) -> P.Prop (Effect Unit)
@@ -279,6 +284,10 @@ packageIconHolder = prop (PropName "holder_packageIcon")
 
 backgroundHolder :: forall i. String -> P.Prop i
 backgroundHolder = prop (PropName "holder_background")
+
+-- | cornerRadiusHolder - "10.0,true,true,true,true" | "10.0"
+cornerRadiusHolder :: forall i. String -> P.Prop i
+cornerRadiusHolder = prop (PropName "holder_cornerRadius")
 
 colorHolder :: forall i. String -> P.Prop i
 colorHolder = prop (PropName "holder_color")

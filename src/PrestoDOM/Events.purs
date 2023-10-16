@@ -29,6 +29,9 @@ module PrestoDOM.Events
     , mouseEventOnClick
     , onInspectClick
     , emitComponentConfig
+    , onPageScrolled
+    , onPageScrollStateChanged
+    , onPageSelected
     ) where
 
 import Prelude
@@ -215,6 +218,15 @@ onSlide push f = event (DOM.EventType "onSlide") (Just <<< (makeEvent (push <<< 
 onStateChanged :: forall a. (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
 onStateChanged push f = event (DOM.EventType "onStateChanged") (Just <<< (makeEvent (push <<< f)))
 
+
+onPageSelected :: forall a. (a -> Effect Unit ) -> (Int -> a) -> Prop (Effect Unit)
+onPageSelected push f = event (DOM.EventType "onPageSelected") (Just <<< (makeEvent (push <<< f)))
+
+onPageScrollStateChanged :: forall a. (a -> Effect Unit ) -> (Int -> a) -> Prop (Effect Unit)
+onPageScrollStateChanged push f = event (DOM.EventType "onPageScrollStateChanged") (Just <<< (makeEvent (push <<< f)))
+
+onPageScrolled :: forall a. (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
+onPageScrolled push f = event (DOM.EventType "onPageScrolled") (Just <<< (makeEvent (push <<< f)))
 
 onAnimationEnd :: forall a. (a ->  Effect Unit) -> (String -> a) -> Prop (Effect Unit)
 onAnimationEnd push f = event (DOM.EventType "onAnimationEnd") (Just <<< (makeEvent (push <<< f)))

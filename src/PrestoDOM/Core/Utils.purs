@@ -42,7 +42,7 @@ foreign import replayListFragmentCallbacksImpl :: forall a. String -> String -> 
 foreign import setDebounceToCallback :: String -> String
 
 isListContainer :: String -> Boolean
-isListContainer viewType = elem viewType ["listView","recyclerView"]
+isListContainer viewType = elem viewType ["listView","recyclerView","viewPager2"]
 
 callMicroAppList :: forall a. String -> a -> (Foreign -> Effect Unit) -> Effect (Effect Unit)
 callMicroAppList = callMicroAppListItem

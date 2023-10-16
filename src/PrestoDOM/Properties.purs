@@ -35,6 +35,7 @@ module PrestoDOM.Properties
   , circularLoader
   , classList
   , className
+  , currentItem
   , clickable
   , clipChildren
   , clipToOutline
@@ -945,3 +946,7 @@ alignContent = prop (PropName "alignContent")
 
 selectAllOnFocus :: ∀ i. Boolean -> Prop i
 selectAllOnFocus = prop (PropName "selectAllOnFocus")
+
+-- | View Pager Current Item
+currentItem :: ∀ i. Int -> Prop i
+currentItem = prop (PropName "currentItem")
