@@ -417,6 +417,10 @@ function isRecyclerViewSupported(){
 
 
 const addItToQuee = (namespace,screenName,rootId,patch) => {
+  if (getConstState(namespace).prerenderScreens.indexOf(screenName) != -1) {
+    getConstState(namespace).waitingIcons[screenName][rootId] = getConstState(namespace).waitingIcons[screenName][rootId] || [];
+    getConstState(namespace).waitingIcons[screenName][rootId].push(patch)
+  }
   getScopedState(namespace).waitingIcons[screenName][rootId] = getScopedState(namespace).waitingIcons[screenName][rootId] || [];
   getScopedState(namespace).waitingIcons[screenName][rootId].push(patch);
 }
@@ -442,6 +446,9 @@ function getAttachedRoots(namespace,screenName) {
   return getScopedState(namespace).rootAttached[screenName];
 }
 function patchAwaitingImages(namespace,screenName,rootId) {
+  if (getConstState(namespace).prerenderScreens.indexOf(screenName) != -1) {
+    getConstState(namespace).waitingIcons[screenName][rootId] = [];
+  }
   getAttachedRoots(namespace,screenName)[rootId] = true;
   getScopedState(namespace).waitingIcons = getScopedState(namespace).waitingIcons || {};
   getScopedState(namespace).waitingIcons[screenName] = getScopedState(namespace).waitingIcons[screenName] || {}
