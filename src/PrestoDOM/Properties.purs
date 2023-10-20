@@ -180,6 +180,7 @@ module PrestoDOM.Properties
   , transition
   , topShift
   , bottomShift
+  , selectAllOnFocus
   )
   where
 
@@ -927,3 +928,6 @@ alignItems = prop (PropName "alignItems")
 -- | AlignContent
 alignContent :: forall i. AlignContent -> Prop i
 alignContent = prop (PropName "alignContent")
+
+selectAllOnFocus :: ∀ i. Boolean -> Prop i
+selectAllOnFocus = prop (PropName "selectAllOnFocus")
