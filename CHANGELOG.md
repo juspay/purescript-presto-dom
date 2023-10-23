@@ -1,3 +1,10 @@
+## [2.6.1](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.6.0...v2.6.1) (2023-10-23)
+
+
+### Bug Fixes
+
+* PICAF-23375: fixed icons missing during update activity ([6cc310c](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/6cc310cc5fcefc88cf11313ba44e427d16d6c440))
+
 # [2.6.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.5.5...v2.6.0) (2023-10-16)
 
 
