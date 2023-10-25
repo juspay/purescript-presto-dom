@@ -35,6 +35,7 @@ module PrestoDOM.Properties
   , classList
   , className
   , clickable
+  , clickEnabled
   , clipChildren
   , clipToOutline
   , clipToPadding
@@ -317,6 +318,9 @@ className = prop (PropName "className")
 clickable :: forall i. Boolean -> Prop i
 clickable = prop (PropName "clickable")
 
+-- | Boolean
+clickEnabled :: forall i. Boolean -> Prop i
+clickEnabled = prop (PropName "enabled")
 -- | Boolean
 clipChildren :: forall i. Boolean -> Prop i
 clipChildren = prop (PropName "clipChildren")
