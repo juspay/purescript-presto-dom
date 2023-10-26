@@ -926,6 +926,55 @@ renderLineSpacing = case _ of
     LineSpacingExtra extra            -> (show extra) <> ",1.0"
     LineSpacingMultiplier multiplier  -> "0," <> (show multiplier)
 
+instance showLineSpacing :: Show LineSpacing
+  where show = renderLineSpacing
+
+type LineSpacingType = { extra :: Maybe Int, multiplier :: Maybe Number }
+
+instance encodeLineSpacing :: Encode LineSpacing where encode = encodeLineSpacingUtil >>> encode
+
+encodeLineSpacingUtil :: LineSpacing -> LineSpacingType
+encodeLineSpacingUtil = case _ of
+  LineSpacing extra multiplier      -> { extra: Just extra, multiplier: Just multiplier}
+  LineSpacingExtra extra            -> { extra: Just extra, multiplier: Nothing }
+  LineSpacingMultiplier multiplier  -> { extra:    Nothing, multiplier: Just multiplier }
+
+instance decodeLineSpacing :: Decode LineSpacing where decode = decodeLineSpacingUtil
+
+decodeLineSpacingUtil :: forall a. Applicative a => Foreign -> ExceptT (NonEmptyList ForeignError) a LineSpacing
+decodeLineSpacingUtil json = let
+  (decodedJson :: Either (NonEmptyList ForeignError) LineSpacingType) = (runExcept $ decode json :: _ LineSpacingType)
+  (extra :: Either (NonEmptyList ForeignError) (Maybe Int)) = decodedJson >>= \a -> Right $ a.extra
+  (multiplier :: Either (NonEmptyList ForeignError) (Maybe Number)) = decodedJson >>= \a -> Right $ a.multiplier
+  in except $ 
+    case  extra          ,        multiplier     of
+          Right (Just e) ,        Right (Just m) -> Right $ LineSpacing e m
+          Right (Just e) ,        Right Nothing  -> Right $ LineSpacingExtra e
+          Right Nothing  ,        Right (Just m) -> Right $ LineSpacingMultiplier m
+          Right Nothing  ,        Right Nothing  -> Right $ LineSpacingExtra 0
+          Left err       ,        _              -> Left err
+          _              ,        Left err       -> Left err
+
+instance decodeHyperLineSpacing :: HyperDecode LineSpacing where
+    hyperDecode obj success failure =
+        case  extra        ,        multiplier   of
+              Val (Just e) ,        Val (Just m) -> success $ LineSpacing e m
+              Val (Just e) ,        Val Nothing  -> success $ LineSpacingExtra e
+              Val Nothing  ,        Val (Just m) -> success $ LineSpacingMultiplier m
+              Val Nothing  ,        Val Nothing  -> success $ LineSpacingExtra 0
+              DecodeErr e  ,        _            -> failure e
+              _            ,        DecodeErr e  -> failure e
+        where
+            decodedJson = decodeForeign obj :: DecodedVal LineSpacingType
+            extra = case decodedJson of
+                      DecodeErr err -> DecodeErr err
+                      Val val -> (Val val.extra)
+            multiplier = case decodedJson of 
+                          DecodeErr err -> DecodeErr err
+                          Val val -> (Val val.multiplier)
+    partialDecode _ = hyperDecode
+
+
 data BottomSheetState
  = EXPANDED
  | COLLAPSED
