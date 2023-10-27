@@ -1,3 +1,10 @@
+## [2.6.2](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.6.1...v2.6.2) (2023-10-27)
+
+
+### Bug Fixes
+
+* PICAF-24720: lineSpacing encode & decode ([d1d7ca5](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/d1d7ca5d6a0aac444f7aae414eec2793c86f0ac9))
+
 ## [2.6.1](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.6.0...v2.6.1) (2023-10-23)
 
 
