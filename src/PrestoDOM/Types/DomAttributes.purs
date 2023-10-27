@@ -932,7 +932,6 @@ instance showLineSpacing :: Show LineSpacing
 type LineSpacingType = { extra :: Maybe Int, multiplier :: Maybe Number }
 
 instance encodeLineSpacing :: Encode LineSpacing where encode = encodeLineSpacingUtil >>> encode
-
 encodeLineSpacingUtil :: LineSpacing -> LineSpacingType
 encodeLineSpacingUtil = case _ of
   LineSpacing extra multiplier      -> { extra: Just extra, multiplier: Just multiplier}
@@ -940,7 +939,6 @@ encodeLineSpacingUtil = case _ of
   LineSpacingMultiplier multiplier  -> { extra:    Nothing, multiplier: Just multiplier }
 
 instance decodeLineSpacing :: Decode LineSpacing where decode = decodeLineSpacingUtil
-
 decodeLineSpacingUtil :: forall a. Applicative a => Foreign -> ExceptT (NonEmptyList ForeignError) a LineSpacing
 decodeLineSpacingUtil json = let
   (decodedJson :: Either (NonEmptyList ForeignError) LineSpacingType) = (runExcept $ decode json :: _ LineSpacingType)
