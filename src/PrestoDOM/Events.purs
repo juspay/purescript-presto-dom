@@ -212,7 +212,7 @@ onScrollStateChange push f = event (DOM.EventType "onScrollStateChange") (Just <
 onSlide :: forall a. (a -> Effect Unit ) -> (Number -> a) -> Prop (Effect Unit)
 onSlide push f = event (DOM.EventType "onSlide") (Just <<< (makeEvent (push <<< f)))
 
-onStateChanged :: forall a. (a -> Effect Unit ) -> (Number -> a) -> Prop (Effect Unit)
+onStateChanged :: forall a. (a -> Effect Unit ) -> (String -> a) -> Prop (Effect Unit)
 onStateChanged push f = event (DOM.EventType "onStateChanged") (Just <<< (makeEvent (push <<< f)))
 
 
