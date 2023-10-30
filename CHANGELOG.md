@@ -1,3 +1,10 @@
+## [2.6.3](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.6.2...v2.6.3) (2023-10-30)
+
+
+### Bug Fixes
+
+* PICAF-24929: added keep_gone so we dont remove elements ([f6e4289](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/f6e42895fc6f07fdfa63207ec7c7dcd08cbfe569))
+
 ## [2.6.2](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.6.1...v2.6.2) (2023-10-27)
 
 
