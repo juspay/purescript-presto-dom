@@ -17,7 +17,7 @@ in  upstream
             , "web-html"
             ]
         , repo = "git+ssh://git@ssh.bitbucket.juspay.net/picaf/purescript-halogen-vdom.git"
-        , version = "v3.0.1"
+        , version = "v3.0.5"
         }
   with tracker =
         { dependencies =

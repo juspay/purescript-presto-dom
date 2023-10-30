@@ -526,6 +526,7 @@ data Visibility
     = VISIBLE
     | INVISIBLE
     | GONE
+    | KEEP_GONE --- its a hackkkkk
 
 derive instance genericVisibility:: Generic Visibility _
 derive instance eqVisibility :: Eq Visibility
@@ -560,6 +561,7 @@ renderVisibility = case _ of
     VISIBLE -> "visible"
     INVISIBLE -> "invisible"
     GONE -> "gone"
+    KEEP_GONE -> "keep_gone"
 
 
 {-- gravity: { --}
@@ -1191,7 +1193,7 @@ renderAccessiblity = case _ of
 -- type: 'i'
 -- row: 0
 -- row_reverse: 1
--- column: 2 
+-- column: 2
 -- column_reverse: 3
 data FlexDirection
     = ROW
@@ -1229,7 +1231,7 @@ renderFlexDirection = case _ of
 -- type: 'i'
 -- no_wrap: 0
 -- wrap: 1
--- wrap_reverse: 2 
+-- wrap_reverse: 2
 data FlexWrap
     = NO_WRAP
     | WRAP
@@ -1263,7 +1265,7 @@ renderFlexWrap = case _ of
 -- type: 'i'
 -- no_wrap: 0
 -- wrap: 1
--- wrap_reverse: 2 
+-- wrap_reverse: 2
 data JustifyContent
     = JUSTIFY_START
     | JUSTIFY_END
@@ -1306,7 +1308,7 @@ renderJustifyContent = case _ of
 -- type: 'i'
 -- no_wrap: 0
 -- wrap: 1
--- wrap_reverse: 2 
+-- wrap_reverse: 2
 data AlignItems
     = ALIGN_START
     | ALIGN_END
@@ -1346,7 +1348,7 @@ renderAlignItems = case _ of
 -- type: 'i'
 -- no_wrap: 0
 -- wrap: 1
--- wrap_reverse: 2 
+-- wrap_reverse: 2
 data AlignContent
     = CONTENT_START
     | CONTENT_END
