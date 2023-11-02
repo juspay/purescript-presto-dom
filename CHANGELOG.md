@@ -1,3 +1,10 @@
+# [2.7.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.6.3...v2.7.0) (2023-11-02)
+
+
+### Features
+
+* PICAF-24556: added url with fallback for presto list ([ae13acf](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/ae13acf7389c8b488f65b23cf3aad3ca1f16616b))
+
 ## [2.6.3](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.6.2...v2.6.3) (2023-10-30)
 
 
