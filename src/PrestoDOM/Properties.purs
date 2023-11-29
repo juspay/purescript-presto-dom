@@ -182,6 +182,8 @@ module PrestoDOM.Properties
   , topShift
   , bottomShift
   , selectAllOnFocus
+  , disableKeyboardAvoidance
+  , enableShift
   )
   where
 
@@ -258,6 +260,14 @@ animation = prop (PropName "animation")
 -- | Boolean
 enableRefresh :: forall i. Boolean -> Prop i
 enableRefresh = prop (PropName "enableRefresh")
+
+-- | Boolean
+disableKeyboardAvoidance :: forall i. Boolean -> Prop i
+disableKeyboardAvoidance = prop (PropName "disableKeyboardAvoidance")
+
+-- | Boolean
+enableShift :: forall i. Boolean -> Prop i
+enableShift = prop (PropName "enableShift")
 
 -- | Boolean
 setEnable :: forall i. Boolean -> Prop i
