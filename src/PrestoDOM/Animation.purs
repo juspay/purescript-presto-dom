@@ -46,10 +46,13 @@ module PrestoDOM.Animation
   , exitAnimationSetForward
   , exitAnimationSetBackward
   , hoverAnimationSet
+  , hoverAnimationSetImpl
+  , hoverWithAnimationSet
   , _mergeAnimation
   , decodeRepeatCountUtil
   , decodeRepeatModeUtil
   , decodeInterpolatorUtil
+  , hoverInlineAnimations
   ) where
 
 import Prelude
@@ -415,6 +418,9 @@ expandDirection = animProp "expandDirection"  -- 1 LEFT , 2 - UP , 3 - RIGHT , 4
 tag :: String -> AnimProp
 tag = AnimProp "tag"
 
+hoverInlineAnimations :: forall w. Array Animation -> Array (Prop w)
+hoverInlineAnimations = hoverWithAnimationSet "inlineAnimation"
+
 entryAnimationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
 entryAnimationSet = animationSetImpl "entryAnimation"
 
@@ -440,15 +446,29 @@ lottieAnimationSet :: forall w. Array Animation -> PrestoDOM (Effect Unit) w -> 
 lottieAnimationSet = animationSetImpl "lottieAnimation"
 
 hoverAnimationSet :: forall w. Array (Prop (Effect Unit)) -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
-hoverAnimationSet hoverProps view = do
+hoverAnimationSet = hoverAnimationSetImpl "onHover"
+
+hoverAnimationSetImpl :: forall w. String -> Array (Prop (Effect Unit)) -> PrestoDOM (Effect Unit) w -> PrestoDOM (Effect Unit) w
+hoverAnimationSetImpl propName hoverProps view = do
   case os, view of
     "WEB", Elem ns eName props child -> do
-      let newProps = props <> [prop (PropName "onHover") $ mergeHoverProps hoverProps ]
+      let newProps = props <> [prop (PropName propName) $ mergeHoverProps hoverProps ]
       Elem ns eName newProps child
     "WEB", Keyed ns eName props child -> do
-      let newProps = props <> [prop (PropName "onHover") $ mergeHoverProps hoverProps ]
+      let newProps = props <> [prop (PropName propName) $ mergeHoverProps hoverProps ]
       Keyed ns eName newProps child
     _, _ -> view
+
+hoverWithAnimationSet :: forall w. String -> Array Animation -> Array (Prop w)
+hoverWithAnimationSet propName hoverAnimations =
+  if (length filterAnimations) /= 0 && os == "WEB" 
+    then [prop (PropName propName) $ _mergeAnimation filterAnimations] <> [prop (PropName "hasAnimation") "true"]
+    else []
+  where
+    filterAnimations = foldr
+                      (\(Animation anims shouldRun) b -> if (shouldRun) then ([anims] <> b) else b)
+                      ([] :: Array (Array AnimProp))
+                      hoverAnimations
 
 -- | Animation set is a composible animation view
 -- | It applies the set of animations on the provided view

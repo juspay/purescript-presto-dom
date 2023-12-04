@@ -176,6 +176,7 @@ module PrestoDOM.Properties
   , justifyContent
   , alignItems
   , alignContent
+  , transition
   )
   where
 
@@ -509,6 +510,11 @@ layoutGravity = prop (PropName "layout_gravity")
 -- | Boolean
 layoutTransition :: forall i. Boolean -> Prop i
 layoutTransition = prop (PropName "layoutTransition")
+
+-- | Duration
+transition :: forall i. Number -> Prop i
+transition = prop (PropName "transition")
+
 
 -- | Boolean
 autofocus :: forall i. Boolean -> Prop i
