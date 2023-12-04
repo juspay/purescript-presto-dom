@@ -1,3 +1,10 @@
+## [2.7.1](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.7.0...v2.7.1) (2023-12-04)
+
+
+### Bug Fixes
+
+* PICAF-23721: Added Transition Prop + hover with Animation set ([7138425](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/commit/71384250f3da6718ced68769f3b1b0597364ea81))
+
 # [2.7.0](https://ssh.bitbucket.juspay.net/picaf/purescript-presto-dom/compare/v2.6.3...v2.7.0) (2023-11-02)
 
 
